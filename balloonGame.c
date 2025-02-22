@@ -97,6 +97,14 @@ volatile char mapXCoord; // where are you in the world (right edge of screen)
  * ..???... : stalagtite length
  * .....??? : stalagmite length
  */
+
+const struct Goods goods[4] =
+{
+    {"Rice        ", 75, 3, 0, 0},
+    {"Wheat       ", 75, 3, 0, 0},
+    {"Corn        ", 75, 3, 0, 0},
+};
+ 
 const char terrain[256] =
 {
     011,011,012,023,023,023,014,015,  025,025,025,024,034,043,053,052, 
@@ -117,9 +125,9 @@ const char terrain[256] =
     051,051,052,043,043,043,033,033,  024,034,044,043,043,032,022,012
 };
 struct CityData cities[3] = {
-    {s"cloud city"},
-    {s"floria    "},
-    {s"sirenia   "}
+    {s"cloud city", CITY_RESPECT_LOW, {0,5}, {1,1,CITY_RESPECT_NONE,2} },
+    {s"floria    ", CITY_RESPECT_MED, {1,5}, {2,1,CITY_RESPECT_NONE,2} },
+    {s"sirenia   ", CITY_RESPECT_HIGH, {2,5}, {0,1,CITY_RESPECT_NONE,2} }
 };
 
 const char decelPattern[8] =  {2,3,4,5,6,7,8,16};
@@ -439,9 +447,24 @@ void landingOccurred(void)
     vic.ctrl2 = 0xc8; // 40 columns, no scroll
     vic.color_back = SKY_COLOR;
     
-    drawBox(0,0,30,19,VCOL_YELLOW);
+    drawBox(0,0,24,19,VCOL_YELLOW);
     drawBox(0,20,39,24,VCOL_YELLOW);
-    drawBox(31,0,39,19,VCOL_BLACK);
+    drawBox(25,0,39,4,VCOL_BLACK);
+    drawBox(25,5,39,19,VCOL_BLACK);
+
+    const char respect[7] = s"respect";
+    // City Name
+    putText(cities[cityNum-1].name, 27, 1, 10, VCOL_WHITE);
+    putText(respect, 26, 3, 7, VCOL_DARK_GREY);
+    if (cities[cityNum-1].respect == CITY_RESPECT_NONE) {
+        putText(s"n/a ", 34, 3, 4, VCOL_BLACK);
+    } else if (cities[cityNum-1].respect == CITY_RESPECT_LOW){
+        putText(s"low ", 34, 3, 4, VCOL_DARK_GREY);
+    } else if (cities[cityNum-1].respect == CITY_RESPECT_MED){
+        putText(s"med ", 34, 3, 4, VCOL_BROWN);
+    } else {
+        putText(s"high", 34, 3, 4, VCOL_YELLOW);
+    }
 
     for (;;) {
         if (kbhit()){

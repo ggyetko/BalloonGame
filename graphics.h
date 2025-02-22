@@ -22,5 +22,14 @@ void drawBox(unsigned char x1,unsigned char y1,unsigned char x2,unsigned char y2
         ScreenWork[x2+y*40] = 98;
         ScreenColor[x2+y*40] = col;
     }
-    
+}
+
+void putText(const char* text, unsigned char x, unsigned char y, unsigned char n, unsigned int color)
+{
+    unsigned int location = x + y*40;
+    unsigned char c;
+    for (c=0;c<n;c++,location++) {
+        ScreenWork[location] = text[c];
+        ScreenColor[location] = color;
+    }
 }
