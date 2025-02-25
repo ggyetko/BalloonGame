@@ -157,13 +157,12 @@ void setScrollAmnt(char x)
 
 __interrupt void prepScreen(void)
 {
-    vic.color_border -= 1;
     if (currScreen == 0) {
         vic.memptr = 0x10 | (vic.memptr & 0x0f); // point to screen0
     } else {
         vic.memptr = 0xb0 | (vic.memptr & 0x0f); // point to screen1
     }
-    vic.color_border += 1;
+    setScrollAmnt (xScroll);
 }
 
 __interrupt void lowerStatBar(void)
@@ -218,9 +217,7 @@ __interrupt void lowerStatBar(void)
 
 __interrupt void scrollLeft(void)
 {
-    vic.color_border -= 1;
     vic.color_back = SKY_COLOR;
-
     unsigned char doScroll = status & STATUS_SCROLLING;
     if (!doScroll) {
         if (noActionDelay) {
@@ -268,9 +265,7 @@ __interrupt void scrollLeft(void)
                 }  
             }
         } 
-        setScrollAmnt (xScroll);
     }
-    vic.color_border += 1;
 }
 
 // Two raster interrupts (for now)
