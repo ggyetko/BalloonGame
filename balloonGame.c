@@ -42,7 +42,7 @@
 // My font at fixed location
 #pragma data(charset)
 __export const char charset[2048] = {
-	#embed "myFont2.bin"
+	#embed "myFont.bin"
 };
 
 // spriteset at fixed location
@@ -125,9 +125,9 @@ const char terrain[256] =
     051,051,052,043,043,043,033,033,  024,034,044,043,043,032,022,012
 };
 struct CityData cities[3] = {
-    {s"cloud city", CITY_RESPECT_LOW, {0,5}, {1,1,CITY_RESPECT_NONE,2} },
-    {s"floria    ", CITY_RESPECT_MED, {1,5}, {2,1,CITY_RESPECT_NONE,2} },
-    {s"sirenia   ", CITY_RESPECT_HIGH, {2,5}, {0,1,CITY_RESPECT_NONE,2} }
+    {s"cloud city", CITY_RESPECT_NONE, {0,5}, {1,1,CITY_RESPECT_NONE,2} },
+    {s"floria    ", CITY_RESPECT_NONE, {1,5}, {2,1,CITY_RESPECT_NONE,2} },
+    {s"sirenia   ", CITY_RESPECT_NONE, {2,5}, {0,1,CITY_RESPECT_NONE,2} }
 };
 
 const char decelPattern[8] =  {2,3,4,5,6,7,8,16};
@@ -305,6 +305,17 @@ void clearRasterIrqs(void)
     rirq_start();
 }
 
+void clearKeyboardCache(void)
+{
+    for (;;) {
+        if (kbhit()){
+            char ch = getch();
+        } else {
+            break;
+        }
+    }
+}
+
 struct Passenger {
     char name[10];
     unsigned char fare;
@@ -323,6 +334,7 @@ struct PlayerData {
     unsigned char balloonHealth; // value out of 8
     Cargo cargo;
 };
+
 void balloonDamage(PlayerData *data){
     if (data->balloonHealth) {
         data->balloonHealth--;
@@ -435,6 +447,38 @@ unsigned char terrainCollisionOccurred(void)
     return 0;
 }
 
+enum CityMenuStates {
+    CITY_MENU_MAIN = 0,
+    CITY_MENU_BUY,
+    CITY_MENU_SELL,
+    CITY_MENU_MAYOR,
+    CITY_MENU_REPAIR,  // repairs to cabins, balloon, cargo space
+    CITY_MENU_UPGRADE  // upgrade cabins to 1st class, kitchen, ???
+};
+const unsigned char MAIN_MENU_SIZE = 6;
+const char main_menu_options[6][10] = {
+    s"buy       ",
+    s"sell      ",
+    s"mayor     ",
+    s"repair    ",
+    s"upgrade   ",
+    s"exit      "
+};
+
+void cityMenu(void) 
+{
+    unsigned char menuState = CITY_MENU_MAIN;
+    unsigned char homeItem = 0;
+    
+    for (;;) {
+        unsigned char response = getMenuChoice(6, main_menu_options);
+        
+        if (response == 5) {
+            break;
+        }
+    }
+}
+
 void landingOccurred(void)
 {
     clearRasterIrqs();
@@ -466,22 +510,8 @@ void landingOccurred(void)
         putText(s"high", 34, 3, 4, VCOL_YELLOW);
     }
 
-    for (;;) {
-        if (kbhit()){
-            char ch = getch();
-        } else {
-            break;
-        }
-    }
-        
-    for (;;) {
-        if (kbhit()){
-            char ch = getch();
-            if (ch == 'Z') {  
-                break;
-            }
-        }
-    }
+    clearKeyboardCache();
+    cityMenu();
     
     if (currScreen == 0) {
         vic.memptr = 0x10 | (vic.memptr & 0x0f);
@@ -605,10 +635,10 @@ void showScoreBoard(struct PlayerData* data) {
             ScreenColor[863+5+x] = VCOL_RED;
         }
         if (x < data->balloonHealth) {
-            Screen0[903+5+x] = 78;
+            Screen0[903+5+x] = 27;
             ScreenColor[903+5+x] = VCOL_GREEN;
         } else {
-            Screen0[903+5+x] = 78;
+            Screen0[903+5+x] = 27;
             ScreenColor[903+5+x] = VCOL_RED;
         }
     }

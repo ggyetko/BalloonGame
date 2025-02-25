@@ -7,6 +7,8 @@ enum CityRespect {
     CITY_RESPECT_HIGH  
 };
 
+
+
 struct CityData {
     unsigned char name[10];
     unsigned char respect;
