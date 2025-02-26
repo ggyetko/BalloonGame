@@ -1,3 +1,5 @@
+#include "utils.h"
+
 // Graphics Routines
 void drawBox(unsigned char x1,unsigned char y1,unsigned char x2,unsigned char y2,unsigned char col)
 {
@@ -43,20 +45,35 @@ void putText(const char* text, unsigned char x, unsigned char y, unsigned char n
 // Takes an array of text options [10] * num
 // return 0-based player's choice
 // navigates with w-up, s-down, ENTER-select
-const unsigned char maxDisplayedChoices = 12;
-unsigned char getMenuChoice(unsigned char num, const char text[][10])
+const unsigned char maxDisplayedChoices = 10;
+unsigned char getMenuChoice(unsigned char num, const char text[][10], bool doCosts, const unsigned int costs[])
 {
     unsigned char currHome = 0;
     unsigned char currSelect = 0;
+    
+    for (unsigned char x = 27; x < 39; x++) {
+        for (unsigned char y = 6; y < 19; y++) {
+            ScreenWork[x+y*40] = 32;
+        }
+    }
     
     for (;;) {
         for (unsigned char y=currHome; y<currHome+maxDisplayedChoices; y++) {
             if (y < num) {
                 putText(text[y], 27, 6+y-currHome, 10, currSelect == y ? VCOL_WHITE : VCOL_DARK_GREY);
+                if (doCosts && (y==currSelect)) {
+                    if (costs[y]) {
+                        char output[5];
+                        uint16ToString(costs[y], output);
+                        putText(s"cost:",27,18,5,VCOL_BLACK);
+                        putText(output,32,18,5,VCOL_WHITE);
+                    } else {
+                        putText(s"           ",27,18,11,VCOL_BLACK);
+                    }
+                }
             } else {
                 putText("          ", 27, 6+y-currHome, 10, VCOL_DARK_GREY);
             }
-            
         }
         for (;;) {
             if (kbhit()){

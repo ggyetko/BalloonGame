@@ -16,6 +16,7 @@
 #define ScreenWork ((char *)0x3000)
 #define ScreenColor ((char *)0xd800)
 
+#include "utils.h"
 #include "graphics.h"
 #include "city.h"
 
@@ -98,11 +99,14 @@ volatile char mapXCoord; // where are you in the world (right edge of screen)
  * .....??? : stalagmite length
  */
 
-const struct Goods goods[4] =
+const struct Goods goods[6] =
 {
-    {"Rice        ", 75, 3, 0, 0},
-    {"Wheat       ", 75, 3, 0, 0},
-    {"Corn        ", 75, 3, 0, 0},
+    {s"rice      ", 75,  3,  0, 0}, // 0
+    {s"wheat     ", 75,  3,  0, 0}, // 1
+    {s"corn      ", 75,  3,  0, 0}, // 2
+    {s"bronze    ", 300, 10, 0, 0}, // 3
+    {s"copper    ", 300, 10, 0, 0}, // 4
+    {s"smithore  ", 300, 10, 0, 0}  // 5
 };
  
 const char terrain[256] =
@@ -125,9 +129,31 @@ const char terrain[256] =
     051,051,052,043,043,043,033,033,  024,034,044,043,043,032,022,012
 };
 struct CityData cities[3] = {
-    {s"cloud city", CITY_RESPECT_NONE, {0,5}, {1,1,CITY_RESPECT_NONE,2} },
-    {s"floria    ", CITY_RESPECT_NONE, {1,5}, {2,1,CITY_RESPECT_NONE,2} },
-    {s"sirenia   ", CITY_RESPECT_NONE, {2,5}, {0,1,CITY_RESPECT_NONE,2} }
+    // NAME         RESPECT            BUY     SELL
+    {s"cloud city", CITY_RESPECT_LOW, 
+        {0,5}, 
+        {{1, AVAILABLE_HALF_PRICE, CITY_RESPECT_LOW, 2},  // wheat
+         {3, AVAILABLE_HALF_PRICE, CITY_RESPECT_LOW, 1},  // Bronze
+         {4, AVAILABLE_HALF_PRICE, CITY_RESPECT_MED,  1},  // Copper
+         {5, AVAILABLE_HALF_PRICE, CITY_RESPECT_HIGH,  1}   // Smithore
+        }
+    },
+    {s"floria    ", CITY_RESPECT_LOW, 
+        {1,5}, 
+        {{2,1,CITY_RESPECT_LOW,2},
+         {2,1,CITY_RESPECT_LOW,2},
+         {2,1,CITY_RESPECT_LOW,2},
+         {2,1,CITY_RESPECT_LOW,2}
+        } 
+    },
+    {s"sirenia   ", CITY_RESPECT_LOW, 
+        {2,5}, 
+        {{0,1,CITY_RESPECT_LOW,2},
+         {0,1,CITY_RESPECT_LOW,2},
+         {0,1,CITY_RESPECT_LOW,2},
+         {0,1,CITY_RESPECT_LOW,2}
+        } 
+    }
 };
 
 const char decelPattern[8] =  {2,3,4,5,6,7,8,16};
@@ -329,7 +355,13 @@ struct PlayerData {
     unsigned char balloonHealth; // value out of 8
     Cargo cargo;
 };
-
+void playerDataInit(PlayerData *data){
+    data->fuel = 65535;
+    data->money = 5000;
+    data->balloonHealth = 8;
+    data->cargo.cargoSpace = 16;
+    data->cargo.psgrSpace = 8;
+}
 void balloonDamage(PlayerData *data){
     if (data->balloonHealth) {
         data->balloonHealth--;
@@ -425,6 +457,12 @@ void clearMovement(void)
     Screen1[0x03f8] = 0xa0;    
 }
 
+void tenCharCopy(char *dst, char const *src) {
+    for (unsigned char x = 0; x<10; x++) {
+        dst[x] = src[x];
+    }
+}
+
 // returns 0 for bottom collision
 // returns 1 for top collision
 unsigned char terrainCollisionOccurred(void)
@@ -440,6 +478,14 @@ unsigned char terrainCollisionOccurred(void)
         return 1;
     }
     return 0;
+}
+
+void cargoInAnimation(void) {
+    
+}
+
+void cargoOutAnimation(void) {
+    
 }
 
 enum CityMenuStates {
@@ -466,9 +512,43 @@ void cityMenu(void)
     unsigned char homeItem = 0;
     
     for (;;) {
-        unsigned char response = getMenuChoice(6, main_menu_options);
+        unsigned char response = getMenuChoice(6, main_menu_options, false, nullptr);
+        if (response == 0) {
+            for (;;) {
+                unsigned char x;
+                char buyMenuOptions[MAX_SELL_GOODS+1][10];
+                unsigned int buyMenuCosts[MAX_SELL_GOODS+1];
+                tenCharCopy(buyMenuOptions[0],
+                            s"return    ");
+                buyMenuCosts[0] = 0;
+                for (x = 1; x < MAX_SELL_GOODS+1; x++){
+                    if (cities[cityNum-1].respect >= cities[cityNum-1].sellGoods[x-1].reqRespectRate) {
+                        tenCharCopy(
+                            buyMenuOptions[x], 
+                            goods[cities[cityNum-1].sellGoods[x-1].goodsIndex].name);
+                        buyMenuCosts[x] = goods[cities[cityNum-1].sellGoods[x-1].goodsIndex].normalCost;
+                        buyMenuCosts[x] >> cities[cityNum-1].sellGoods[x-1].priceAdjustment; // Yes, this is why I encoded it this way
+                    } else {
+                        // The city's goods list is sorted from lowest to highest respect
+                        break;
+                    }
+                }
+                unsigned char responseBuy = getMenuChoice(x, buyMenuOptions, true, buyMenuCosts);
+                if (responseBuy == 0) {
+                    break;
+                } else {
+                    // put cargo in
+                    
+                    // trigger animation
+                    cargoInAnimation();
+                }
+            }
+            
+        } else if (response == 1) {
+            
+        }
         
-        if (response == 5) {
+        else if (response == 5) {
             break;
         }
     }
@@ -556,18 +636,6 @@ void copyS1toS0(char* roof, char* ground){
         } else {
             Screen0[y*40+39] = 32;            
         }
-    }
-}
-
-void uint16ToString(unsigned int in, char* out)
-{
-    const unsigned int tens[5] = {10000, 1000, 100, 10, 1};
-    unsigned int remainder;
-
-    for (char x=0;x<5;x++) {
-        char digit = in/tens[x];  // rounds down, so we're fine
-        out[x] = digit + 48;
-        in -= digit * tens[x];
     }
 }
 
@@ -669,11 +737,7 @@ int main(void)
 
     // set up scoreboard
     struct PlayerData playerData;
-    playerData.fuel = 65535;
-    playerData.money = 5000;
-    playerData.balloonHealth = 8;
-    playerData.cargo.cargoSpace = 16;
-    playerData.cargo.psgrSpace = 8;
+    playerDataInit(&playerData);
     showScoreBoard(&playerData);
 
 	// Setup sprite images
