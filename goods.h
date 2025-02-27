@@ -1,9 +1,10 @@
 struct Goods {
     char name[10];
-    unsigned char normalCost;  // everyone charges this amount
+    unsigned int normalCost;  // everyone charges this amount
     unsigned char variance;    // make it look kinda real with a bit of random wobble
     unsigned char dummy1;
     unsigned char dummy2;
+    unsigned char dummy3;
 };
 
 struct DemandedGoods {
@@ -23,15 +24,11 @@ enum DemandGoodsMultiplier {
     DEMAND_PLUS_100PCT,
     DEMAND_PLUS_200PCT = 20
 };
+#define NO_GOODS 255
 
 struct AvailableGoods {
     unsigned char goodsIndex;
-    unsigned char priceAdjustment; // 1 - half price, 2- quarter price, 3 - eight price
+    unsigned char priceAdjustment; // divisor
     unsigned char reqRespectRate;  // How well respected are you determines if this is available
     unsigned char productionRate;  // How many do they produce every round of the map?
-};
-enum AvailableGoodsDivisor {    
-    AVAILABLE_HALF_PRICE = 1,
-    AVAILABLE_QUARTER_PRICE,
-    AVAILABLE_EIGHTH_PRICE
 };

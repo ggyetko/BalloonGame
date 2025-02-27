@@ -107,6 +107,7 @@ const struct Goods goods[6] =
     {s"bronze    ", 300, 10, 0, 0}, // 3
     {s"copper    ", 300, 10, 0, 0}, // 4
     {s"smithore  ", 300, 10, 0, 0}  // 5
+    // 255 is illegal/empty
 };
  
 const char terrain[256] =
@@ -132,10 +133,10 @@ struct CityData cities[3] = {
     // NAME         RESPECT            BUY     SELL
     {s"cloud city", CITY_RESPECT_LOW, 
         {0,5}, 
-        {{1, AVAILABLE_HALF_PRICE, CITY_RESPECT_LOW, 2},  // wheat
-         {3, AVAILABLE_HALF_PRICE, CITY_RESPECT_LOW, 1},  // Bronze
-         {4, AVAILABLE_HALF_PRICE, CITY_RESPECT_MED,  1},  // Copper
-         {5, AVAILABLE_HALF_PRICE, CITY_RESPECT_HIGH,  1}   // Smithore
+        {{1, 2, CITY_RESPECT_LOW, 2},  // wheat
+         {3, 2, CITY_RESPECT_LOW, 1},  // Bronze
+         {4, 2, CITY_RESPECT_MED,  1},  // Copper
+         {5, 2, CITY_RESPECT_HIGH,  1}   // Smithore
         }
     },
     {s"floria    ", CITY_RESPECT_LOW, 
@@ -181,6 +182,12 @@ void setScrollAmnt(char x)
     vic.ctrl2 = (x & 0x7) | 0xc0; // set 38 columns as well
 }
 
+__interrupt void prepWorkScreen(void)
+{
+    vic.memptr = 0xc0 | (vic.memptr & 0x0f);
+    vic.color_back = SKY_COLOR;
+}
+
 __interrupt void prepScreen(void)
 {
     if (currScreen == 0) {
@@ -189,6 +196,15 @@ __interrupt void prepScreen(void)
         vic.memptr = 0xb0 | (vic.memptr & 0x0f); // point to screen1
     }
     setScrollAmnt (xScroll);
+}
+
+__interrupt void lowerStatBarWorkScreen(void)
+{
+    vic.color_border -= 1;
+    // Score board is black background and Screen 0
+    vic.memptr = 0x10 | (vic.memptr & 0x0f);
+    vic.color_back = VCOL_BLACK;    
+    vic.color_border += 1;
 }
 
 __interrupt void lowerStatBar(void)
@@ -294,8 +310,7 @@ __interrupt void scrollLeft(void)
     }
 }
 
-// Two raster interrupts (for now)
-RIRQCode	spmux[4];
+RIRQCode	spmux[3];
 void setupRasterIrqs(void)
 {
     rirq_stop();
@@ -310,6 +325,22 @@ void setupRasterIrqs(void)
     rirq_build(spmux+2, 1);
     rirq_call(spmux+2, 0, scrollLeft);
     rirq_set(2, 250, spmux+2);
+
+	// Sort interrupts and start processing
+	rirq_sort();
+	rirq_start();
+}
+
+void setupRasterIrqsWorkScreen(void)
+{
+    rirq_stop();
+    rirq_build(spmux, 1);
+    rirq_call(spmux, 0, prepWorkScreen);
+    rirq_set(0, 1, spmux);
+
+    rirq_build(spmux+1, 1);
+    rirq_call(spmux+1, 0, lowerStatBarWorkScreen);
+    rirq_set(1, 210, spmux+1);
 
 	// Sort interrupts and start processing
 	rirq_sort();
@@ -337,18 +368,18 @@ void clearKeyboardCache(void)
     }
 }
 
+const unsigned char MAX_CARGO_SPACE = 16;
 struct Passenger {
     char name[10];
     unsigned char fare;
 };
-
 struct Cargo {
     unsigned char psgrSpace; // reduced by damage
     Passenger psgr[8];
     unsigned char cargoSpace; // reduced by damage, max 16
-    int cargo[16];
+    unsigned char currCargoCount; 
+    int cargo[MAX_CARGO_SPACE];
 };
-
 struct PlayerData {
     unsigned int fuel;  // fuel max out of 65535
     unsigned int money;
@@ -359,8 +390,12 @@ void playerDataInit(PlayerData *data){
     data->fuel = 65535;
     data->money = 5000;
     data->balloonHealth = 8;
-    data->cargo.cargoSpace = 16;
+    data->cargo.cargoSpace = MAX_CARGO_SPACE;
+    data->cargo.currCargoCount = 0;
     data->cargo.psgrSpace = 8;
+    for (unsigned char x=0; x<16; x++) {
+        data->cargo.cargo[x] = NO_GOODS;
+    }
 }
 void balloonDamage(PlayerData *data){
     if (data->balloonHealth) {
@@ -378,6 +413,19 @@ void carriageDamage(PlayerData *data) {
         data->cargo.psgrSpace--;
     }
 }
+bool addCargoIfPossible(PlayerData *data, unsigned char cargoIndex) {
+    if (data->cargo.currCargoCount < data->cargo.cargoSpace) {
+        for (unsigned char x=0; x<16; x++) {
+            if (data->cargo.cargo[x] == NO_GOODS) {
+                data->cargo.cargo[x] = cargoIndex;
+                data->cargo.currCargoCount++;
+                return true;
+            } 
+        }
+    }
+    return false;
+}
+void showScoreBoard(struct PlayerData* data);
 
 void invokeDecel(char cycles)
 {
@@ -481,7 +529,7 @@ unsigned char terrainCollisionOccurred(void)
 }
 
 void cargoInAnimation(void) {
-    
+
 }
 
 void cargoOutAnimation(void) {
@@ -506,7 +554,7 @@ const char main_menu_options[6][10] = {
     s"exit      "
 };
 
-void cityMenu(void) 
+void cityMenu(PlayerData *data) 
 {
     unsigned char menuState = CITY_MENU_MAIN;
     unsigned char homeItem = 0;
@@ -527,7 +575,7 @@ void cityMenu(void)
                             buyMenuOptions[x], 
                             goods[cities[cityNum-1].sellGoods[x-1].goodsIndex].name);
                         buyMenuCosts[x] = goods[cities[cityNum-1].sellGoods[x-1].goodsIndex].normalCost;
-                        buyMenuCosts[x] >> cities[cityNum-1].sellGoods[x-1].priceAdjustment; // Yes, this is why I encoded it this way
+                        buyMenuCosts[x] /= cities[cityNum-1].sellGoods[x-1].priceAdjustment;
                     } else {
                         // The city's goods list is sorted from lowest to highest respect
                         break;
@@ -537,10 +585,11 @@ void cityMenu(void)
                 if (responseBuy == 0) {
                     break;
                 } else {
-                    // put cargo in
-                    
-                    // trigger animation
-                    cargoInAnimation();
+                    if ((buyMenuCosts[responseBuy] < data->money) && (addCargoIfPossible(data, responseBuy-1))) {
+                        data->money -= buyMenuCosts[responseBuy];
+                        cargoInAnimation();
+                        showScoreBoard(data);
+                    }
                 }
             }
             
@@ -554,7 +603,7 @@ void cityMenu(void)
     }
 }
 
-void landingOccurred(void)
+void landingOccurred(PlayerData *data)
 {
     clearRasterIrqs();
     // turn off sidescrolling
@@ -585,14 +634,16 @@ void landingOccurred(void)
         putText(s"high", 34, 3, 4, VCOL_YELLOW);
     }
 
+    setupRasterIrqsWorkScreen();
     clearKeyboardCache();
-    cityMenu();
+    cityMenu(data);
     
     if (currScreen == 0) {
         vic.memptr = 0x10 | (vic.memptr & 0x0f);
     } else {
         vic.memptr = 0xb0 | (vic.memptr & 0x0f);
     }
+    clearRasterIrqs();
     setAveragePosition();
     vic.spr_enable = 0x01;
     vic.ctrl2 = 0xc0; // 38 columns, no scroll
@@ -644,6 +695,7 @@ void showScoreBoard(struct PlayerData* data) {
         Screen0[800+x] = 91;
         Screen1[800+x] = 91;
     }
+    
     const char fuel[5] = s"fuel";
     const char cash[5] = s"cash";
     const char cabins[5] = s"cbns";
@@ -680,11 +732,12 @@ void showScoreBoard(struct PlayerData* data) {
     }
     // Cargo Space
     for (x=0;x<16;x++) {
-        if (x < data->cargo.cargoSpace) {
-            Screen0[921+5+x] = 78;
+        Screen0[921+5+x] = 78;
+        if (x < data->cargo.currCargoCount) {
+            ScreenColor[921+5+x] = VCOL_GREEN;
+        } else if (x < data->cargo.cargoSpace) {
             ScreenColor[921+5+x] = VCOL_WHITE;
         } else {
-            Screen0[921+5+x] = 78;
             ScreenColor[921+5+x] = VCOL_RED;
         }
     }
@@ -794,7 +847,7 @@ int main(void)
         unsigned char sprColl = vic.spr_sprcol;
         if ((sprColl & 0x11) == 0x11) {
             // Collision with Ramp - GOOD
-            landingOccurred();
+            landingOccurred(&playerData);
         } else if ((sprColl & 0x09) == 0x09) {
             // Collision with City - BAD
             if (terrainCollisionOccurred()) {
