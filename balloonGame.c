@@ -11,6 +11,8 @@
 #define ScreenWork ((char *)0x3000)
 #define ScreenColor ((char *)0xd800)
 
+#define BalloonSpriteLocation 0xa0
+
 #include "utils.h"
 #include "graphics.h"
 #include "city.h"
@@ -25,9 +27,9 @@
 #pragma section( charset, 0)
 #pragma region( charset, 0x2000, 0x2800, , , {charset} )
 
-// My one sprite (for now) goes here
+// My sprites go here
 #pragma section( spriteset, 0)
-#pragma region( spriteset, 0x2800, 0x29c0, , , {spriteset} )
+#pragma region( spriteset, 0x2800, 0x2a00, , , {spriteset} )
 
 #pragma section(screen2andWork, 0)
 #pragma region (screen2andWork, 0x2c00, 0x33ff, , , {screen2andWork})
@@ -43,7 +45,7 @@ __export const char charset[2048] = {
 
 // spriteset at fixed location
 #pragma data(spriteset)
-__export const char spriteset[448] = {
+__export const char spriteset[512] = {
 	#embed "balloon.bin"
     #embed "balloonDecel.bin"
     #embed "balloonThrust.bin"
@@ -51,6 +53,7 @@ __export const char spriteset[448] = {
     #embed "balloonFlame.bin"
     #embed "citySprite.bin"
     #embed "cityBridge.bin"
+    #embed "cart.bin"
 };
 
 #pragma data(data)
@@ -58,15 +61,18 @@ __export const char spriteset[448] = {
 // Control variables for the interrupt
 
 // .... ...? - Are we scrolling(1) or paused(0)
-// .... ..?. - is there a city in Sprite #4?
+// .... ..?. - is there a city in Sprite #3?
 // .... .?.. - is the city ramp out?
 volatile unsigned char status;
 enum {
     STATUS_SCROLLING = 0x01,
     STATUS_CITY_VIS  = 0x02,
-    STATUS_CITY_RAMP = 0x04
+    STATUS_CITY_RAMP = 0x04,
+    STATUS_CARGO_IN  = 0x08,
+    STATUS_CARGO_OUT = 0x10,
 };
 
+// GLOBALS
 volatile unsigned char noActionDelay;  // # of screen refreshes until reactivating status   
 volatile unsigned char xScroll;    // current xScroll register setting
 volatile unsigned char currScreen; // 0 - Screen0, 1 - Screen1
@@ -82,12 +88,17 @@ volatile unsigned int yPos; // 20*8 = 160 pixel
                             // 0 is the top of screen, 40960 is bottom of 20th char
 volatile int yVel;          // signed int, yPos/50th of a second
                             // +ve velocity is downward, -ve is upward
-volatile unsigned int cityXPos;
-volatile unsigned char cityYPos;
-volatile unsigned char cityNum;
+volatile unsigned int cityXPos;   // While in travelling mode, where is the city sprite?
+volatile unsigned char cityYPos;  // While in travelling mode, where is the city sprite?
+volatile unsigned char cityNum;   // While in travelling mode, what city are we near?
 
 volatile char currMap;   // what world are you in
 volatile char mapXCoord; // where are you in the world (right edge of screen)
+
+volatile unsigned char cargoInXPos;
+volatile unsigned char cargoInYPos;
+volatile unsigned char cargoOutXPos;
+volatile unsigned char cargoOutYPos;
 
 /* ??...... : info - (0=nothing 1,2,3:city number)
  * ..???... : stalagtite length
@@ -156,11 +167,12 @@ const char decelPattern[8] =  {2,3,4,5,6,7,8,16};
 const char mountainHeight[8] = {0,1,2,3,4,6,8,10};
 
 // SPRITE LIST
-// #1 - Balloon
-// #2 - Back thrust
-// #3 - Up thrust
-// #4 - City
-// #5 - Ramp
+// #0 - Balloon
+// #1 - Back thrust
+// #2 - Up thrust
+// #3 - City
+// #4 - Ramp
+// #5 - Cargo In
 
 void setScrollActive(unsigned char active, unsigned char delay)
 {
@@ -181,6 +193,25 @@ __interrupt void prepWorkScreen(void)
 {
     vic.memptr = 0xc0 | (vic.memptr & 0x0f);
     vic.color_back = SKY_COLOR;
+    
+    if (status & STATUS_CARGO_IN) {
+        cargoInXPos --;
+        if (cargoInXPos <= 60) {
+            status &= ~STATUS_CARGO_IN;
+            vic.spr_enable &= ~0x20;
+        } else {
+            vic_sprxy(5,cargoInXPos,cargoInYPos);
+        }
+    }
+    if (status & STATUS_CARGO_OUT) {
+        cargoOutXPos ++;
+        if (cargoOutXPos <= 60) {
+            status &= ~STATUS_CARGO_OUT;
+            vic.spr_enable &= ~0x20;
+        } else {
+            vic_sprxy(5,cargoOutXPos,cargoOutYPos);
+        }
+    }
 }
 
 __interrupt void prepScreen(void)
@@ -279,8 +310,8 @@ __interrupt void scrollLeft(void)
             } else {
                 holdCount--;
                 if (holdCount == 0){
-                    Screen0[0x03f8] = 0xa0; // 0xa0 * 0x64 = 0x2800 (sprite #1 data location)
-                    Screen1[0x03f8] = 0xa0;
+                    Screen0[0x03f8] = BalloonSpriteLocation; // 0xa0 * 0x64 = 0x2800 (sprite #0 data location)
+                    Screen1[0x03f8] = BalloonSpriteLocation;
                     vic.spr_enable &= 0xfd;
                 }
                 doScroll = 0;
@@ -350,6 +381,47 @@ void clearRasterIrqs(void)
     rirq_clear(2);
     rirq_sort();
     rirq_start();
+}
+
+void setupUpCargoSprites(void) {
+    // Sprite #5
+	ScreenWork[0x03f8+5] = 0xa7; // 0xa7 * 0x40 = 0x29c0 (cart sprite)
+	ScreenWork[0x03f8+5] = 0xa7;
+    vic.spr_color[5] = VCOL_BROWN;
+    
+    vic.spr_priority = 0x20; // put sprite #5 behind background
+}
+
+void setupUpTravellingSprites(void) {
+    // Setup sprite images
+    // Sprite #0
+	Screen0[0x03f8] = BalloonSpriteLocation; // 0xa0 * 0x40 = 0x2800 (sprite #1 data location)
+	Screen1[0x03f8] = BalloonSpriteLocation;
+    // Sprite #1
+	Screen0[0x03f8+1] = 0xa2; // 0xa2 * 0x40 = 0x2880 (sprite back thrust data location)
+	Screen1[0x03f8+1] = 0xa2;
+    // Sprite #2
+	Screen0[0x03f8+2] = 0xa4; // 0xa4 * 0x40 = 0x2900 (sprite up thrust data location)
+	Screen1[0x03f8+2] = 0xa4;
+    // Sprite #3
+	Screen0[0x03f8+3] = 0xa5; // 0xa5 * 0x40 = 0x2940 (city sprite)
+	Screen1[0x03f8+3] = 0xa5;
+    // Sprite #4
+	Screen0[0x03f8+4] = 0xa6; // 0xa6 * 0x40 = 0x2980 (city bridge sprite)
+	Screen1[0x03f8+4] = 0xa6;
+    
+    setScrollAmnt(xScroll);
+
+	// Remaining sprite registers
+	vic.spr_enable = 0x01;
+	vic.spr_multi = 0x00;
+	vic.spr_expand_x = 0x00;
+	vic.spr_expand_y = 0x00;
+    vic.spr_color[0] = BALLOON_COLOR;
+    vic.spr_color[1] = VCOL_BLACK;
+    vic.spr_color[2] = VCOL_RED;
+    vic.spr_color[3] = CITY_COLOR;
+    vic.spr_color[4] = RAMP_COLOR;
 }
 
 void clearKeyboardCache(void)
@@ -427,8 +499,8 @@ void invokeDecel(char cycles)
     if (holdCount) {
         return;
     }
-    vic.spr_enable |= 0x02;        // turn on sprite #2
-    vic_sprxy(0, 80, (yPos>>8)+24); // colocate sprite #2 with sprite #1
+    vic.spr_enable |= 0x02;        // turn on sprite #1
+    vic_sprxy(0, 80, (yPos>>8)+24); // colocate sprite #1 with sprite #0
     holdCount = cycles;
     decelIndex = 0;
     decelCount = decelPattern[0];
@@ -496,8 +568,8 @@ void clearMovement(void)
     // kill all velocity
     yVel = 0;
     // set sprite to standard shape
-    Screen0[0x03f8] = 0xa0;
-    Screen1[0x03f8] = 0xa0;    
+    Screen0[0x03f8] = BalloonSpriteLocation;
+    Screen1[0x03f8] = BalloonSpriteLocation;    
 }
 
 void tenCharCopy(char *dst, char const *src) {
@@ -524,11 +596,23 @@ unsigned char terrainCollisionOccurred(void)
 }
 
 void cargoInAnimation(void) {
-
+    if ((status & STATUS_CARGO_IN) == 0) {
+        status |= STATUS_CARGO_IN;
+        cargoInXPos = 194;
+        cargoInYPos = 165;
+        vic_sprxy(5,cargoInXPos,cargoInYPos);
+        vic.spr_enable |= 0x20;
+    }
 }
 
 void cargoOutAnimation(void) {
-    
+    if ((status & STATUS_CARGO_OUT) == 0) {
+        status |= STATUS_CARGO_OUT;
+        cargoOutXPos = 60;
+        cargoOutYPos = 165;
+        vic_sprxy(5,cargoInXPos,cargoInYPos);
+        vic.spr_enable |= 0x40;
+    }
 }
 
 enum CityMenuStates {
@@ -605,6 +689,7 @@ void landingOccurred(PlayerData *data)
     clearMovement();
     // turn off ALL sprites
     vic.spr_enable = 0x00;
+    setupUpCargoSprites();
     // go to Screen Work
     vic.memptr = 0xc0 | (vic.memptr & 0x0f);
     vic.ctrl2 = 0xc8; // 40 columns, no scroll
@@ -634,6 +719,7 @@ void landingOccurred(PlayerData *data)
     clearKeyboardCache();
     cityMenu(data);
     
+    // return to travelling state
     if (currScreen == 0) {
         vic.memptr = 0x10 | (vic.memptr & 0x0f);
     } else {
@@ -766,36 +852,7 @@ void showScoreBoard(struct PlayerData* data) {
     }
 }
 
-void setupUpTravellingSprites(void) {
-    // Setup sprite images
-	Screen0[0x03f8] = 0xa0; // 0xa0 * 0x40 = 0x2800 (sprite #1 data location)
-	Screen1[0x03f8] = 0xa0;
-    // Sprite #2
-	Screen0[0x03f8+1] = 0xa2; // 0xa2 * 0x40 = 0x2880 (sprite back thrust data location)
-	Screen1[0x03f8+1] = 0xa2;
-    // Sprite #3
-	Screen0[0x03f8+2] = 0xa4; // 0xa4 * 0x40 = 0x2900 (sprite up thrust data location)
-	Screen1[0x03f8+2] = 0xa4;
-    // Sprite #4
-	Screen0[0x03f8+3] = 0xa5; // 0xa5 * 0x40 = 0x2940 (city sprite)
-	Screen1[0x03f8+3] = 0xa5;
-    // Sprite #5
-	Screen0[0x03f8+4] = 0xa6; // 0xa6 * 0x40 = 0x2980 (city bridge sprite)
-	Screen1[0x03f8+4] = 0xa6;
-    
-    setScrollAmnt(xScroll);
 
-	// Remaining sprite registers
-	vic.spr_enable = 0x01;
-	vic.spr_multi = 0x00;
-	vic.spr_expand_x = 0x00;
-	vic.spr_expand_y = 0x00;
-    vic.spr_color[0] = BALLOON_COLOR;
-    vic.spr_color[1] = VCOL_BLACK;
-    vic.spr_color[2] = VCOL_RED;
-    vic.spr_color[3] = CITY_COLOR;
-    vic.spr_color[4] = RAMP_COLOR;
-}
 
 int main(void)
 {
@@ -899,7 +956,7 @@ int main(void)
             if (city) {
                 status |= STATUS_CITY_VIS;
                 cityNum = city;
-                vic.spr_enable |= 0x08; // activate Sprite #4
+                vic.spr_enable |= 0x08; // activate Sprite #3
                 cityXPos = (unsigned int)(256+92);
                 cityYPos = 202 - (8*mountainHeight[(terrain[currCoord] & 0x7)]) - 16;
                 vic_sprxy(3, cityXPos, 202 - cityYPos);

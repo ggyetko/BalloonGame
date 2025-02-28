@@ -77,13 +77,13 @@ void drawBalloonDockScreen(void)
         }
     }
     // Wires
-    ScreenWork[2+8*40] = 72;
-    ScreenWork[2+9*40] = 72;
-    ScreenWork[2+10*40] = 72;
-    ScreenWork[2+11*40] = 72;
-    ScreenWork[10+8*40] = 59;
+    ScreenWork[2+8*40] = 58;
+    ScreenWork[2+9*40] = 58;
+    ScreenWork[2+10*40] = 58;
+    ScreenWork[2+11*40] = 58;
+    ScreenWork[10+8*40] = 58;
     ScreenWork[10+9*40] = 60;
-    ScreenWork[9+10*40]= 59;
+    ScreenWork[9+10*40] = 59;
     ScreenWork[9+11*40] = 60;
     // Carriage
     for (y=12;y<17;y++) {
