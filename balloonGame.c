@@ -6,11 +6,6 @@
 #include <c64/cia.h>
 #include <string.h>
 
-#define SKY_COLOR       VCOL_LT_BLUE
-#define MOUNTAIN_COLOR  VCOL_DARK_GREY
-#define CITY_COLOR      VCOL_LT_GREEN
-#define RAMP_COLOR      VCOL_BROWN
-
 #define Screen0 ((char *)0x0400)
 #define Screen1 ((char *)0x2c00)
 #define ScreenWork ((char *)0x3000)
@@ -619,6 +614,7 @@ void landingOccurred(PlayerData *data)
     drawBox(0,20,39,24,VCOL_YELLOW);
     drawBox(25,0,39,4,VCOL_BLACK);
     drawBox(25,5,39,19,VCOL_BLACK);
+    drawBalloonDockScreen();
 
     const char respect[7] = s"respect";
     // City Name
@@ -692,8 +688,8 @@ void copyS1toS0(char* roof, char* ground){
 
 void showScoreBoard(struct PlayerData* data) {
     for (char x=0;x<40;x++){
-        Screen0[800+x] = 91;
-        Screen1[800+x] = 91;
+        Screen0[800+x] = 96;
+        Screen1[800+x] = 96;
     }
     
     const char fuel[5] = s"fuel";
@@ -770,6 +766,36 @@ void showScoreBoard(struct PlayerData* data) {
     }
 }
 
+void setupUpTravellingSprites(void) {
+    // Setup sprite images
+	Screen0[0x03f8] = 0xa0; // 0xa0 * 0x40 = 0x2800 (sprite #1 data location)
+	Screen1[0x03f8] = 0xa0;
+    // Sprite #2
+	Screen0[0x03f8+1] = 0xa2; // 0xa2 * 0x40 = 0x2880 (sprite back thrust data location)
+	Screen1[0x03f8+1] = 0xa2;
+    // Sprite #3
+	Screen0[0x03f8+2] = 0xa4; // 0xa4 * 0x40 = 0x2900 (sprite up thrust data location)
+	Screen1[0x03f8+2] = 0xa4;
+    // Sprite #4
+	Screen0[0x03f8+3] = 0xa5; // 0xa5 * 0x40 = 0x2940 (city sprite)
+	Screen1[0x03f8+3] = 0xa5;
+    // Sprite #5
+	Screen0[0x03f8+4] = 0xa6; // 0xa6 * 0x40 = 0x2980 (city bridge sprite)
+	Screen1[0x03f8+4] = 0xa6;
+    
+    setScrollAmnt(xScroll);
+
+	// Remaining sprite registers
+	vic.spr_enable = 0x01;
+	vic.spr_multi = 0x00;
+	vic.spr_expand_x = 0x00;
+	vic.spr_expand_y = 0x00;
+    vic.spr_color[0] = BALLOON_COLOR;
+    vic.spr_color[1] = VCOL_BLACK;
+    vic.spr_color[2] = VCOL_RED;
+    vic.spr_color[3] = CITY_COLOR;
+    vic.spr_color[4] = RAMP_COLOR;
+}
 
 int main(void)
 {
@@ -793,34 +819,9 @@ int main(void)
     playerDataInit(&playerData);
     showScoreBoard(&playerData);
 
-	// Setup sprite images
-	Screen0[0x03f8] = 0xa0; // 0xa0 * 0x40 = 0x2800 (sprite #1 data location)
-	Screen1[0x03f8] = 0xa0;
-    // Sprite #2
-	Screen0[0x03f8+1] = 0xa2; // 0xa2 * 0x40 = 0x2880 (sprite back thrust data location)
-	Screen1[0x03f8+1] = 0xa2;
-    // Sprite #3
-	Screen0[0x03f8+2] = 0xa4; // 0xa4 * 0x40 = 0x2900 (sprite up thrust data location)
-	Screen1[0x03f8+2] = 0xa4;
-    // Sprite #4
-	Screen0[0x03f8+3] = 0xa5; // 0xa5 * 0x40 = 0x2940 (city sprite)
-	Screen1[0x03f8+3] = 0xa5;
-    // Sprite #5
-	Screen0[0x03f8+4] = 0xa6; // 0xa6 * 0x40 = 0x2980 (city bridge sprite)
-	Screen1[0x03f8+4] = 0xa6;
-    
-    setScrollAmnt(xScroll);
+    setupUpTravellingSprites();
 
-	// Remaining sprite registers
-	vic.spr_enable = 0x01;
-	vic.spr_multi = 0x00;
-	vic.spr_expand_x = 0x00;
-	vic.spr_expand_y = 0x00;
-    vic.spr_color[0] = VCOL_WHITE;
-    vic.spr_color[1] = VCOL_BLACK;
-    vic.spr_color[2] = VCOL_RED;
-    vic.spr_color[3] = CITY_COLOR;
-    vic.spr_color[4] = RAMP_COLOR;
+
     int dummy = vic.spr_backcol;  // clear sprite-bg collisions
     dummy = vic.spr_sprcol;       // clear sprite^2 collisions
 
