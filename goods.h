@@ -1,3 +1,6 @@
+#ifndef GOODS_H
+#define GOODS_H
+
 struct Goods {
     char name[10];
     unsigned int normalCost;  // everyone charges this amount
@@ -9,7 +12,7 @@ struct Goods {
 
 struct DemandedGoods {
     unsigned char goodsIndex;
-    unsigned char priceAdjustment; // multiple this x10 = %ge increase (e.g 1 means 10%, 10 means 100%)
+    unsigned char priceAdjustment; // number of 25% to add (e.g. 1=1.25, 2=1.50, 4=2.00, 8=3.00)
 };
 enum DemandGoodsMultiplier {
     DEMAND_PLUS_10PCT = 1,
@@ -25,6 +28,7 @@ enum DemandGoodsMultiplier {
     DEMAND_PLUS_200PCT = 20
 };
 #define NO_GOODS 255
+#define DAMAGED_SLOT 254
 
 struct AvailableGoods {
     unsigned char goodsIndex;
@@ -32,3 +36,5 @@ struct AvailableGoods {
     unsigned char reqRespectRate;  // How well respected are you determines if this is available
     unsigned char productionRate;  // How many do they produce every round of the map?
 };
+
+#endif

@@ -10,12 +10,12 @@
 #define Screen1 ((char *)0x2c00)
 #define ScreenWork ((char *)0x3000)
 #define ScreenColor ((char *)0xd800)
-
 #define BalloonSpriteLocation 0xa0
 
 #include "utils.h"
 #include "graphics.h"
 #include "city.h"
+#include "playerData.h"
 
 // Screen is        0x0400 to 0x7ff
 // Weird stuff from 0x0800 to 0x09ff
@@ -101,20 +101,11 @@ volatile unsigned char cargoOutXPos;
 volatile unsigned char cargoOutYPos;
 
 /* ??...... : info - (0=nothing 1,2,3:city number)
- * ..???... : stalagtite length
- * .....??? : stalagmite length
+ * ..???... : stalagtite length (ceiling)
+ * .....??? : stalagmite length (floor)
  */
-
-const struct Goods goods[6] =
-{
-    {s"rice      ", 75,  3,  0, 0}, // 0
-    {s"wheat     ", 75,  3,  0, 0}, // 1
-    {s"corn      ", 75,  3,  0, 0}, // 2
-    {s"bronze    ", 300, 10, 0, 0}, // 3
-    {s"copper    ", 300, 10, 0, 0}, // 4
-    {s"smithore  ", 300, 10, 0, 0}  // 5
-    // 255 is illegal/empty
-};
+ 
+#include "namedGoods.h"
  
 const char terrain[256] =
 {
@@ -138,27 +129,27 @@ const char terrain[256] =
 struct CityData cities[3] = {
     // NAME         RESPECT            BUY     SELL
     {s"cloud city", CITY_RESPECT_LOW, 
-        {0,5}, 
-        {{1, 2, CITY_RESPECT_LOW, 2},  // wheat
-         {3, 2, CITY_RESPECT_LOW, 1},  // Bronze
-         {4, 2, CITY_RESPECT_MED,  1},  // Copper
-         {5, 2, CITY_RESPECT_HIGH,  1}   // Smithore
+        {{0,1},{3,1}},
+        {{1,  2, CITY_RESPECT_LOW, 2},  // wheat
+         {9,  1, CITY_RESPECT_LOW, 1},  // Bronze
+         {11, 1, CITY_RESPECT_MED, 1}, // Iron
+         {14, 1, CITY_RESPECT_HIGH,1} // Smithore
         }
     },
     {s"floria    ", CITY_RESPECT_LOW, 
-        {1,5}, 
-        {{2,1,CITY_RESPECT_LOW,2},
-         {2,1,CITY_RESPECT_LOW,2},
-         {2,1,CITY_RESPECT_LOW,2},
-         {2,1,CITY_RESPECT_LOW,2}
+        {{1,1}, {7,1}},
+        {{2, 1, CITY_RESPECT_LOW, 2},  // corn
+         {3, 1, CITY_RESPECT_LOW, 2},  // spinach
+         {19,1, CITY_RESPECT_MED, 2},  // eggs
+         {20,1, CITY_RESPECT_HIGH,2}   // quail eggs
         } 
     },
     {s"sirenia   ", CITY_RESPECT_LOW, 
-        {2,5}, 
-        {{0,1,CITY_RESPECT_LOW,2},
-         {0,1,CITY_RESPECT_LOW,2},
-         {0,1,CITY_RESPECT_LOW,2},
-         {0,1,CITY_RESPECT_LOW,2}
+        {{2,1}, {9,1}},
+        {{0,1,CITY_RESPECT_LOW,2}, // rice
+         {7,1,CITY_RESPECT_LOW,2}, // soy beans
+         {21,1,CITY_RESPECT_MED,2}, // bok choy
+         {22,1,CITY_RESPECT_HIGH,2} // black beans
         } 
     }
 };
@@ -167,12 +158,15 @@ const char decelPattern[8] =  {2,3,4,5,6,7,8,16};
 const char mountainHeight[8] = {0,1,2,3,4,6,8,10};
 
 // SPRITE LIST
+// Travelling            Work Screen
 // #0 - Balloon
 // #1 - Back thrust
 // #2 - Up thrust
 // #3 - City
 // #4 - Ramp
-// #5 - Cargo In
+// #5 -                  Cargo In
+// #6 - Cloud Outline    Cargo Out
+// #7 - Cloud Background
 
 void setScrollActive(unsigned char active, unsigned char delay)
 {
@@ -205,11 +199,11 @@ __interrupt void prepWorkScreen(void)
     }
     if (status & STATUS_CARGO_OUT) {
         cargoOutXPos ++;
-        if (cargoOutXPos <= 60) {
+        if (cargoOutXPos >= 195) {
             status &= ~STATUS_CARGO_OUT;
-            vic.spr_enable &= ~0x20;
+            vic.spr_enable &= ~0x40;
         } else {
-            vic_sprxy(5,cargoOutXPos,cargoOutYPos);
+            vic_sprxy(6,cargoOutXPos,cargoOutYPos);
         }
     }
 }
@@ -388,8 +382,12 @@ void setupUpCargoSprites(void) {
 	ScreenWork[0x03f8+5] = 0xa7; // 0xa7 * 0x40 = 0x29c0 (cart sprite)
 	ScreenWork[0x03f8+5] = 0xa7;
     vic.spr_color[5] = VCOL_BROWN;
+    // Sprite #6
+	ScreenWork[0x03f8+6] = 0xa7; // 0xa7 * 0x40 = 0x29c0 (cart sprite)
+	ScreenWork[0x03f8+6] = 0xa7;
+    vic.spr_color[6] = VCOL_BROWN;
     
-    vic.spr_priority = 0x20; // put sprite #5 behind background
+    vic.spr_priority = 0x60; // put sprites #5,#6 behind background
 }
 
 void setupUpTravellingSprites(void) {
@@ -435,63 +433,6 @@ void clearKeyboardCache(void)
     }
 }
 
-const unsigned char MAX_CARGO_SPACE = 16;
-struct Passenger {
-    char name[10];
-    unsigned char fare;
-};
-struct Cargo {
-    unsigned char psgrSpace; // reduced by damage
-    Passenger psgr[8];
-    unsigned char cargoSpace; // reduced by damage, max 16
-    unsigned char currCargoCount; 
-    int cargo[MAX_CARGO_SPACE];
-};
-struct PlayerData {
-    unsigned int fuel;  // fuel max out of 65535
-    unsigned int money;
-    unsigned char balloonHealth; // value out of 8
-    Cargo cargo;
-};
-void playerDataInit(PlayerData *data){
-    data->fuel = 65535;
-    data->money = 5000;
-    data->balloonHealth = 8;
-    data->cargo.cargoSpace = MAX_CARGO_SPACE;
-    data->cargo.currCargoCount = 0;
-    data->cargo.psgrSpace = 8;
-    for (unsigned char x=0; x<16; x++) {
-        data->cargo.cargo[x] = NO_GOODS;
-    }
-}
-void balloonDamage(PlayerData *data){
-    if (data->balloonHealth) {
-        data->balloonHealth--;
-    }
-}
-void carriageDamage(PlayerData *data) {
-    unsigned int rnd = rand() & 0x03;
-    if (rnd) {  
-        // 3/4 of the time, it's cargo damage
-        if (data->cargo.cargoSpace) {
-            data->cargo.cargoSpace--;
-        } 
-    } else if (data->cargo.psgrSpace) {
-        data->cargo.psgrSpace--;
-    }
-}
-bool addCargoIfPossible(PlayerData *data, unsigned char cargoIndex) {
-    if (data->cargo.currCargoCount < data->cargo.cargoSpace) {
-        for (unsigned char x=0; x<16; x++) {
-            if (data->cargo.cargo[x] == NO_GOODS) {
-                data->cargo.cargo[x] = cargoIndex;
-                data->cargo.currCargoCount++;
-                return true;
-            } 
-        }
-    }
-    return false;
-}
 void showScoreBoard(struct PlayerData* data);
 
 void invokeDecel(char cycles)
@@ -610,43 +551,39 @@ void cargoOutAnimation(void) {
         status |= STATUS_CARGO_OUT;
         cargoOutXPos = 60;
         cargoOutYPos = 165;
-        vic_sprxy(5,cargoInXPos,cargoInYPos);
+        vic_sprxy(6,cargoInXPos,cargoInYPos);
         vic.spr_enable |= 0x40;
     }
 }
 
-enum CityMenuStates {
-    CITY_MENU_MAIN = 0,
-    CITY_MENU_BUY,
-    CITY_MENU_SELL,
-    CITY_MENU_MAYOR,
-    CITY_MENU_REPAIR,  // repairs to cabins, balloon, cargo space
-    CITY_MENU_UPGRADE  // upgrade cabins to 1st class, kitchen, ???
-};
-const unsigned char MAIN_MENU_SIZE = 6;
-const char main_menu_options[6][10] = {
+const unsigned char MAIN_MENU_SIZE = 7;
+const char main_menu_options[MAIN_MENU_SIZE][10] = {
     s"buy       ",
     s"sell      ",
     s"mayor     ",
     s"repair    ",
+    s"refuel    ",
     s"upgrade   ",
     s"exit      "
 };
+#define MENU_OPTION_BUY 0
+#define MENU_OPTION_SELL 1
+#define MENU_OPTION_MAYOR 2
+#define MENU_OPTION_REPAIR 3
+#define MENU_OPTION_REFUEL 4
+#define MENU_OPTION_UPGRADE 5
+#define MENU_OPTION_EXIT 6
 
 void cityMenu(PlayerData *data) 
 {
-    unsigned char menuState = CITY_MENU_MAIN;
-    unsigned char homeItem = 0;
-    
     for (;;) {
-        unsigned char response = getMenuChoice(6, main_menu_options, false, nullptr);
-        if (response == 0) {
+        unsigned char response = getMenuChoice(MAIN_MENU_SIZE, main_menu_options, false, nullptr);
+        if (response == MENU_OPTION_BUY) {
             for (;;) {
                 unsigned char x;
                 char buyMenuOptions[MAX_SELL_GOODS+1][10];
                 unsigned int buyMenuCosts[MAX_SELL_GOODS+1];
-                tenCharCopy(buyMenuOptions[0],
-                            s"return    ");
+                tenCharCopy(buyMenuOptions[0], s"return    ");
                 buyMenuCosts[0] = 0;
                 for (x = 1; x < MAX_SELL_GOODS+1; x++){
                     if (cities[cityNum-1].respect >= cities[cityNum-1].sellGoods[x-1].reqRespectRate) {
@@ -664,7 +601,9 @@ void cityMenu(PlayerData *data)
                 if (responseBuy == 0) {
                     break;
                 } else {
-                    if ((buyMenuCosts[responseBuy] < data->money) && (addCargoIfPossible(data, responseBuy-1))) {
+                    if ((buyMenuCosts[responseBuy] < data->money) && 
+                        (addCargoIfPossible(data, cities[cityNum-1].sellGoods[responseBuy-1].goodsIndex))) 
+                    {
                         data->money -= buyMenuCosts[responseBuy];
                         cargoInAnimation();
                         showScoreBoard(data);
@@ -672,11 +611,75 @@ void cityMenu(PlayerData *data)
                 }
             }
             
-        } else if (response == 1) {
-            
+        } else if (response == MENU_OPTION_SELL) {
+            for (;;) {
+                unsigned char goodsIndexList[MAX_CARGO_SPACE];
+                unsigned char listLength = makeShortCargoList(data, goodsIndexList);
+                char sellMenuOptions[MAX_CARGO_SPACE+1][10];
+                unsigned int sellMenuCosts[MAX_CARGO_SPACE+1];
+                unsigned char x;
+
+                tenCharCopy(sellMenuOptions[0], s"return    ");
+                sellMenuCosts[0] = 0;
+                for (x = 1; x < listLength+1; x++) {
+                    tenCharCopy( sellMenuOptions[x], goods[goodsIndexList[x-1]].name);
+                    sellMenuCosts[x] = getGoodsPurchasePrice(&cities[cityNum-1], goodsIndexList[x-1], goods[goodsIndexList[x-1]].normalCost);
+                }
+                unsigned char responseSell = getMenuChoice(x, sellMenuOptions, true, sellMenuCosts);
+                if (responseSell == 0) {
+                    break;
+                } else {
+                    cargoOutAnimation();
+                    removeCargo(data, goodsIndexList[responseSell-1]);
+                    data->money += sellMenuCosts[responseSell];
+                    showScoreBoard(data);
+                    if (data->cargo.currCargoCount == 0) {
+                        break;
+                    }
+                }
+            }
+        } else if (response == MENU_OPTION_REFUEL) {
+            for (;;) {
+                unsigned char fuelList[3][10] = {s"return    ",s"quarter   ",s"full/max  "};
+                unsigned int fuelListCosts[3] = {0};
+                unsigned int fullCost = (65535 - data->fuel) / FUEL_COST_DIVISOR;
+                bool fullMeansMax = false;
+                if ((fullCost < FUEL_COST_QUARTER_TANK) || (data->money < FUEL_COST_QUARTER_TANK)) {
+                    fuelListCosts[1] = 0;
+                } else {
+                    fuelListCosts[1] = FUEL_COST_QUARTER_TANK;
+                }
+                if (data->money < fullCost) {
+                    fullMeansMax = true;
+                    fuelListCosts[2] = data->money;
+                } else {
+                    fuelListCosts[2] = fullCost;
+                }
+                unsigned char responseRefuel = getMenuChoice(3, fuelList, true, fuelListCosts);
+                if (responseRefuel == 0) {
+                    break;
+                } else if (responseRefuel == 1) {
+                    if (fuelListCosts[1] == 0) {
+                        break;
+                    }
+                    data->money -= FUEL_COST_QUARTER_TANK;
+                    data->fuel += 0x4000;
+                    showScoreBoard(data);
+                } else if (responseRefuel == 2) {
+                    if (fullMeansMax) {
+                        data->money = 0;
+                        data->fuel += fuelListCosts[2] * FUEL_COST_DIVISOR;
+                    } else {
+                        data->money -= fuelListCosts[2];
+                        data->fuel = 65535;
+                    }
+                    showScoreBoard(data);
+                }
+            }
+  
         }
         
-        else if (response == 5) {
+        else if (response == MENU_OPTION_EXIT) {
             break;
         }
     }
@@ -813,15 +816,15 @@ void showScoreBoard(struct PlayerData* data) {
         Screen0[881+5+x] = output[x];
     }
     // Cargo Space
-    for (x=0;x<16;x++) {
+    for (x=0;x<MAX_CARGO_SPACE;x++) {
         Screen0[921+5+x] = 78;
-        if (x < data->cargo.currCargoCount) {
-            ScreenColor[921+5+x] = VCOL_GREEN;
-        } else if (x < data->cargo.cargoSpace) {
-            ScreenColor[921+5+x] = VCOL_WHITE;
-        } else {
-            ScreenColor[921+5+x] = VCOL_RED;
-        }
+        unsigned char output = VCOL_GREEN;
+        if (data->cargo.cargo[x] == NO_GOODS) {
+            output = VCOL_WHITE;
+        } else if (data->cargo.cargo[x] == DAMAGED_SLOT) {
+            output = VCOL_RED;
+        } 
+        ScreenColor[921+5+x] = output;
     }
     // Cabins and Balloon Health
     for (x=0;x<8;x++) {

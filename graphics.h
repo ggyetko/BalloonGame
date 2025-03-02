@@ -1,3 +1,6 @@
+#ifndef GRAPHICS_H
+#define GRAPHICS_H
+
 #include "utils.h"
 
 #define BALLOON_COLOR   VCOL_WHITE
@@ -68,7 +71,7 @@ void drawBalloonDockScreen(void)
                 }
             } else if (x==11) {
                 out = 80-y;
-            } else if (y==6){
+            } else if (y==6) {
                 out = 61;
             } else {
                 out = 79;
@@ -153,7 +156,7 @@ unsigned char getMenuChoice(unsigned char num, const char text[][10], bool doCos
                     if (costs[y]) {
                         char output[5];
                         uint16ToString(costs[y], output);
-                        putText(s"cost:",27,18,5,VCOL_BLACK);
+                        putText(s"cost ",27,18,5,VCOL_BLACK);
                         putText(output,32,18,5,VCOL_WHITE);
                     } else {
                         putText(s"           ",27,18,11,VCOL_BLACK);
@@ -192,3 +195,5 @@ unsigned char getMenuChoice(unsigned char num, const char text[][10], bool doCos
     }
     
 }
+
+#endif
