@@ -29,7 +29,7 @@
 
 // My sprites go here
 #pragma section( spriteset, 0)
-#pragma region( spriteset, 0x2800, 0x2a00, , , {spriteset} )
+#pragma region( spriteset, 0x2800, 0x2ac0, , , {spriteset} )
 
 #pragma section(screen2andWork, 0)
 #pragma region (screen2andWork, 0x2c00, 0x33ff, , , {screen2andWork})
@@ -45,15 +45,17 @@ __export const char charset[2048] = {
 
 // spriteset at fixed location
 #pragma data(spriteset)
-__export const char spriteset[512] = {
-	#embed "balloon.bin"
-    #embed "balloonDecel.bin"
-    #embed "balloonThrust.bin"
-    #embed "balloonThrust2.bin"
-    #embed "balloonFlame.bin"
-    #embed "citySprite.bin"
-    #embed "cityBridge.bin"
-    #embed "cart.bin"
+__export const char spriteset[704] = {
+	#embed "balloon.bin"         // 0xa0
+    #embed "balloonDecel.bin"    // 0xa1
+    #embed "balloonThrust.bin"   // 0xa2
+    #embed "balloonThrust2.bin"  // 0xa3
+    #embed "balloonFlame.bin"    // 0xa4
+    #embed "citySprite.bin"      // 0xa5
+    #embed "cityBridge.bin"      // 0xa6
+    #embed "cart.bin"            // 0xa7
+    #embed "clouds.bin"          // 0xa8, 0xa9 2 sprites here, outline and backing
+    #embed "balloonOutline.bin"  // 0xaa 
 };
 
 #pragma data(data)
@@ -99,6 +101,12 @@ volatile unsigned char cargoInXPos;
 volatile unsigned char cargoInYPos;
 volatile unsigned char cargoOutXPos;
 volatile unsigned char cargoOutYPos;
+
+#define NUM_CLOUDS 2
+volatile unsigned int cloudXPos[NUM_CLOUDS];
+volatile unsigned char cloudYPos[NUM_CLOUDS];
+
+volatile unsigned char counter;
 
 /* ??...... : info - (0=nothing 1,2,3:city number)
  * ..???... : stalagtite length (ceiling)
@@ -159,12 +167,12 @@ const char mountainHeight[8] = {0,1,2,3,4,6,8,10};
 
 // SPRITE LIST
 // Travelling            Work Screen
-// #0 - Balloon
+// #0 - Balloon Outline
 // #1 - Back thrust
 // #2 - Up thrust
 // #3 - City
 // #4 - Ramp
-// #5 -                  Cargo In
+// #5 - Balloon          Cargo In
 // #6 - Cloud Outline    Cargo Out
 // #7 - Cloud Background
 
@@ -210,26 +218,44 @@ __interrupt void prepWorkScreen(void)
 
 __interrupt void prepScreen(void)
 {
+    counter ++;
     if (currScreen == 0) {
         vic.memptr = 0x10 | (vic.memptr & 0x0f); // point to screen0
     } else {
         vic.memptr = 0xb0 | (vic.memptr & 0x0f); // point to screen1
     }
+    unsigned char change = 1 - (status & STATUS_SCROLLING) + (counter%3) ? 1 : 0;
+    if (cloudXPos[0] > 344) {
+        cloudXPos[0] = 512;
+    } else {
+        cloudXPos[0] += change;
+    }
+    vic_sprxy(6,cloudXPos[0],cloudYPos[0]);
+    vic_sprxy(7,cloudXPos[0],cloudYPos[0]);
     setScrollAmnt (xScroll);
+}
+
+__interrupt void midCloudAdjustment(void) 
+{
+    unsigned char change = 1 - (status & STATUS_SCROLLING) + (counter&1);
+    if (cloudXPos[1] > 344) {
+        cloudXPos[1] = 512;
+    } else {
+        cloudXPos[1] += change;
+    }
+    vic_sprxy(6,cloudXPos[1],cloudYPos[1]);
+    vic_sprxy(7,cloudXPos[1],cloudYPos[1]);
 }
 
 __interrupt void lowerStatBarWorkScreen(void)
 {
-    vic.color_border -= 1;
     // Score board is black background and Screen 0
     vic.memptr = 0x10 | (vic.memptr & 0x0f);
     vic.color_back = VCOL_BLACK;    
-    vic.color_border += 1;
 }
 
 __interrupt void lowerStatBar(void)
 {
-    vic.color_border -= 1;
     rand(); // entropy
     // Score board is black background and Screen 0
     vic.memptr = 0x10 | (vic.memptr & 0x0f);
@@ -274,7 +300,6 @@ __interrupt void lowerStatBar(void)
             }
         }
     } 
-    vic.color_border += 1;
 }
 
 __interrupt void scrollLeft(void)
@@ -330,7 +355,7 @@ __interrupt void scrollLeft(void)
     }
 }
 
-RIRQCode	spmux[3];
+RIRQCode spmux[4];
 void setupRasterIrqs(void)
 {
     rirq_stop();
@@ -339,12 +364,16 @@ void setupRasterIrqs(void)
     rirq_set(0, 1, spmux);
 
     rirq_build(spmux+1, 1);
-    rirq_call(spmux+1, 0, lowerStatBar);
-    rirq_set(1, 210, spmux+1);
+    rirq_call(spmux+1, 0, midCloudAdjustment);
+    rirq_set(1, 90, spmux+1);
 
     rirq_build(spmux+2, 1);
-    rirq_call(spmux+2, 0, scrollLeft);
-    rirq_set(2, 250, spmux+2);
+    rirq_call(spmux+2, 0, lowerStatBar);
+    rirq_set(2, 210, spmux+2);
+
+    rirq_build(spmux+3, 1);
+    rirq_call(spmux+3, 0, scrollLeft);
+    rirq_set(3, 250, spmux+3);
 
 	// Sort interrupts and start processing
 	rirq_sort();
@@ -373,6 +402,7 @@ void clearRasterIrqs(void)
     rirq_clear(0);
     rirq_clear(1);
     rirq_clear(2);
+    rirq_clear(3);
     rirq_sort();
     rirq_start();
 }
@@ -390,7 +420,7 @@ void setupUpCargoSprites(void) {
     vic.spr_priority = 0x60; // put sprites #5,#6 behind background
 }
 
-void setupUpTravellingSprites(void) {
+void setupTravellingSprites(void) {
     // Setup sprite images
     // Sprite #0
 	Screen0[0x03f8] = BalloonSpriteLocation; // 0xa0 * 0x40 = 0x2800 (sprite #1 data location)
@@ -408,6 +438,13 @@ void setupUpTravellingSprites(void) {
 	Screen0[0x03f8+4] = 0xa6; // 0xa6 * 0x40 = 0x2980 (city bridge sprite)
 	Screen1[0x03f8+4] = 0xa6;
     
+    // Sprite #6
+	Screen0[0x03f8+6] = 0xa8; // 0xa8 * 0x40 = 0x---- (cloud outline)
+	Screen1[0x03f8+6] = 0xa8;
+    // Sprite #7
+	Screen0[0x03f8+7] = 0xa9; // 0xa9 * 0x40 = 0x29c0 (cloud background)
+	Screen1[0x03f8+7] = 0xa9;
+
     setScrollAmnt(xScroll);
 
 	// Remaining sprite registers
@@ -420,6 +457,9 @@ void setupUpTravellingSprites(void) {
     vic.spr_color[2] = VCOL_RED;
     vic.spr_color[3] = CITY_COLOR;
     vic.spr_color[4] = RAMP_COLOR;
+    vic.spr_color[6] = VCOL_BLUE;
+    vic.spr_color[7] = VCOL_WHITE;
+
 }
 
 void clearKeyboardCache(void)
@@ -734,6 +774,7 @@ void landingOccurred(PlayerData *data)
     vic.ctrl2 = 0xc0; // 38 columns, no scroll
     setScrollActive(0,150);
     initScreenWithDefaultColors(false);
+    setupTravellingSprites();
     setupRasterIrqs();
 }
 
@@ -901,8 +942,10 @@ int main(void)
     playerDataInit(&playerData);
     showScoreBoard(&playerData);
 
-    setupUpTravellingSprites();
-
+    setupTravellingSprites();
+    for (unsigned char cloudNum = 0; cloudNum < NUM_CLOUDS; cloudNum++) {
+        cloudXPos[cloudNum] = 512;
+    }
 
     int dummy = vic.spr_backcol;  // clear sprite-bg collisions
     dummy = vic.spr_sprcol;       // clear sprite^2 collisions
@@ -939,6 +982,13 @@ int main(void)
                 carriageDamage(&playerData);
             }
             showScoreBoard(&playerData);
+        }
+        for (unsigned char cloudNum = 0; cloudNum < NUM_CLOUDS; cloudNum++) {
+            if (cloudXPos[cloudNum] > 344) {
+                cloudXPos[cloudNum] = 0;
+                cloudYPos[cloudNum] = (rand()&15) + 45 + 50*cloudNum;
+                vic.spr_enable |= 0xc0; 
+            }
         }
         if (kbhit()){
             char ch = getch();

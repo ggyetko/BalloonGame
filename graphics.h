@@ -91,7 +91,11 @@ void drawBalloonDockScreen(void)
     // Carriage
     for (y=12;y<17;y++) {
         for (x=1;x<9;x++) {
-            ScreenWork[x+y*40] = 79;
+            if ((y==13) || (y==14)) {
+                ScreenWork[x+y*40] = 86 - ((x+y)&1);
+            } else {
+                ScreenWork[x+y*40] = 79;
+            }
             ScreenColor[x+y*40] = CARRIAGE_COLOR;
         }
     }
