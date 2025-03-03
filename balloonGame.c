@@ -131,25 +131,25 @@ struct CityData cities[3] = {
     {s"cloud city", CITY_RESPECT_LOW, 
         {{0,1},{3,1}},
         {{1,  2, CITY_RESPECT_LOW, 2},  // wheat
-         {9,  1, CITY_RESPECT_LOW, 1},  // Bronze
-         {11, 1, CITY_RESPECT_MED, 1}, // Iron
-         {14, 1, CITY_RESPECT_HIGH,1} // Smithore
+         {9,  2, CITY_RESPECT_LOW, 1},  // Bronze
+         {11, 2, CITY_RESPECT_MED, 1}, // Iron
+         {14, 2, CITY_RESPECT_HIGH,1} // Smithore
         }
     },
     {s"floria    ", CITY_RESPECT_LOW, 
         {{1,1}, {7,1}},
-        {{2, 1, CITY_RESPECT_LOW, 2},  // corn
-         {3, 1, CITY_RESPECT_LOW, 2},  // spinach
-         {19,1, CITY_RESPECT_MED, 2},  // eggs
-         {20,1, CITY_RESPECT_HIGH,2}   // quail eggs
+        {{2, 2, CITY_RESPECT_LOW, 2},  // corn
+         {3, 2, CITY_RESPECT_LOW, 2},  // spinach
+         {19,2, CITY_RESPECT_MED, 2},  // eggs
+         {20,2, CITY_RESPECT_HIGH,2}   // quail eggs
         } 
     },
     {s"sirenia   ", CITY_RESPECT_LOW, 
         {{2,1}, {9,1}},
-        {{0,1,CITY_RESPECT_LOW,2}, // rice
-         {7,1,CITY_RESPECT_LOW,2}, // soy beans
-         {21,1,CITY_RESPECT_MED,2}, // bok choy
-         {22,1,CITY_RESPECT_HIGH,2} // black beans
+        {{0,2,CITY_RESPECT_LOW,2}, // rice
+         {7,2,CITY_RESPECT_LOW,2}, // soy beans
+         {21,2,CITY_RESPECT_MED,2}, // bok choy
+         {22,2,CITY_RESPECT_HIGH,2} // black beans
         } 
     }
 };
@@ -737,38 +737,60 @@ void landingOccurred(PlayerData *data)
     setupRasterIrqs();
 }
 
-void copyS0toS1(char* roof, char* ground){
+void getFinalChars(char const* roof, char const* ground, unsigned char *finalRoofChar, unsigned char *finalGroundChar ){
+    *finalRoofChar = 65; // peak
+    if ((roof[0] <= roof[1]) && (roof[1] < roof[2])) {
+        *finalRoofChar = 67;
+    } else if ((roof[0] > roof[1]) && (roof[1] >= roof[2])) {
+        *finalRoofChar = 66;
+    }
+    
+    *finalGroundChar = 69; // peak
+    if ((ground[0] < ground[1]) && (ground[1] <= ground[2])) {
+        *finalGroundChar = 70;
+    } else if ((ground[0] >= ground[1]) && (ground[1] > ground[2])) {
+        *finalGroundChar = 71;
+    }
+}
+
+void copyS0toS1(char const* roof, char const* ground){
     for (int y=0; y<20; y++) {
         for (int x=0;x<39;x++) {
             Screen1[y*40+x] = Screen0[y*40+x+1];
         }
+        unsigned char finalRoofChar, finalGroundChar;
+        getFinalChars(roof, ground, &finalRoofChar, &finalGroundChar);
+        
         if (y<roof[1]) {
-            Screen1[y*40+39] = 64;
+            Screen1[y*40+39] = 68;
         } else if (y == roof[1]) {
-            Screen1[y*40+39] = 65;
+            Screen1[y*40+39] = finalRoofChar;
         } else if (y == ground[1]) {
-            Screen1[y*40+39] = 69;            
+            Screen1[y*40+39] = finalGroundChar;            
         } else if (y > ground[1]) {
-            Screen1[y*40+39] = 64;            
+            Screen1[y*40+39] = 68;            
         } else {
             Screen1[y*40+39] = 32;            
         }
     }
 }
 
-void copyS1toS0(char* roof, char* ground){
+void copyS1toS0(char const* roof, char const* ground){
     for (int y=0; y<20; y++) {
         for (int x=0;x<39;x++) {
             Screen0[y*40+x] = Screen1[y*40+x+1];
         }
+        unsigned char finalRoofChar, finalGroundChar;
+        getFinalChars(roof, ground, &finalRoofChar, &finalGroundChar);
+
         if (y<roof[1]) {
-            Screen0[y*40+39] = 64;
+            Screen0[y*40+39] = 68;
         } else if (y == roof[1]) {
-            Screen0[y*40+39] = 65;
+            Screen0[y*40+39] = finalRoofChar;
         } else if (y == ground[1]) {
-            Screen0[y*40+39] = 69;            
+            Screen0[y*40+39] = finalGroundChar;            
         } else if (y > ground[1]) {
-            Screen0[y*40+39] = 64;            
+            Screen0[y*40+39] = 68;            
         } else {
             Screen0[y*40+39] = 32;            
         }

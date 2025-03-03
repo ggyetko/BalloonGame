@@ -9,7 +9,7 @@ const struct Goods goods[40] =
     {s"peppers   ", 75,  3,  0, 0}, // 4
     {s"seaweed   ", 75,  3,  0, 0}, // 5
     {s"mushrooms ", 75,  3,  0, 0}, // 6
-    {s"soy beans ", 200,  3,  0, 0}, // 7
+    {s"soy beans ", 200, 3,  0, 0}, // 7
    //METALS
     {s"copper    ", 300, 10, 0, 0}, // 8
     {s"bronze    ", 300, 10, 0, 0}, // 9
