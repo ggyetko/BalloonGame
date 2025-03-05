@@ -2,6 +2,7 @@
 #define PLAYER_DATA_H
 
 #include "goods.h"
+#include "city.h"
 
 #define FUEL_COST_QUARTER_TANK  2048  // probably don't use this
 #define FUEL_COST_QUARTER_TANK  512
@@ -11,6 +12,7 @@ const unsigned char MAX_CARGO_SPACE = 16;
 struct Passenger {
     char name[10];
     unsigned char fare;
+    CityData destination;
 };
 struct Cargo {
     unsigned char psgrSpace; // reduced by damage
@@ -19,13 +21,22 @@ struct Cargo {
     unsigned char currCargoCount; 
     int cargo[MAX_CARGO_SPACE];
 };
+enum BALLOON_UPGRADES {
+    BALLOON_FIREPROOF  = 0x01,
+    BALLOON_ICEPROOF   = 0x02,
+    BALLOON_FIRSTCLASS = 0x04,
+    BALLOON_GALLEY     = 0x08,
+    BALLOON_AIRDROP    = 0x10
+};
 struct PlayerData {
+    unsigned char balloonUpgrades;
     unsigned int fuel;  // fuel max out of 65535
     unsigned int money;
     unsigned char balloonHealth; // value out of 8
     Cargo cargo;
 };
 void playerDataInit(PlayerData *data){
+    data->balloonUpgrades = 0;
     data->fuel = 20000;
     data->money = 1000;
     data->balloonHealth = 8;
