@@ -141,10 +141,10 @@ void drawBalloonDockScreen(void)
 // return 0-based player's choice
 // navigates with w-up, s-down, ENTER-select
 const unsigned char maxDisplayedChoices = 10;
-unsigned char getMenuChoice(unsigned char num, const char text[][10], bool doCosts, const unsigned int costs[])
+unsigned char getMenuChoice(unsigned char num, unsigned char initChoice, const char text[][10], bool doCosts, const unsigned int costs[])
 {
     unsigned char currHome = 0;
-    unsigned char currSelect = 0;
+    unsigned char currSelect = (initChoice < num) ? initChoice : initChoice-1;
     
     for (unsigned char x = 27; x < 39; x++) {
         for (unsigned char y = 6; y < 19; y++) {

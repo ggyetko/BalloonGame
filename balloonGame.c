@@ -617,8 +617,9 @@ const char main_menu_options[MAIN_MENU_SIZE][10] = {
 void cityMenu(PlayerData *data) 
 {
     for (;;) {
-        unsigned char response = getMenuChoice(MAIN_MENU_SIZE, main_menu_options, false, nullptr);
+        unsigned char response = getMenuChoice(MAIN_MENU_SIZE, 0, main_menu_options, false, nullptr);
         if (response == MENU_OPTION_BUY) {
+            unsigned char lastChoice = 0;
             for (;;) {
                 unsigned char x;
                 char buyMenuOptions[MAX_SELL_GOODS+1][10];
@@ -637,7 +638,7 @@ void cityMenu(PlayerData *data)
                         break;
                     }
                 }
-                unsigned char responseBuy = getMenuChoice(x, buyMenuOptions, true, buyMenuCosts);
+                unsigned char responseBuy = getMenuChoice(x, lastChoice, buyMenuOptions, true, buyMenuCosts);
                 if (responseBuy == 0) {
                     break;
                 } else {
@@ -648,10 +649,12 @@ void cityMenu(PlayerData *data)
                         cargoInAnimation();
                         showScoreBoard(data);
                     }
+                    lastChoice = responseBuy;
                 }
             }
             
         } else if (response == MENU_OPTION_SELL) {
+            unsigned char lastChoice = 0;
             for (;;) {
                 unsigned char goodsIndexList[MAX_CARGO_SPACE];
                 unsigned char listLength = makeShortCargoList(data, goodsIndexList);
@@ -665,7 +668,7 @@ void cityMenu(PlayerData *data)
                     tenCharCopy( sellMenuOptions[x], goods[goodsIndexList[x-1]].name);
                     sellMenuCosts[x] = getGoodsPurchasePrice(&cities[cityNum-1], goodsIndexList[x-1], goods[goodsIndexList[x-1]].normalCost);
                 }
-                unsigned char responseSell = getMenuChoice(x, sellMenuOptions, true, sellMenuCosts);
+                unsigned char responseSell = getMenuChoice(x, lastChoice, sellMenuOptions, true, sellMenuCosts);
                 if (responseSell == 0) {
                     break;
                 } else {
@@ -676,6 +679,7 @@ void cityMenu(PlayerData *data)
                     if (data->cargo.currCargoCount == 0) {
                         break;
                     }
+                    lastChoice = responseSell;                    
                 }
             }
         } else if (response == MENU_OPTION_REFUEL) {
@@ -695,7 +699,7 @@ void cityMenu(PlayerData *data)
                 } else {
                     fuelListCosts[2] = fullCost;
                 }
-                unsigned char responseRefuel = getMenuChoice(3, fuelList, true, fuelListCosts);
+                unsigned char responseRefuel = getMenuChoice(3, 0, fuelList, true, fuelListCosts);
                 if (responseRefuel == 0) {
                     break;
                 } else if (responseRefuel == 1) {

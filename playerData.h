@@ -96,7 +96,7 @@ unsigned char makeShortCargoList(PlayerData const *data, unsigned char* list16)
         // Ignore empty cargo spots
         if (thisCargo < DAMAGED_SLOT) {
             bool found = false;
-            for (unsigned y=0;y<index;y++) {
+            for (unsigned char y=0;y<index;y++) {
                 if (list16[y] == thisCargo) {
                     found = true;
                     break;
@@ -107,8 +107,15 @@ unsigned char makeShortCargoList(PlayerData const *data, unsigned char* list16)
                 ScreenWork[11] = index%10 +48;
                 ScreenWork[13] = thisCargo/10 +48;
                 ScreenWork[14] = thisCargo%10 +48;
-                list16[index] = thisCargo;
-                index++;
+                for (char y=index; y>-1 ;y--) {
+                    if ((y==0) || (thisCargo > list16[y-1])) {
+                        list16[y] = thisCargo;
+                        break;
+                    } else {
+                        list16[y] = list16[y-1];
+                    }
+                }
+                index ++;
             }
         }
     }
