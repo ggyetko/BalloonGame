@@ -18,6 +18,15 @@
 #define ScreenColor ((char *)0xd800)
 
 // Graphics Routines
+void clearWorkScreen(void)
+{
+    for (unsigned char x = 1;x<24;x++) {
+        for (unsigned char y = 1;y<19;y++) {
+            ScreenWork[x+y*40] = 32;
+        }
+    }    
+}
+
 void drawBox(unsigned char x1,unsigned char y1,unsigned char x2,unsigned char y2,unsigned char col)
 {
     ScreenWork[x1+y1*40] = 103;
@@ -64,7 +73,8 @@ void drawBalloonDockScreen(void)
     unsigned char ramptop[4] = {104,106,106,105};
     unsigned char rampbottom[4] = {110,109,108,110};
     unsigned char x, y;
-    
+ 
+    clearWorkScreen();
     // Balloon
     for (y=1;y<8;y++) {
         for (x=1;x<12;x++) {
@@ -143,27 +153,33 @@ void drawBalloonDockScreen(void)
     }
 }
 
-void clearWorkScreen(void)
-{
-    for (unsigned char x = 1;x<24;x++) {
-        for (unsigned char y = 1;y<19;y++) {
-            ScreenWork[x+y*40] = 32;
-        }
-    }    
-}
-
 void showWorkPassengers(Passenger *psgData) 
 {
     clearWorkScreen();
+    ScreenWork[1+40*1] = s'c';
+    ScreenColor[1+40*1] = VCOL_DARK_GREY;
+    putText(s"name",3,1,4,VCOL_DARK_GREY);
+    putText(s"terminus",14,1,8,VCOL_DARK_GREY);
+    ScreenWork[1+40*2] = 106;
+    ScreenColor[1+40*2] = VCOL_DARK_GREY;
+    for (unsigned char x = 0; x<10; x++) {
+        ScreenWork[3+x+40*2] = 106;
+        ScreenColor[3+x+40*2] = VCOL_DARK_GREY;
+        ScreenWork[14+x+40*2] = 106;
+        ScreenColor[14+x+40*2] = VCOL_DARK_GREY;
+    }
     for (unsigned char x = 0; x<MAX_PASSENGERS; x++) {
         CityCode *code = &(psgData[x].destination);
         if (code->code) {
             unsigned char ct = CityCode_getCityNum(*code);
             unsigned char mp = CityCode_getMapNum(*code);
-            putText(psgData[x].name, 2, x+2, 10, VCOL_WHITE);
-            putText(cities[mp][ct-1].name, 13, x+2, 10, VCOL_WHITE);
+            ScreenWork[1+40*(x+3)] = (code->code & 0x80) ? 83 : 94; // CROWN or PERSON
+            putText(psgData[x].name, 3, x+3, 10, VCOL_WHITE);
+            putText(cities[mp][ct-1].name, 14, x+3, 10, VCOL_WHITE);
         } else {
-            putText(s"empty     ", 2, x+2, 10, VCOL_BLACK);
+            ScreenWork[1+40*(x+3)] = (code->code & 0x80) ? 83 : 94; // CROWN or PERSON
+            ScreenColor[1+40*(x+3)] = VCOL_BLACK;
+            putText(s"empty     ", 3, x+3, 10, VCOL_BLACK);
         }
     }
 }
