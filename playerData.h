@@ -2,21 +2,24 @@
 #define PLAYER_DATA_H
 
 #include "goods.h"
+#include "utils.h"
 #include "city.h"
 
 #define FUEL_COST_QUARTER_TANK  2048  // probably don't use this
 #define FUEL_COST_QUARTER_TANK  512
 #define FUEL_COST_DIVISOR       32
 
+#define MAX_PASSENGERS          8
+
 const unsigned char MAX_CARGO_SPACE = 16;
 struct Passenger {
     char name[10];
     unsigned char fare;
-    CityData destination;
+    CityCode destination;
 };
 struct Cargo {
     unsigned char psgrSpace; // reduced by damage
-    Passenger psgr[8];
+    Passenger psgr[MAX_PASSENGERS];
     unsigned char cargoSpace; // reduced by damage, max 16
     unsigned char currCargoCount; 
     int cargo[MAX_CARGO_SPACE];
@@ -40,12 +43,18 @@ void playerDataInit(PlayerData *data){
     data->fuel = 20000;
     data->money = 1000;
     data->balloonHealth = 8;
+    // Cargo
     data->cargo.cargoSpace = MAX_CARGO_SPACE;
     data->cargo.currCargoCount = 0;
-    data->cargo.psgrSpace = 8;
     for (unsigned char x=0; x<MAX_CARGO_SPACE; x++) {
         data->cargo.cargo[x] = NO_GOODS;
     }
+    // Passengers
+    data->cargo.psgrSpace = 8;
+    for (unsigned char x=0; x<MAX_PASSENGERS; x++) {
+        data->cargo.psgr[x].destination.code = 0;
+    }
+    
 }
 void balloonDamage(PlayerData *data){
     if (data->balloonHealth) {
@@ -128,6 +137,17 @@ void removeCargo(PlayerData *data, unsigned char cargoIndex)
         if (data->cargo.cargo[x] == cargoIndex) {
             data->cargo.cargo[x] = NO_GOODS;
             data->cargo.currCargoCount -= 1;
+            break;
+        }
+    }
+}
+void addPassenger(PlayerData *data, Passenger *passenger)
+{
+    for (unsigned char x=0;x<MAX_PASSENGERS;x++) {
+        if (data->cargo.psgr[x].destination.code == 0) {
+            tenCharCopy(data->cargo.psgr[x].name, passenger->name);
+            data->cargo.psgr[x].fare = passenger->fare;
+            data->cargo.psgr[x].destination.code = passenger->destination.code;
             break;
         }
     }

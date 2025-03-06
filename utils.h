@@ -13,4 +13,23 @@ void uint16ToString(unsigned int in, char* out)
     }
 }
 
+void tenCharCopy(char *dst, char const *src) {
+    for (unsigned char x = 0; x<10; x++) {
+        dst[x] = src[x];
+    }
+}
+
+struct CityCode {
+    unsigned char code; // ...MMM##, MMM map number, ## city within map (1,2,3) 0 is illegal
+};
+unsigned char CityCode_getCityNum(CityCode cityCode){
+    return cityCode.code & 0x03;
+}
+unsigned char CityCode_getMapNum(CityCode cityCode){
+    return (cityCode.code & 0x1C) >> 2;
+}
+unsigned char CityCode_generateCityCode(unsigned char mapNum, unsigned char cityNum) {
+    return (mapNum << 2) | cityNum;
+}
+
 #endif
