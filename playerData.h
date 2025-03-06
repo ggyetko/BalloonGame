@@ -4,6 +4,8 @@
 #include "goods.h"
 #include "utils.h"
 #include "city.h"
+#include "stdlib.h"
+
 
 #define FUEL_COST_QUARTER_TANK  2048  // probably don't use this
 #define FUEL_COST_QUARTER_TANK  512
@@ -12,11 +14,7 @@
 #define MAX_PASSENGERS          8
 
 const unsigned char MAX_CARGO_SPACE = 16;
-struct Passenger {
-    char name[10];
-    unsigned char fare;
-    CityCode destination;
-};
+
 struct Cargo {
     unsigned char psgrSpace; // reduced by damage
     Passenger psgr[MAX_PASSENGERS];
@@ -112,10 +110,6 @@ unsigned char makeShortCargoList(PlayerData const *data, unsigned char* list16)
                 }
             }
             if (!found) {
-                ScreenWork[10] = index/10 +48;
-                ScreenWork[11] = index%10 +48;
-                ScreenWork[13] = thisCargo/10 +48;
-                ScreenWork[14] = thisCargo%10 +48;
                 for (char y=index; y>-1 ;y--) {
                     if ((y==0) || (thisCargo > list16[y-1])) {
                         list16[y] = thisCargo;

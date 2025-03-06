@@ -2,6 +2,8 @@
 #define GRAPHICS_H
 
 #include "utils.h"
+#include "city.h"
+#include "playerData.h"
 
 #define BALLOON_COLOR   VCOL_WHITE
 #define CARRIAGE_COLOR  VCOL_BROWN
@@ -9,6 +11,11 @@
 #define MOUNTAIN_COLOR  VCOL_DARK_GREY
 #define CITY_COLOR      VCOL_LT_GREEN
 #define RAMP_COLOR      VCOL_BROWN
+
+#define Screen0 ((char *)0x0400)
+#define Screen1 ((char *)0x2c00)
+#define ScreenWork ((char *)0x3000)
+#define ScreenColor ((char *)0xd800)
 
 // Graphics Routines
 void drawBox(unsigned char x1,unsigned char y1,unsigned char x2,unsigned char y2,unsigned char col)
@@ -134,7 +141,36 @@ void drawBalloonDockScreen(void)
             index ++;
         }
     }
-    
+}
+
+void clearWorkScreen(void)
+{
+    for (unsigned char x = 1;x<24;x++) {
+        for (unsigned char y = 1;y<19;y++) {
+            ScreenWork[x+y*40] = 32;
+        }
+    }    
+}
+
+void showWorkPassengers(Passenger *psgData) 
+{
+    clearWorkScreen();
+    for (unsigned char x = 0; x<MAX_PASSENGERS; x++) {
+        CityCode *code = &(psgData[x].destination);
+        if (code->code) {
+            unsigned char ct = CityCode_getCityNum(*code);
+            unsigned char mp = CityCode_getMapNum(*code);
+            putText(psgData[x].name, 2, x+2, 10, VCOL_WHITE);
+            putText(cities[mp][ct-1].name, 13, x+2, 10, VCOL_WHITE);
+        } else {
+            putText(s"empty     ", 2, x+2, 10, VCOL_BLACK);
+        }
+    }
+}
+
+void showWorkCargo(void)
+{
+    clearWorkScreen();
 }
 
 // Takes an array of text options [10] * num

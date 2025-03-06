@@ -6,10 +6,6 @@
 #include <c64/cia.h>
 #include <string.h>
 
-#define Screen0 ((char *)0x0400)
-#define Screen1 ((char *)0x2c00)
-#define ScreenWork ((char *)0x3000)
-#define ScreenColor ((char *)0xd800)
 #define BalloonSpriteLocation 0xa0
 
 #include "utils.h"
@@ -29,7 +25,7 @@
 
 // My sprites go here
 #pragma section( spriteset, 0)
-#pragma region( spriteset, 0x2800, 0x2ac0, , , {spriteset} )
+#pragma region( spriteset, 0x2800, 0x2b00, , , {spriteset} )
 
 #pragma section(screen2andWork, 0)
 #pragma region (screen2andWork, 0x2c00, 0x33ff, , , {screen2andWork})
@@ -45,7 +41,7 @@ __export const char charset[2048] = {
 
 // spriteset at fixed location
 #pragma data(spriteset)
-__export const char spriteset[704] = {
+__export const char spriteset[768] = {
 	#embed "balloon.bin"         // 0xa0
     #embed "balloonDecel.bin"    // 0xa1
     #embed "balloonThrust.bin"   // 0xa2
@@ -56,6 +52,7 @@ __export const char spriteset[704] = {
     #embed "cart.bin"            // 0xa7
     #embed "clouds.bin"          // 0xa8, 0xa9 2 sprites here, outline and backing
     #embed "balloonOutline.bin"  // 0xaa 
+    #embed "balloonOutDecl.bin"  // 0xab
 };
 
 #pragma data(data)
@@ -133,40 +130,6 @@ const char terrain[256] =
     051,051,052,043,043,043,033,033,  024,034,044,043,043,032,022,012, 
     011,011,012,0323,023,023,014,015,  025,025,025,024,034,043,053,052, // City #3
     051,051,052,043,043,043,033,033,  024,034,044,043,043,032,022,012
-};
-struct CityData cities[1][3] = {
-
-    // MAP #0
-    {
-    // NAME         RESPECT            BUY     SELL
-    {s"cloud city", CITY_RESPECT_LOW, 
-        // Demands
-        {{0,1},{3,1}},
-        // For sale
-        {{1,  2, CITY_RESPECT_LOW, 2},  // wheat
-         {9,  2, CITY_RESPECT_LOW, 1},  // Bronze
-         {11, 2, CITY_RESPECT_MED, 1}, // Iron
-         {14, 2, CITY_RESPECT_HIGH,1} // Smithore
-        }
-    },
-    {s"floria    ", CITY_RESPECT_LOW, 
-        {{1,1}, {7,1}},
-        {{2, 2, CITY_RESPECT_LOW, 2},  // corn
-         {3, 2, CITY_RESPECT_LOW, 2},  // spinach
-         {19,2, CITY_RESPECT_MED, 2},  // eggs
-         {20,2, CITY_RESPECT_HIGH,2}   // quail eggs
-        } 
-    },
-    {s"sirenia   ", CITY_RESPECT_LOW, 
-        {{2,1}, {9,1}},
-        {{0,2,CITY_RESPECT_LOW,2}, // rice
-         {7,2,CITY_RESPECT_LOW,2}, // soy beans
-         {21,2,CITY_RESPECT_MED,2}, // bok choy
-         {22,2,CITY_RESPECT_HIGH,2} // black beans
-        } 
-    }
-    }
-    // MAP #1
 };
 
 const char decelPattern[8] =  {2,3,4,5,6,7,8,16};
@@ -597,7 +560,7 @@ void cargoOutAnimation(void) {
     }
 }
 
-const unsigned char MAIN_MENU_SIZE = 8;
+const unsigned char MAIN_MENU_SIZE = 9;
 const char main_menu_options[MAIN_MENU_SIZE][10] = {
     s"buy       ",
     s"sell      ",
@@ -606,6 +569,7 @@ const char main_menu_options[MAIN_MENU_SIZE][10] = {
     s"repair    ",
     s"refuel    ",
     s"upgrade   ",
+    s"inventory ",
     s"exit      "
 };
 #define MENU_OPTION_BUY 0
@@ -615,7 +579,8 @@ const char main_menu_options[MAIN_MENU_SIZE][10] = {
 #define MENU_OPTION_REPAIR 4
 #define MENU_OPTION_REFUEL 5
 #define MENU_OPTION_UPGRADE 6
-#define MENU_OPTION_EXIT 7
+#define MENU_OPTION_INVENTORY 7
+#define MENU_OPTION_EXIT 8
 
 void cityMenuBuy(PlayerData *data) 
 {
@@ -750,6 +715,24 @@ void cityMenuPassenger(PlayerData *data, Passenger *tmpPsgrData)
     }
 }
 
+void cityMenuInventory(PlayerData *data, Passenger *tmpPsgrData) 
+{
+    unsigned char lastChoice = 0;
+    for (;;) {
+        unsigned char invList[3][10] = {s"return    ",s"passengers",s"cargo     "};
+        unsigned char responseInv = getMenuChoice(3, lastChoice, invList, false, nullptr);
+        if (responseInv == 0) {
+            break;
+        } else if (responseInv == 1) {
+            showWorkPassengers(data->cargo.psgr);
+        } else {
+            showWorkCargo();
+        }
+        lastChoice = responseInv;
+    }
+    drawBalloonDockScreen();
+}
+    
 void cityMenu(PlayerData *data, Passenger *tmpPsgrData) 
 {
     for (;;) {
@@ -762,6 +745,8 @@ void cityMenu(PlayerData *data, Passenger *tmpPsgrData)
             cityMenuRefuel(data);
         } else if (response == MENU_OPTION_PASSENGER) {
             cityMenuPassenger(data, tmpPsgrData);
+        } else if (response == MENU_OPTION_INVENTORY) {
+            cityMenuInventory(data, tmpPsgrData);
         } else if (response == MENU_OPTION_EXIT) {
             break;
         }
