@@ -57,5 +57,5 @@ void removePassengerFromList(Passenger *tempPsgData, unsigned char index);
 unsigned int getGoodsPurchasePrice(CityData const *cityData, unsigned char goodsIndex, unsigned int normalPrice);
 
 unsigned char takeRandomName(void);
-void returnRandomName(unsigned char index);
+void returnName(char *name);
 #endif

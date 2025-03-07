@@ -151,8 +151,20 @@ unsigned char takeRandomName(void)
     return 0;
 }
 
-void returnRandomName(unsigned char index)
+void returnName(char *name)
 {
-    psgrNames[index].inUse = false;
-    psgrNameCount ++;
+    for (unsigned char p=0; p<NUM_PASSENGER_NAMES; p++) {
+        bool diff = false;
+        for (unsigned char ch=0; ch<10; ch++) {
+            if (psgrNames[p].name[ch] !=  name[ch]) {
+                diff = true;
+                break;
+            }
+        }
+        if (!diff) {
+            psgrNames[p].inUse = false;
+            psgrNameCount ++;
+            break;
+        }
+    }
 }

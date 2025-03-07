@@ -668,7 +668,6 @@ void passengerInAnimation(void) {
         vic.spr_enable |= SPRITE_PSGR_IN_ENABLE;
     }
 }
-
 void passengerOutAnimation(void) {
     if ((status & STATUS_PSGR_OUT) == 0) {
         status |= STATUS_PSGR_OUT;
@@ -872,6 +871,23 @@ void cityMenu(PlayerData *data, Passenger *tmpPsgrData)
     }
 }
 
+void checkForLandingPassengers(PlayerData *data)
+{
+    for (unsigned char p=0; p<MAX_PASSENGERS; p++) {
+        CityCode dest = data->cargo.psgr[p].destination;
+        if((CityCode_getMapNum(dest) == currMap) && (CityCode_getCityNum(dest) == cityNum)) {
+            vic.color_border ++;
+            passengerOutAnimation();
+            // take fare
+            data->money += data->cargo.psgr[p].fare;
+            // add passenger name back to list
+            returnName(data->cargo.psgr[p].name);
+            // remove passenger
+            data->cargo.psgr[p].destination.code = 0;
+        }
+    }
+}
+
 void landingOccurred(PlayerData *data)
 {
     clearRasterIrqs();
@@ -912,6 +928,7 @@ void landingOccurred(PlayerData *data)
 
     setupRasterIrqsWorkScreen();
     clearKeyboardCache();
+    checkForLandingPassengers(data);
     cityMenu(data, tmpPsgrData);
     
     // return to travelling state
