@@ -706,10 +706,9 @@ void cityMenuPassenger(PlayerData *data, Passenger *tmpPsgrData)
         }
         unsigned char responsePassenger = getMenuChoice(listSize, 0, psgrList, false, nullptr);
             
-        if (responsePassenger == 0) {
+        if ((responsePassenger == 0) || (data->cargo.psgrSpace==0)){
             break;
-        } else {
-            addPassenger(data, &tmpPsgrData[responsePassenger-1]);
+        } else if (addPassenger(data, &tmpPsgrData[responsePassenger-1])) {
             removePassengerFromList(tmpPsgrData, responsePassenger-1);
         }
     }

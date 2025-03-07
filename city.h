@@ -28,6 +28,11 @@ unsigned char CityCode_getCityNum(CityCode cityCode);
 unsigned char CityCode_getMapNum(CityCode cityCode);
 unsigned char CityCode_generateCityCode(unsigned char mapNum, unsigned char cityNum);
 
+struct PassengerName {
+    char name[10];
+    bool inUse;
+};
+
 struct Passenger {
     char name[10];
     unsigned char fare;
@@ -40,6 +45,8 @@ struct Passenger {
 #define PASSENGER_COST_GALLEY_BONUS  50   
 #define PASSENGER_COST_1ST_CLS_BONUS 100
 
+PassengerName psgrNames[20];
+unsigned char psgrNameCount;
 const CityData cities[1][3];
 
 // call this upon landing to make up a newly generated passenger list
@@ -49,4 +56,6 @@ void removePassengerFromList(Passenger *tempPsgData, unsigned char index);
 
 unsigned int getGoodsPurchasePrice(CityData const *cityData, unsigned char goodsIndex, unsigned int normalPrice);
 
+unsigned char takeRandomName(void);
+void returnRandomName(unsigned char index);
 #endif

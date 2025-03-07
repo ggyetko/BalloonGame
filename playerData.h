@@ -135,16 +135,17 @@ void removeCargo(PlayerData *data, unsigned char cargoIndex)
         }
     }
 }
-void addPassenger(PlayerData *data, Passenger *passenger)
+bool addPassenger(PlayerData *data, Passenger *passenger)
 {
     for (unsigned char x=0;x<MAX_PASSENGERS;x++) {
         if (data->cargo.psgr[x].destination.code == 0) {
             tenCharCopy(data->cargo.psgr[x].name, passenger->name);
             data->cargo.psgr[x].fare = passenger->fare;
             data->cargo.psgr[x].destination.code = passenger->destination.code;
-            break;
+            return true;
         }
     }
+    return false;
 }
 
 #endif
