@@ -6,7 +6,6 @@
 #include <c64/cia.h>
 #include <string.h>
 
-#define BalloonSpriteLocation 0xa0
 
 #include "utils.h"
 #include "graphics.h"
@@ -54,6 +53,20 @@ __export const char spriteset[768] = {
     #embed "balloonOutline.bin"  // 0xaa 
     #embed "balloonOutDecl.bin"  // 0xab
 };
+
+#define BalloonSpriteLocation     0xa0
+#define BalloonDecelLocation      0xa1
+#define BalloonBrakeFire1Location 0xa2
+#define BalloonBrakeFire2Location 0xa3
+#define BalloonFlameLocation      0xa4
+#define BalloonCityLocation       0xa5
+#define BalloonBridgeLocation     0xa6
+#define BalloonCartLocation       0xa7
+#define BalloonCloudOutlLocation  0xa8  // this one needs higher priority so it's in front
+#define BalloonCloudLocation      0xa9
+#define BalloonOutlineLocation    0xaa  // needs higher priority than BalloonSpriteLocation
+#define BalloonDecelOutlLocation  0xab  // needs higher priority than BalloonDecelLocation
+
 
 #pragma data(data)
 
@@ -146,6 +159,30 @@ const char mountainHeight[8] = {0,1,2,3,4,6,8,10};
 // #6 - Cloud Outline    Cargo Out
 // #7 - Cloud Background
 
+#define SPRITE_BALLOON_OUTLINE 0
+#define SPRITE_BACK_THRUST     1
+#define SPRITE_UP_THRUST       2
+#define SPRITE_CITY            3
+#define SPRITE_RAMP            4
+#define SPRITE_BALLOON_BG      5
+#define SPRITE_CLOUD_OUTLINE   6
+#define SPRITE_CLOUD_BG        7
+
+#define SPRITE_BALLOON_OUTLINE_ENABLE 0x01
+#define SPRITE_BACK_THRUST_ENABLE     0x02
+#define SPRITE_UP_THRUST_ENABLE       0x04
+#define SPRITE_CITY_ENABLE            0x08
+#define SPRITE_RAMP_ENABLE            0x10
+#define SPRITE_BALLOON_BG_ENABLE      0x20
+#define SPRITE_CLOUD_OUTLINE_ENABLE   0x40
+#define SPRITE_CLOUD_BG_ENABLE        0x80
+
+#define SPRITE_CARGO_IN        5
+#define SPRITE_CARGO_OUT       6
+
+#define SPRITE_CARGO_IN_ENABLE        0x20
+#define SPRITE_CARGO_OUT_ENABLE       0x40
+
 void setScrollActive(unsigned char active, unsigned char delay)
 {
     if (active) {
@@ -163,6 +200,7 @@ void setScrollAmnt(char x)
 
 __interrupt void prepWorkScreen(void)
 {
+    // work screen is 0xc0
     vic.memptr = 0xc0 | (vic.memptr & 0x0f);
     vic.color_back = SKY_COLOR;
     
@@ -170,18 +208,18 @@ __interrupt void prepWorkScreen(void)
         cargoInXPos --;
         if (cargoInXPos <= 60) {
             status &= ~STATUS_CARGO_IN;
-            vic.spr_enable &= ~0x20;
+            vic.spr_enable &= ~SPRITE_CARGO_IN_ENABLE;
         } else {
-            vic_sprxy(5,cargoInXPos,cargoInYPos);
+            vic_sprxy(SPRITE_CARGO_IN,cargoInXPos,cargoInYPos);
         }
     }
     if (status & STATUS_CARGO_OUT) {
         cargoOutXPos ++;
         if (cargoOutXPos >= 195) {
             status &= ~STATUS_CARGO_OUT;
-            vic.spr_enable &= ~0x40;
+            vic.spr_enable &= ~SPRITE_CARGO_OUT_ENABLE;
         } else {
-            vic_sprxy(6,cargoOutXPos,cargoOutYPos);
+            vic_sprxy(SPRITE_CARGO_OUT,cargoOutXPos,cargoOutYPos);
         }
     }
 }
@@ -189,32 +227,35 @@ __interrupt void prepWorkScreen(void)
 __interrupt void prepScreen(void)
 {
     counter ++;
+    // Getting this interrupt means we're in travelling mode, set the screen
     if (currScreen == 0) {
         vic.memptr = 0x10 | (vic.memptr & 0x0f); // point to screen0
     } else {
         vic.memptr = 0xb0 | (vic.memptr & 0x0f); // point to screen1
     }
+    // move the high level cloud
     unsigned char change = 1 - (status & STATUS_SCROLLING) + (counter%3) ? 1 : 0;
     if (cloudXPos[0] > 344) {
         cloudXPos[0] = 512;
     } else {
         cloudXPos[0] += change;
     }
-    vic_sprxy(6,cloudXPos[0],cloudYPos[0]);
-    vic_sprxy(7,cloudXPos[0],cloudYPos[0]);
+    vic_sprxy(SPRITE_CLOUD_OUTLINE,cloudXPos[0],cloudYPos[0]);
+    vic_sprxy(SPRITE_CLOUD_BG,cloudXPos[0],cloudYPos[0]);
     setScrollAmnt (xScroll);
 }
 
 __interrupt void midCloudAdjustment(void) 
 {
+    // move the mid level cloud
     unsigned char change = 1 - (status & STATUS_SCROLLING) + (counter&1);
     if (cloudXPos[1] > 344) {
         cloudXPos[1] = 512;
     } else {
         cloudXPos[1] += change;
     }
-    vic_sprxy(6,cloudXPos[1],cloudYPos[1]);
-    vic_sprxy(7,cloudXPos[1],cloudYPos[1]);
+    vic_sprxy(SPRITE_CLOUD_OUTLINE,cloudXPos[1],cloudYPos[1]);
+    vic_sprxy(SPRITE_CLOUD_BG,cloudXPos[1],cloudYPos[1]);
 }
 
 __interrupt void lowerStatBarWorkScreen(void)
@@ -237,36 +278,41 @@ __interrupt void lowerStatBar(void)
         yVel += 1;
     }
     yPos += yVel;
-    vic_sprxy(0, 80, (yPos>>8) + 24);
-    vic_sprxy(1, 80, (yPos>>8) + 24);
-    vic_sprxy(2, 80, (yPos>>8) + 24);
-    // Toggle thrust sprite
-    Screen0[0x03f8+1] ^= 0x01;
-	Screen1[0x03f8+1] ^= 0x01;
-    if (vic.spr_color[1] = VCOL_RED) {
-        vic.spr_color[1] = VCOL_ORANGE;
-        vic.spr_color[2] = VCOL_ORANGE;
+    vic_sprxy(SPRITE_BALLOON_OUTLINE , 80, (yPos>>8) + 24);
+    vic_sprxy(SPRITE_BACK_THRUST     , 80, (yPos>>8) + 24);
+    vic_sprxy(SPRITE_UP_THRUST       , 80, (yPos>>8) + 24);
+
+    if (counter & 0x02) {
+        Screen0[0x03f8+SPRITE_BACK_THRUST] = BalloonBrakeFire1Location;
+        Screen1[0x03f8+SPRITE_BACK_THRUST] = BalloonBrakeFire1Location;
     } else {
-        vic.spr_color[1] = VCOL_YELLOW;
-        vic.spr_color[2] = VCOL_YELLOW;
+        Screen0[0x03f8+SPRITE_BACK_THRUST] = BalloonBrakeFire2Location;
+        Screen1[0x03f8+SPRITE_BACK_THRUST] = BalloonBrakeFire2Location;
+    }
+    if (counter & 0x01) {
+        vic.spr_color[SPRITE_BACK_THRUST] = VCOL_ORANGE;
+        vic.spr_color[SPRITE_UP_THRUST] = VCOL_YELLOW;
+    } else {
+        vic.spr_color[SPRITE_BACK_THRUST] = VCOL_YELLOW;
+        vic.spr_color[SPRITE_UP_THRUST] = VCOL_ORANGE;
     }
     // Handle upward flame continuity
     if (flameDelay) {
         flameDelay --;
         if (flameDelay == 0) {
-            vic.spr_enable &= 251;
+            vic.spr_enable &= ~SPRITE_UP_THRUST_ENABLE;
         }
     }
     // handle city movement    
     if (cityXPos) {
-        vic_sprxy(3, cityXPos, cityYPos);
+        vic_sprxy(SPRITE_CITY, cityXPos, cityYPos);
         if (status & STATUS_CITY_RAMP){
             if (cityXPos < 24) {
                 status &= ~STATUS_CITY_RAMP;
-                vic.spr_enable &= 0xef;
+                vic.spr_enable &= ~SPRITE_RAMP_ENABLE;
                 cityNum = 0;
             } else {
-                vic_sprxy(4, cityXPos-23, cityYPos);
+                vic_sprxy(SPRITE_RAMP, cityXPos-23, cityYPos);
             }
         }
     } 
@@ -286,6 +332,7 @@ __interrupt void scrollLeft(void)
         setScrollAmnt(xScroll);
     } else {
         if (holdCount) {
+            // step through the gentle deceleration array
             if (decelIndex < 8) {
                 decelCount--;
                 if (decelCount) {
@@ -297,11 +344,14 @@ __interrupt void scrollLeft(void)
                     }
                 }
             } else {
+                // deceleration is done, just hold for the count
                 holdCount--;
                 if (holdCount == 0){
-                    Screen0[0x03f8] = BalloonSpriteLocation; // 0xa0 * 0x64 = 0x2800 (sprite #0 data location)
-                    Screen1[0x03f8] = BalloonSpriteLocation;
-                    vic.spr_enable &= 0xfd;
+                    // return to normal balloon shape
+                    Screen0[0x03f8+SPRITE_BALLOON_OUTLINE] = BalloonSpriteLocation;
+                    Screen1[0x03f8+SPRITE_BALLOON_OUTLINE] = BalloonSpriteLocation;
+                    // turn off back thrust sprite
+                    vic.spr_enable &= ~SPRITE_BACK_THRUST_ENABLE;
                 }
                 doScroll = 0;
             }
@@ -318,7 +368,7 @@ __interrupt void scrollLeft(void)
                 cityXPos--;
                 if (cityXPos == 0) {
                     status &= ~STATUS_CITY_RAMP;         // turn off city
-                    vic.spr_enable &= 0xF7; // turn off city sprite
+                    vic.spr_enable &= ~SPRITE_CITY_ENABLE; // turn off city sprite
                 }  
             }
         } 
@@ -379,56 +429,56 @@ void clearRasterIrqs(void)
 
 void setupUpCargoSprites(void) {
     // Sprite #5
-	ScreenWork[0x03f8+5] = 0xa7; // 0xa7 * 0x40 = 0x29c0 (cart sprite)
-	ScreenWork[0x03f8+5] = 0xa7;
-    vic.spr_color[5] = VCOL_BROWN;
+	ScreenWork[0x03f8+SPRITE_CARGO_IN] = BalloonCartLocation;
+	ScreenWork[0x03f8+SPRITE_CARGO_IN] = BalloonCartLocation;
+    vic.spr_color[SPRITE_CARGO_IN] = VCOL_BROWN;
     // Sprite #6
-	ScreenWork[0x03f8+6] = 0xa7; // 0xa7 * 0x40 = 0x29c0 (cart sprite)
-	ScreenWork[0x03f8+6] = 0xa7;
-    vic.spr_color[6] = VCOL_BROWN;
+	ScreenWork[0x03f8+SPRITE_CARGO_OUT] = BalloonCartLocation;
+	ScreenWork[0x03f8+SPRITE_CARGO_OUT] = BalloonCartLocation;
+    vic.spr_color[SPRITE_CARGO_OUT] = VCOL_BROWN;
     
-    vic.spr_priority = 0x60; // put sprites #5,#6 behind background
+    vic.spr_priority = SPRITE_CARGO_IN_ENABLE | SPRITE_CARGO_OUT_ENABLE; // put sprites behind background
 }
 
 void setupTravellingSprites(void) {
     // Setup sprite images
     // Sprite #0
-	Screen0[0x03f8] = BalloonSpriteLocation; // 0xa0 * 0x40 = 0x2800 (sprite #1 data location)
-	Screen1[0x03f8] = BalloonSpriteLocation;
+	Screen0[0x03f8+SPRITE_BALLOON_OUTLINE] = BalloonSpriteLocation; // 0xa0 * 0x40 = 0x2800 (sprite #1 data location)
+	Screen1[0x03f8+SPRITE_BALLOON_OUTLINE] = BalloonSpriteLocation;
     // Sprite #1
-	Screen0[0x03f8+1] = 0xa2; // 0xa2 * 0x40 = 0x2880 (sprite back thrust data location)
-	Screen1[0x03f8+1] = 0xa2;
+	Screen0[0x03f8+SPRITE_BACK_THRUST     ] = BalloonBrakeFire1Location; // 0xa2 * 0x40 = 0x2880 (sprite back thrust data location)
+	Screen1[0x03f8+SPRITE_BACK_THRUST     ] = BalloonBrakeFire1Location;
     // Sprite #2
-	Screen0[0x03f8+2] = 0xa4; // 0xa4 * 0x40 = 0x2900 (sprite up thrust data location)
-	Screen1[0x03f8+2] = 0xa4;
+	Screen0[0x03f8+SPRITE_UP_THRUST       ] = BalloonFlameLocation; // 0xa4 * 0x40 = 0x2900 (sprite up thrust data location)
+	Screen1[0x03f8+SPRITE_UP_THRUST       ] = BalloonFlameLocation;
     // Sprite #3
-	Screen0[0x03f8+3] = 0xa5; // 0xa5 * 0x40 = 0x2940 (city sprite)
-	Screen1[0x03f8+3] = 0xa5;
+	Screen0[0x03f8+SPRITE_CITY            ] = BalloonCityLocation; // 0xa5 * 0x40 = 0x2940 (city sprite)
+	Screen1[0x03f8+SPRITE_CITY            ] = BalloonCityLocation;
     // Sprite #4
-	Screen0[0x03f8+4] = 0xa6; // 0xa6 * 0x40 = 0x2980 (city bridge sprite)
-	Screen1[0x03f8+4] = 0xa6;
+	Screen0[0x03f8+SPRITE_RAMP            ] = BalloonBridgeLocation; // 0xa6 * 0x40 = 0x2980 (city bridge sprite)
+	Screen1[0x03f8+SPRITE_RAMP            ] = BalloonBridgeLocation;
     
     // Sprite #6
-	Screen0[0x03f8+6] = 0xa8; // 0xa8 * 0x40 = 0x---- (cloud outline)
-	Screen1[0x03f8+6] = 0xa8;
+	Screen0[0x03f8+SPRITE_CLOUD_OUTLINE   ] = BalloonCloudOutlLocation; // 0xa8 * 0x40 = 0x---- (cloud outline)
+	Screen1[0x03f8+SPRITE_CLOUD_OUTLINE   ] = BalloonCloudOutlLocation;
     // Sprite #7
-	Screen0[0x03f8+7] = 0xa9; // 0xa9 * 0x40 = 0x29c0 (cloud background)
-	Screen1[0x03f8+7] = 0xa9;
+	Screen0[0x03f8+SPRITE_CLOUD_BG        ] = BalloonCloudLocation; // 0xa9 * 0x40 = 0x29c0 (cloud background)
+	Screen1[0x03f8+SPRITE_CLOUD_BG        ] = BalloonCloudLocation;
 
     setScrollAmnt(xScroll);
 
 	// Remaining sprite registers
-	vic.spr_enable = 0x01;
+	vic.spr_enable = SPRITE_BALLOON_OUTLINE_ENABLE;
 	vic.spr_multi = 0x00;
 	vic.spr_expand_x = 0x00;
 	vic.spr_expand_y = 0x00;
-    vic.spr_color[0] = BALLOON_COLOR;
-    vic.spr_color[1] = VCOL_BLACK;
-    vic.spr_color[2] = VCOL_RED;
-    vic.spr_color[3] = CITY_COLOR;
-    vic.spr_color[4] = RAMP_COLOR;
-    vic.spr_color[6] = VCOL_BLUE;
-    vic.spr_color[7] = VCOL_WHITE;
+    vic.spr_color[SPRITE_BALLOON_OUTLINE] = BALLOON_COLOR;
+    vic.spr_color[SPRITE_BACK_THRUST] = VCOL_BLACK;
+    vic.spr_color[SPRITE_UP_THRUST] = VCOL_RED;
+    vic.spr_color[SPRITE_CITY] = CITY_COLOR;
+    vic.spr_color[SPRITE_RAMP] = RAMP_COLOR;
+    vic.spr_color[SPRITE_CLOUD_OUTLINE] = VCOL_BLUE;
+    vic.spr_color[SPRITE_CLOUD_BG] = VCOL_WHITE;
 
 }
 
@@ -450,19 +500,20 @@ void invokeDecel(char cycles)
     if (holdCount) {
         return;
     }
-    vic.spr_enable |= 0x02;        // turn on sprite #1
-    vic_sprxy(0, 80, (yPos>>8)+24); // colocate sprite #1 with sprite #0
+    vic.spr_enable |= SPRITE_BACK_THRUST_ENABLE;        // turn on sprite #1
+    vic_sprxy(SPRITE_BACK_THRUST, 80, (yPos>>8)+24); // colocate sprite #1 with sprite #0
     holdCount = cycles;
     decelIndex = 0;
     decelCount = decelPattern[0];
-    Screen0[0x03f8] = 0xa1; // 0xa1 * 0x64 = 0x2840 (balloon bent back data location)
-	Screen1[0x03f8] = 0xa1;
+    // set balloon to angled "decelerating" appearance
+    Screen0[0x03f8+SPRITE_BALLOON_OUTLINE] = BalloonDecelLocation;
+	Screen1[0x03f8+SPRITE_BALLOON_OUTLINE] = BalloonDecelLocation;
 }
 
 void invokeInternalFlame(char cycles, PlayerData *data)
 {
     flameDelay = cycles;
-    vic.spr_enable |= 0x04;
+    vic.spr_enable |= SPRITE_UP_THRUST_ENABLE;
     if (yVel < -205) {
         yVel = -255;
     } else {
@@ -510,7 +561,7 @@ void setAveragePosition(void)
 void clearMovement(void)
 {
     // turn off flame sprites
-    vic.spr_enable &= 0xf9;
+    vic.spr_enable &= ~(SPRITE_BACK_THRUST_ENABLE | SPRITE_UP_THRUST_ENABLE);
     // turn off up flame
     flameDelay = 0;
     // turn off brake flame
@@ -519,8 +570,8 @@ void clearMovement(void)
     // kill all velocity
     yVel = 0;
     // set sprite to standard shape
-    Screen0[0x03f8] = BalloonSpriteLocation;
-    Screen1[0x03f8] = BalloonSpriteLocation;    
+    Screen0[0x03f8+SPRITE_BALLOON_OUTLINE] = BalloonSpriteLocation;
+    Screen1[0x03f8+SPRITE_BALLOON_OUTLINE] = BalloonSpriteLocation;    
 }
 
 // returns 0 for bottom collision
@@ -545,8 +596,8 @@ void cargoInAnimation(void) {
         status |= STATUS_CARGO_IN;
         cargoInXPos = 194;
         cargoInYPos = 165;
-        vic_sprxy(5,cargoInXPos,cargoInYPos);
-        vic.spr_enable |= 0x20;
+        vic_sprxy(SPRITE_CARGO_IN,cargoInXPos,cargoInYPos);
+        vic.spr_enable |= SPRITE_CARGO_IN_ENABLE;
     }
 }
 
@@ -555,8 +606,8 @@ void cargoOutAnimation(void) {
         status |= STATUS_CARGO_OUT;
         cargoOutXPos = 60;
         cargoOutYPos = 165;
-        vic_sprxy(6,cargoInXPos,cargoInYPos);
-        vic.spr_enable |= 0x40;
+        vic_sprxy(SPRITE_CARGO_OUT,cargoInXPos,cargoInYPos);
+        vic.spr_enable |= SPRITE_CARGO_OUT_ENABLE;
     }
 }
 
@@ -802,7 +853,7 @@ void landingOccurred(PlayerData *data)
     }
     clearRasterIrqs();
     setAveragePosition();
-    vic.spr_enable = 0x01;
+    vic.spr_enable = SPRITE_BALLOON_OUTLINE_ENABLE;
     vic.ctrl2 = 0xc0; // 38 columns, no scroll
     setScrollActive(0,150);
     initScreenWithDefaultColors(false);
@@ -1024,7 +1075,7 @@ int main(void)
             if (cloudXPos[cloudNum] > 344) {
                 cloudXPos[cloudNum] = 0;
                 cloudYPos[cloudNum] = (rand()&15) + 45 + 50*cloudNum;
-                vic.spr_enable |= 0xc0; 
+                vic.spr_enable |= SPRITE_CLOUD_OUTLINE_ENABLE | SPRITE_CLOUD_BG_ENABLE; 
             }
         }
         if (kbhit()){
@@ -1041,7 +1092,7 @@ int main(void)
                 } else if (ch == 'P') {
                     if (status & STATUS_CITY_VIS) {
                         status |= STATUS_CITY_RAMP;
-                        vic.spr_enable |= 0x10;
+                        vic.spr_enable |= SPRITE_RAMP_ENABLE;
                         showScoreBoard(&playerData);
                     }
                 }
@@ -1068,10 +1119,10 @@ int main(void)
             if (city) {
                 status |= STATUS_CITY_VIS;
                 cityNum = city;
-                vic.spr_enable |= 0x08; // activate Sprite #3
+                vic.spr_enable |= SPRITE_CITY_ENABLE;
                 cityXPos = (unsigned int)(256+92);
                 cityYPos = 202 - (8*mountainHeight[(terrain[currCoord] & 0x7)]) - 16;
-                vic_sprxy(3, cityXPos, 202 - cityYPos);
+                vic_sprxy(SPRITE_CITY, cityXPos, 202 - cityYPos);
             }
             flip = 0;
         }
