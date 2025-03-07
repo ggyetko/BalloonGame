@@ -876,7 +876,6 @@ void checkForLandingPassengers(PlayerData *data)
     for (unsigned char p=0; p<MAX_PASSENGERS; p++) {
         CityCode dest = data->cargo.psgr[p].destination;
         if((CityCode_getMapNum(dest) == currMap) && (CityCode_getCityNum(dest) == cityNum)) {
-            vic.color_border ++;
             passengerOutAnimation();
             // take fare
             data->money += data->cargo.psgr[p].fare;
