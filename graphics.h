@@ -5,12 +5,13 @@
 #include "city.h"
 #include "playerData.h"
 
-#define BALLOON_COLOR   VCOL_WHITE
-#define CARRIAGE_COLOR  VCOL_BROWN
-#define SKY_COLOR       VCOL_LT_BLUE
-#define MOUNTAIN_COLOR  VCOL_DARK_GREY
-#define CITY_COLOR      VCOL_LT_GREEN
-#define RAMP_COLOR      VCOL_BROWN
+#define BALLOON_COLOR          VCOL_WHITE
+#define BALLOON_OUTLINE_COLOR  VCOL_GREEN
+#define CARRIAGE_COLOR         VCOL_BROWN
+#define SKY_COLOR              VCOL_LT_BLUE
+#define MOUNTAIN_COLOR         VCOL_DARK_GREY
+#define CITY_COLOR             VCOL_LT_GREEN
+#define RAMP_COLOR             VCOL_BROWN
 
 #define Screen0 ((char *)0x0400)
 #define Screen1 ((char *)0x2c00)

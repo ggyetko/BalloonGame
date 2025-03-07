@@ -279,6 +279,7 @@ __interrupt void lowerStatBar(void)
     }
     yPos += yVel;
     vic_sprxy(SPRITE_BALLOON_OUTLINE , 80, (yPos>>8) + 24);
+    vic_sprxy(SPRITE_BALLOON_BG      , 80, (yPos>>8) + 24);
     vic_sprxy(SPRITE_BACK_THRUST     , 80, (yPos>>8) + 24);
     vic_sprxy(SPRITE_UP_THRUST       , 80, (yPos>>8) + 24);
 
@@ -348,8 +349,10 @@ __interrupt void scrollLeft(void)
                 holdCount--;
                 if (holdCount == 0){
                     // return to normal balloon shape
-                    Screen0[0x03f8+SPRITE_BALLOON_OUTLINE] = BalloonSpriteLocation;
-                    Screen1[0x03f8+SPRITE_BALLOON_OUTLINE] = BalloonSpriteLocation;
+                    Screen0[0x03f8+SPRITE_BALLOON_OUTLINE] = BalloonOutlineLocation;
+                    Screen1[0x03f8+SPRITE_BALLOON_OUTLINE] = BalloonOutlineLocation;
+                    Screen0[0x03f8+SPRITE_BALLOON_BG] = BalloonSpriteLocation;
+                    Screen1[0x03f8+SPRITE_BALLOON_BG] = BalloonSpriteLocation;
                     // turn off back thrust sprite
                     vic.spr_enable &= ~SPRITE_BACK_THRUST_ENABLE;
                 }
@@ -443,8 +446,10 @@ void setupUpCargoSprites(void) {
 void setupTravellingSprites(void) {
     // Setup sprite images
     // Sprite #0
-	Screen0[0x03f8+SPRITE_BALLOON_OUTLINE] = BalloonSpriteLocation; // 0xa0 * 0x40 = 0x2800 (sprite #1 data location)
-	Screen1[0x03f8+SPRITE_BALLOON_OUTLINE] = BalloonSpriteLocation;
+	Screen0[0x03f8+SPRITE_BALLOON_OUTLINE] = BalloonOutlineLocation; // 0xa0 * 0x40 = 0x2800 (sprite #1 data location)
+	Screen1[0x03f8+SPRITE_BALLOON_OUTLINE] = BalloonOutlineLocation;
+	Screen0[0x03f8+SPRITE_BALLOON_BG     ] = BalloonSpriteLocation;  // 0xa0 * 0x40 = 0x2800 (sprite #1 data location)
+	Screen1[0x03f8+SPRITE_BALLOON_BG     ] = BalloonSpriteLocation;
     // Sprite #1
 	Screen0[0x03f8+SPRITE_BACK_THRUST     ] = BalloonBrakeFire1Location; // 0xa2 * 0x40 = 0x2880 (sprite back thrust data location)
 	Screen1[0x03f8+SPRITE_BACK_THRUST     ] = BalloonBrakeFire1Location;
@@ -468,11 +473,12 @@ void setupTravellingSprites(void) {
     setScrollAmnt(xScroll);
 
 	// Remaining sprite registers
-	vic.spr_enable = SPRITE_BALLOON_OUTLINE_ENABLE;
+	vic.spr_enable = SPRITE_BALLOON_OUTLINE_ENABLE | SPRITE_BALLOON_BG_ENABLE;
 	vic.spr_multi = 0x00;
 	vic.spr_expand_x = 0x00;
 	vic.spr_expand_y = 0x00;
-    vic.spr_color[SPRITE_BALLOON_OUTLINE] = BALLOON_COLOR;
+    vic.spr_color[SPRITE_BALLOON_OUTLINE] = BALLOON_OUTLINE_COLOR;
+    vic.spr_color[SPRITE_BALLOON_BG] = BALLOON_COLOR;
     vic.spr_color[SPRITE_BACK_THRUST] = VCOL_BLACK;
     vic.spr_color[SPRITE_UP_THRUST] = VCOL_RED;
     vic.spr_color[SPRITE_CITY] = CITY_COLOR;
@@ -506,8 +512,10 @@ void invokeDecel(char cycles)
     decelIndex = 0;
     decelCount = decelPattern[0];
     // set balloon to angled "decelerating" appearance
-    Screen0[0x03f8+SPRITE_BALLOON_OUTLINE] = BalloonDecelLocation;
-	Screen1[0x03f8+SPRITE_BALLOON_OUTLINE] = BalloonDecelLocation;
+    Screen0[0x03f8+SPRITE_BALLOON_OUTLINE] = BalloonDecelOutlLocation;
+	Screen1[0x03f8+SPRITE_BALLOON_OUTLINE] = BalloonDecelOutlLocation;
+    Screen0[0x03f8+SPRITE_BALLOON_BG] = BalloonDecelLocation;
+	Screen1[0x03f8+SPRITE_BALLOON_BG] = BalloonDecelLocation;
 }
 
 void invokeInternalFlame(char cycles, PlayerData *data)
@@ -570,8 +578,10 @@ void clearMovement(void)
     // kill all velocity
     yVel = 0;
     // set sprite to standard shape
-    Screen0[0x03f8+SPRITE_BALLOON_OUTLINE] = BalloonSpriteLocation;
-    Screen1[0x03f8+SPRITE_BALLOON_OUTLINE] = BalloonSpriteLocation;    
+    Screen0[0x03f8+SPRITE_BALLOON_OUTLINE] = BalloonOutlineLocation;
+    Screen1[0x03f8+SPRITE_BALLOON_OUTLINE] = BalloonOutlineLocation;    
+    Screen0[0x03f8+SPRITE_BALLOON_BG] = BalloonSpriteLocation;
+    Screen1[0x03f8+SPRITE_BALLOON_BG] = BalloonSpriteLocation;    
 }
 
 // returns 0 for bottom collision
@@ -853,7 +863,7 @@ void landingOccurred(PlayerData *data)
     }
     clearRasterIrqs();
     setAveragePosition();
-    vic.spr_enable = SPRITE_BALLOON_OUTLINE_ENABLE;
+    vic.spr_enable = SPRITE_BALLOON_OUTLINE_ENABLE | SPRITE_BALLOON_BG_ENABLE;
     vic.ctrl2 = 0xc0; // 38 columns, no scroll
     setScrollActive(0,150);
     initScreenWithDefaultColors(false);
