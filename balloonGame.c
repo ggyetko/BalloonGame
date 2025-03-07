@@ -24,7 +24,7 @@
 
 // My sprites go here
 #pragma section( spriteset, 0)
-#pragma region( spriteset, 0x2800, 0x2b00, , , {spriteset} )
+#pragma region( spriteset, 0x2800, 0x2b80, , , {spriteset} )
 
 #pragma section(screen2andWork, 0)
 #pragma region (screen2andWork, 0x2c00, 0x33ff, , , {screen2andWork})
@@ -40,7 +40,7 @@ __export const char charset[2048] = {
 
 // spriteset at fixed location
 #pragma data(spriteset)
-__export const char spriteset[768] = {
+__export const char spriteset[896] = {
 	#embed "balloon.bin"         // 0xa0
     #embed "balloonDecel.bin"    // 0xa1
     #embed "balloonThrust.bin"   // 0xa2
@@ -52,20 +52,23 @@ __export const char spriteset[768] = {
     #embed "clouds.bin"          // 0xa8, 0xa9 2 sprites here, outline and backing
     #embed "balloonOutline.bin"  // 0xaa 
     #embed "balloonOutDecl.bin"  // 0xab
+    #embed "passengerCarts.bin"  // 0xac, 0xad
 };
 
-#define BalloonSpriteLocation     0xa0
-#define BalloonDecelLocation      0xa1
-#define BalloonBrakeFire1Location 0xa2
-#define BalloonBrakeFire2Location 0xa3
-#define BalloonFlameLocation      0xa4
-#define BalloonCityLocation       0xa5
-#define BalloonBridgeLocation     0xa6
-#define BalloonCartLocation       0xa7
-#define BalloonCloudOutlLocation  0xa8  // this one needs higher priority so it's in front
-#define BalloonCloudLocation      0xa9
-#define BalloonOutlineLocation    0xaa  // needs higher priority than BalloonSpriteLocation
-#define BalloonDecelOutlLocation  0xab  // needs higher priority than BalloonDecelLocation
+#define BalloonSpriteLocation      0xa0
+#define BalloonDecelLocation       0xa1
+#define BalloonBrakeFire1Location  0xa2
+#define BalloonBrakeFire2Location  0xa3
+#define BalloonFlameLocation       0xa4
+#define BalloonCityLocation        0xa5
+#define BalloonBridgeLocation      0xa6
+#define BalloonCartLocation        0xa7
+#define BalloonCloudOutlLocation   0xa8  // this one needs higher priority so it's in front
+#define BalloonCloudLocation       0xa9
+#define BalloonOutlineLocation     0xaa  // needs higher priority than BalloonSpriteLocation
+#define BalloonDecelOutlLocation   0xab  // needs higher priority than BalloonDecelLocation
+#define BalloonPsgrCartLocationLft 0xac
+#define BalloonPsgrCartLocationRgt 0xad
 
 
 #pragma data(data)
@@ -82,6 +85,8 @@ enum {
     STATUS_CITY_RAMP = 0x04,
     STATUS_CARGO_IN  = 0x08,
     STATUS_CARGO_OUT = 0x10,
+    STATUS_PSGR_IN   = 0x20,
+    STATUS_PSGR_OUT  = 0x40,
 };
 
 // GLOBALS
@@ -111,6 +116,10 @@ volatile unsigned char cargoInXPos;
 volatile unsigned char cargoInYPos;
 volatile unsigned char cargoOutXPos;
 volatile unsigned char cargoOutYPos;
+volatile unsigned char psgrInXPos;
+volatile unsigned char psgrInYPos;
+volatile unsigned char psgrOutXPos;
+volatile unsigned char psgrOutYPos;
 
 #define NUM_CLOUDS 2
 volatile unsigned int cloudXPos[NUM_CLOUDS];
@@ -177,11 +186,15 @@ const char mountainHeight[8] = {0,1,2,3,4,6,8,10};
 #define SPRITE_CLOUD_OUTLINE_ENABLE   0x40
 #define SPRITE_CLOUD_BG_ENABLE        0x80
 
-#define SPRITE_CARGO_IN        5
-#define SPRITE_CARGO_OUT       6
+#define SPRITE_CARGO_IN        0
+#define SPRITE_CARGO_OUT       1
+#define SPRITE_PSGR_IN         2
+#define SPRITE_PSGR_OUT        3
 
-#define SPRITE_CARGO_IN_ENABLE        0x20
-#define SPRITE_CARGO_OUT_ENABLE       0x40
+#define SPRITE_CARGO_IN_ENABLE        0x01
+#define SPRITE_CARGO_OUT_ENABLE       0x02
+#define SPRITE_PSGR_IN_ENABLE         0x04
+#define SPRITE_PSGR_OUT_ENABLE        0x08
 
 void setScrollActive(unsigned char active, unsigned char delay)
 {
@@ -220,6 +233,25 @@ __interrupt void prepWorkScreen(void)
             vic.spr_enable &= ~SPRITE_CARGO_OUT_ENABLE;
         } else {
             vic_sprxy(SPRITE_CARGO_OUT,cargoOutXPos,cargoOutYPos);
+        }
+    }
+    
+    if (status & STATUS_PSGR_IN) {
+        psgrInXPos --;
+        if (psgrInXPos <= 60) {
+            status &= ~STATUS_PSGR_IN;
+            vic.spr_enable &= ~SPRITE_PSGR_IN_ENABLE;
+        } else {
+            vic_sprxy(SPRITE_PSGR_IN,psgrInXPos,psgrInYPos);
+        }
+    }
+    if (status & STATUS_PSGR_OUT) {
+        psgrOutXPos ++;
+        if (psgrOutXPos >= 195) {
+            status &= ~STATUS_PSGR_OUT;
+            vic.spr_enable &= ~SPRITE_PSGR_OUT_ENABLE;
+        } else {
+            vic_sprxy(SPRITE_PSGR_OUT,psgrOutXPos,psgrOutYPos);
         }
     }
 }
@@ -281,7 +313,11 @@ __interrupt void lowerStatBar(void)
     vic_sprxy(SPRITE_BALLOON_OUTLINE , 80, (yPos>>8) + 24);
     vic_sprxy(SPRITE_BALLOON_BG      , 80, (yPos>>8) + 24);
     vic_sprxy(SPRITE_BACK_THRUST     , 80, (yPos>>8) + 24);
-    vic_sprxy(SPRITE_UP_THRUST       , 80, (yPos>>8) + 24);
+    if (holdCount) {
+        vic_sprxy(SPRITE_UP_THRUST       , 80-4, (yPos>>8) + 22);
+    } else {
+        vic_sprxy(SPRITE_UP_THRUST       , 80, (yPos>>8) + 24);
+    }
 
     if (counter & 0x02) {
         Screen0[0x03f8+SPRITE_BACK_THRUST] = BalloonBrakeFire1Location;
@@ -431,16 +467,19 @@ void clearRasterIrqs(void)
 }
 
 void setupUpCargoSprites(void) {
-    // Sprite #5
-	ScreenWork[0x03f8+SPRITE_CARGO_IN] = BalloonCartLocation;
 	ScreenWork[0x03f8+SPRITE_CARGO_IN] = BalloonCartLocation;
     vic.spr_color[SPRITE_CARGO_IN] = VCOL_BROWN;
-    // Sprite #6
-	ScreenWork[0x03f8+SPRITE_CARGO_OUT] = BalloonCartLocation;
+
 	ScreenWork[0x03f8+SPRITE_CARGO_OUT] = BalloonCartLocation;
     vic.spr_color[SPRITE_CARGO_OUT] = VCOL_BROWN;
     
-    vic.spr_priority = SPRITE_CARGO_IN_ENABLE | SPRITE_CARGO_OUT_ENABLE; // put sprites behind background
+	ScreenWork[0x03f8+SPRITE_PSGR_IN] = BalloonPsgrCartLocationLft;
+    vic.spr_color[SPRITE_PSGR_IN] = VCOL_BROWN;
+
+	ScreenWork[0x03f8+SPRITE_PSGR_OUT] = BalloonPsgrCartLocationRgt;
+    vic.spr_color[SPRITE_PSGR_OUT] = VCOL_BROWN;
+    
+    vic.spr_priority = SPRITE_CARGO_IN_ENABLE | SPRITE_CARGO_OUT_ENABLE | SPRITE_PSGR_IN_ENABLE | SPRITE_PSGR_OUT_ENABLE; // put sprites behind background
 }
 
 void setupTravellingSprites(void) {
@@ -616,8 +655,27 @@ void cargoOutAnimation(void) {
         status |= STATUS_CARGO_OUT;
         cargoOutXPos = 60;
         cargoOutYPos = 165;
-        vic_sprxy(SPRITE_CARGO_OUT,cargoInXPos,cargoInYPos);
+        vic_sprxy(SPRITE_CARGO_OUT,cargoOutXPos,cargoOutYPos);
         vic.spr_enable |= SPRITE_CARGO_OUT_ENABLE;
+    }
+}
+void passengerInAnimation(void) {
+    if ((status & STATUS_PSGR_IN) == 0) {
+        status |= STATUS_PSGR_IN;
+        psgrInXPos = 194;
+        psgrInYPos = 165;
+        vic_sprxy(SPRITE_PSGR_IN,psgrInXPos,psgrInYPos);
+        vic.spr_enable |= SPRITE_PSGR_IN_ENABLE;
+    }
+}
+
+void passengerOutAnimation(void) {
+    if ((status & STATUS_PSGR_OUT) == 0) {
+        status |= STATUS_PSGR_OUT;
+        psgrOutXPos = 60;
+        psgrOutYPos = 165;
+        vic_sprxy(SPRITE_PSGR_OUT,psgrOutXPos,psgrOutYPos);
+        vic.spr_enable |= SPRITE_PSGR_OUT_ENABLE;
     }
 }
 
@@ -770,6 +828,7 @@ void cityMenuPassenger(PlayerData *data, Passenger *tmpPsgrData)
         if ((responsePassenger == 0) || (data->cargo.psgrSpace==0)){
             break;
         } else if (addPassenger(data, &tmpPsgrData[responsePassenger-1])) {
+            passengerInAnimation();
             removePassengerFromList(tmpPsgrData, responsePassenger-1);
         }
     }
