@@ -160,20 +160,20 @@ const char mountainHeight[8] = {0,1,2,3,4,6,8,10};
 // #7 - Cloud Background
 
 #define SPRITE_BALLOON_OUTLINE 0
-#define SPRITE_BACK_THRUST     1
-#define SPRITE_UP_THRUST       2
-#define SPRITE_CITY            3
-#define SPRITE_RAMP            4
-#define SPRITE_BALLOON_BG      5
+#define SPRITE_BALLOON_BG      1
+#define SPRITE_BACK_THRUST     2
+#define SPRITE_UP_THRUST       3
+#define SPRITE_CITY            4
+#define SPRITE_RAMP            5
 #define SPRITE_CLOUD_OUTLINE   6
 #define SPRITE_CLOUD_BG        7
 
 #define SPRITE_BALLOON_OUTLINE_ENABLE 0x01
-#define SPRITE_BACK_THRUST_ENABLE     0x02
-#define SPRITE_UP_THRUST_ENABLE       0x04
-#define SPRITE_CITY_ENABLE            0x08
-#define SPRITE_RAMP_ENABLE            0x10
-#define SPRITE_BALLOON_BG_ENABLE      0x20
+#define SPRITE_BALLOON_BG_ENABLE      0x02
+#define SPRITE_BACK_THRUST_ENABLE     0x04
+#define SPRITE_UP_THRUST_ENABLE       0x08
+#define SPRITE_CITY_ENABLE            0x10
+#define SPRITE_RAMP_ENABLE            0x20
 #define SPRITE_CLOUD_OUTLINE_ENABLE   0x40
 #define SPRITE_CLOUD_BG_ENABLE        0x80
 
@@ -1057,7 +1057,7 @@ int main(void)
     status |= STATUS_SCROLLING;
 
     for (;;) {
-        if (vic.spr_backcol & 0x01) {
+        if (vic.spr_backcol & (SPRITE_BALLOON_OUTLINE_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
             // Check the status. This loop can go around twice and count a collision each time.
             if (status & STATUS_SCROLLING) {
                 if (terrainCollisionOccurred()) {
@@ -1069,10 +1069,10 @@ int main(void)
             }
         }
         unsigned char sprColl = vic.spr_sprcol;
-        if ((sprColl & 0x11) == 0x11) {
+        if ((sprColl & (SPRITE_RAMP_ENABLE | SPRITE_BALLOON_BG_ENABLE)) == (SPRITE_RAMP_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
             // Collision with Ramp - GOOD
             landingOccurred(&playerData);
-        } else if ((sprColl & 0x09) == 0x09) {
+        } else if ((sprColl & (SPRITE_CITY_ENABLE | SPRITE_BALLOON_BG_ENABLE)) == (SPRITE_CITY_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
             // Collision with City - BAD
             if (terrainCollisionOccurred()) {
                 balloonDamage(&playerData);
