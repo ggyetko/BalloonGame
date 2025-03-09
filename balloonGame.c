@@ -12,8 +12,8 @@
 #include "city.h"
 #include "playerData.h"
 
-// Screen is        0x0400 to 0x7ff
-// Weird stuff from 0x0800 to 0x09ff
+// Screen1 is        0x0400 to 0x7ff
+// Weird stuff from 0x0800 to 0x09ff, don't touch this region or it goes bad
 
 // make space until 0x2000 for code and data
 #pragma region( lower, 0x0a00, 0x2000, , , {code, data} )
@@ -742,7 +742,8 @@ void cityMenuSell(PlayerData *data)
     unsigned char lastChoice = 0;
     for (;;) {
         unsigned char goodsIndexList[MAX_CARGO_SPACE];
-        unsigned char listLength = makeShortCargoList(data, goodsIndexList);
+        unsigned char goodsCountList[MAX_CARGO_SPACE];
+        unsigned char listLength = makeShortCargoList(data, goodsIndexList, goodsCountList);
         char sellMenuOptions[MAX_CARGO_SPACE+1][10];
         unsigned int sellMenuCosts[MAX_CARGO_SPACE+1];
         unsigned char x;
@@ -767,6 +768,58 @@ void cityMenuSell(PlayerData *data)
             lastChoice = responseSell;                    
         }
     }
+}
+
+void cityMenuRepair(PlayerData *data)
+{
+    unsigned char lastChoice = 0;
+    for (;;) {
+        unsigned char repairList[4][10] = 
+            {s"return    ", s"blln fabrc", s"psgr cabin", s"cargo bay "};
+        unsigned int repairListCosts[4] = 
+            {0, REPAIR_COST_BALLOON_FABRIC, REPAIR_COST_PSGR_CABIN, REPAIR_COST_CARGO};
+
+        if (cities[currMap][cityNum-1].facility & CITY_FACILITY_BALLOON_FABRIC)
+            { repairListCosts[1] -= REPAIR_COST_FACILITY_REDUCTION; }
+        if (cities[currMap][cityNum-1].facility & CITY_FACILITY_PSGR_CABIN)
+            { repairListCosts[2] -= REPAIR_COST_FACILITY_REDUCTION; }
+        if (cities[currMap][cityNum-1].facility & CITY_FACILITY_CARGO) 
+            { repairListCosts[3] -= REPAIR_COST_FACILITY_REDUCTION; }
+            
+        unsigned char responseRepair = getMenuChoice(4, 0, repairList, true, repairListCosts);
+        if (responseRepair == 0) {
+            break;
+        } else if (responseRepair == 1) {
+            if ((data->balloonHealth < MAX_BALLOON_HEALTH) && (data->money > repairListCosts[1])) {
+                data->balloonHealth++;
+                data->money -= repairListCosts[1];
+                showScoreBoard(data);
+            }
+        } else if (responseRepair == 2) {
+            if (data->money > repairListCosts[2]) {
+                for (unsigned char x=0; x<MAX_PASSENGERS; x++) {
+                    if (data->cargo.psgr[x].destination.code == DESTINATION_CODE_DAMAGED_CABIN) {
+                        data->cargo.psgr[x].destination.code = DESTINATION_CODE_NO_PASSENGER;
+                        data->money -= repairListCosts[2];
+                        showScoreBoard(data);
+                        break;
+                    }
+                }
+            }
+        } else if (responseRepair == 3) {
+            if ((data->cargo.cargoSpace < MAX_CARGO_SPACE) && (data->money > repairListCosts[3])) {
+                for (unsigned char x=0; x<MAX_CARGO_SPACE; x++) {
+                    if (data->cargo.cargo[x] == DAMAGED_SLOT) {
+                        data->cargo.cargo[x] == NO_GOODS;
+                        data->cargo.cargoSpace++;
+                        data->money -= repairListCosts[3];
+                        showScoreBoard(data);
+                    }
+                }
+            }
+        }
+        lastChoice = responseRepair;
+    }   
 }
 
 void cityMenuRefuel(PlayerData *data) 
@@ -824,11 +877,12 @@ void cityMenuPassenger(PlayerData *data, Passenger *tmpPsgrData)
         }
         unsigned char responsePassenger = getMenuChoice(listSize, 0, psgrList, false, nullptr);
             
-        if ((responsePassenger == 0) || (data->cargo.psgrSpace==0)){
+        if (responsePassenger == 0) {
             break;
         } else if (addPassenger(data, &tmpPsgrData[responsePassenger-1])) {
             passengerInAnimation();
             removePassengerFromList(tmpPsgrData, responsePassenger-1);
+            showScoreBoard(data);
         }
     }
 }
@@ -844,7 +898,7 @@ void cityMenuInventory(PlayerData *data, Passenger *tmpPsgrData)
         } else if (responseInv == 1) {
             showWorkPassengers(data->cargo.psgr);
         } else {
-            showWorkCargo();
+            showWorkCargo(data);
         }
         lastChoice = responseInv;
     }
@@ -859,6 +913,8 @@ void cityMenu(PlayerData *data, Passenger *tmpPsgrData)
             cityMenuBuy(data);            
         } else if (response == MENU_OPTION_SELL) {
             cityMenuSell(data);
+        } else if (response == MENU_OPTION_REPAIR) {
+            cityMenuRepair(data);
         } else if (response == MENU_OPTION_REFUEL) {
             cityMenuRefuel(data);
         } else if (response == MENU_OPTION_PASSENGER) {
@@ -873,6 +929,7 @@ void cityMenu(PlayerData *data, Passenger *tmpPsgrData)
 
 void checkForLandingPassengers(PlayerData *data)
 {
+    bool oneLanded = false;
     for (unsigned char p=0; p<MAX_PASSENGERS; p++) {
         CityCode dest = data->cargo.psgr[p].destination;
         if((CityCode_getMapNum(dest) == currMap) && (CityCode_getCityNum(dest) == cityNum)) {
@@ -882,8 +939,12 @@ void checkForLandingPassengers(PlayerData *data)
             // add passenger name back to list
             returnName(data->cargo.psgr[p].name);
             // remove passenger
-            data->cargo.psgr[p].destination.code = 0;
+            removePassenger(data, p);
+            oneLanded = true;
         }
+    }
+    if (oneLanded) {
+        showScoreBoard(data);
     }
 }
 
@@ -1059,18 +1120,18 @@ void showScoreBoard(struct PlayerData* data) {
     }
     // Cabins and Balloon Health
     for (x=0;x<8;x++) {
-        if (x < data->cargo.psgrSpace) {
-            if (data->cargo.psgr[x].destination.code) {
-                Screen0[863+5+x] = 94;
-                ScreenColor[863+5+x] = VCOL_GREEN;
-            } else {
-                Screen0[863+5+x] = 78;
-                ScreenColor[863+5+x] = VCOL_WHITE;
-            }
-        } else {
+        // cabins
+        if (data->cargo.psgr[x].destination.code == DESTINATION_CODE_DAMAGED_CABIN) {
             Screen0[863+5+x] = 78;
             ScreenColor[863+5+x] = VCOL_RED;
+        } else if (data->cargo.psgr[x].destination.code == DESTINATION_CODE_NO_PASSENGER) {
+            Screen0[863+5+x] = 78;
+            ScreenColor[863+5+x] = VCOL_WHITE;
+        } else {
+            Screen0[863+5+x] = 94;
+            ScreenColor[863+5+x] = VCOL_GREEN;
         }
+        // balloon health
         if (x < data->balloonHealth) {
             Screen0[903+5+x] = 27;
             ScreenColor[903+5+x] = VCOL_GREEN;

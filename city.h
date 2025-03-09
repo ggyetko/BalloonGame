@@ -11,12 +11,24 @@ enum CityRespect {
     CITY_RESPECT_HIGH  
 };
 
+enum CityFacilities {
+    CITY_FACILITY_BALLOON_FABRIC = 0x01,
+    CITY_FACILITY_PSGR_CABIN     = 0x02,
+    CITY_FACILITY_CARGO          = 0x04
+};
+
+const unsigned int REPAIR_COST_BALLOON_FABRIC;
+const unsigned int REPAIR_COST_PSGR_CABIN;
+const unsigned int REPAIR_COST_CARGO;
+const unsigned int REPAIR_COST_FACILITY_REDUCTION;
+
 #define MAX_BUY_GOODS 4
 #define MAX_SELL_GOODS 4
 
 struct CityData {
     unsigned char name[10];
     unsigned char respect;
+    unsigned char facility;
     DemandedGoods buyGoods[MAX_BUY_GOODS];
     AvailableGoods sellGoods[MAX_SELL_GOODS];
 };
@@ -27,6 +39,8 @@ struct CityCode {
 unsigned char CityCode_getCityNum(CityCode cityCode);
 unsigned char CityCode_getMapNum(CityCode cityCode);
 unsigned char CityCode_generateCityCode(unsigned char mapNum, unsigned char cityNum);
+#define DESTINATION_CODE_NO_PASSENGER     0
+#define DESTINATION_CODE_DAMAGED_CABIN    0xff
 
 struct PassengerName {
     char name[10];
@@ -38,6 +52,7 @@ struct Passenger {
     unsigned char fare;
     CityCode destination;
 };
+
 
 #define MAX_PASSENGERS_AVAILABLE     10
 #define PASSENGER_COST_PER_PASSAGE   50

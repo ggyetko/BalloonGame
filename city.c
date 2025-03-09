@@ -35,11 +35,16 @@ PassengerName psgrNames[NUM_PASSENGER_NAMES] = {
 };
 unsigned char psgrNameCount = NUM_PASSENGER_NAMES;
 
+const unsigned int REPAIR_COST_BALLOON_FABRIC = 400;
+const unsigned int REPAIR_COST_PSGR_CABIN     = 600;
+const unsigned int REPAIR_COST_CARGO          = 850;
+const unsigned int REPAIR_COST_FACILITY_REDUCTION = 150;
+
 const CityData cities[1][3] = {
     // MAP #0
     {
-        // NAME         RESPECT            BUY     SELL
-        {s"cloud city", CITY_RESPECT_LOW, 
+        // NAME         RESPECT            FACILITY
+        {s"cloud city", CITY_RESPECT_LOW, CITY_FACILITY_BALLOON_FABRIC, 
             // Demands
             {{0,1},{3,1}},
             // For sale
@@ -49,7 +54,7 @@ const CityData cities[1][3] = {
              {14, 2, CITY_RESPECT_HIGH,1} // Smithore
             }
         },
-        {s"floria    ", CITY_RESPECT_LOW, 
+        {s"floria    ", CITY_RESPECT_LOW, 0,
             {{1,1}, {7,1}},
             {{2, 2, CITY_RESPECT_LOW, 2},  // corn
              {3, 2, CITY_RESPECT_LOW, 2},  // spinach
@@ -57,7 +62,7 @@ const CityData cities[1][3] = {
              {20,2, CITY_RESPECT_HIGH,2}   // quail eggs
             } 
         },
-        {s"sirenia   ", CITY_RESPECT_LOW, 
+        {s"sirenia   ", CITY_RESPECT_LOW, 0,
             {{2,1}, {9,1}},
             {{0,2,CITY_RESPECT_LOW,2}, // rice
              {7,2,CITY_RESPECT_LOW,2}, // soy beans

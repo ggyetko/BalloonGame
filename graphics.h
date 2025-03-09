@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "city.h"
 #include "playerData.h"
+#include "namedGoods.h"
 
 #define BALLOON_COLOR          VCOL_WHITE
 #define BALLOON_OUTLINE_COLOR  VCOL_GREEN
@@ -171,23 +172,42 @@ void showWorkPassengers(Passenger *psgData)
     }
     for (unsigned char x = 0; x<MAX_PASSENGERS; x++) {
         CityCode *code = &(psgData[x].destination);
-        if (code->code) {
+        if (code->code == DESTINATION_CODE_DAMAGED_CABIN) {
+            putText(s"damaged   ", 3, x+3, 10, VCOL_RED);
+        } else if (code->code == DESTINATION_CODE_NO_PASSENGER) {
+            ScreenWork[1+40*(x+3)] = (code->code & 0x80) ? 83 : 94; // CROWN or PERSON
+            ScreenColor[1+40*(x+3)] = VCOL_BLACK;
+            putText(s"empty     ", 3, x+3, 10, VCOL_BLACK);
+        } else {
             unsigned char ct = CityCode_getCityNum(*code);
             unsigned char mp = CityCode_getMapNum(*code);
             ScreenWork[1+40*(x+3)] = (code->code & 0x80) ? 83 : 94; // CROWN or PERSON
             putText(psgData[x].name, 3, x+3, 10, VCOL_WHITE);
             putText(cities[mp][ct-1].name, 14, x+3, 10, VCOL_WHITE);
-        } else {
-            ScreenWork[1+40*(x+3)] = (code->code & 0x80) ? 83 : 94; // CROWN or PERSON
-            ScreenColor[1+40*(x+3)] = VCOL_BLACK;
-            putText(s"empty     ", 3, x+3, 10, VCOL_BLACK);
         }
     }
 }
 
-void showWorkCargo(void)
+void showWorkCargo(PlayerData *data)
 {
     clearWorkScreen();
+    putText(s"cargo",3,1,5,VCOL_DARK_GREY);
+    putText(s"count",14,1,5,VCOL_DARK_GREY);
+    for (unsigned char x = 0; x<10; x++) {
+        ScreenWork[3+x+40*2] = 106;
+        ScreenColor[3+x+40*2] = VCOL_DARK_GREY;
+        ScreenWork[14+x+40*2] = 106;
+        ScreenColor[14+x+40*2] = VCOL_DARK_GREY;
+    }
+    unsigned char goodsIndexList[MAX_CARGO_SPACE];
+    unsigned char goodsCountList[MAX_CARGO_SPACE];
+    unsigned char listLength = makeShortCargoList(data, goodsIndexList, goodsCountList);
+    for (unsigned char x = 0; x<listLength; x++) {
+        putText(goods[goodsIndexList[x]].name, 3, x+3, 10, VCOL_WHITE);
+        char num[3];
+        ucharToString(goodsCountList[x], num);
+        putText(num, 14, x+3, 3, VCOL_WHITE);
+    }
 }
 
 // Takes an array of text options [10] * num
