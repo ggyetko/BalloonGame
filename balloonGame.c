@@ -24,7 +24,7 @@
 
 // My sprites go here
 #pragma section( spriteset, 0)
-#pragma region( spriteset, 0x2800, 0x2b80, , , {spriteset} )
+#pragma region( spriteset, 0x2800, 0x2c00, , , {spriteset} )
 
 #pragma section(screen2andWork, 0)
 #pragma region (screen2andWork, 0x2c00, 0x33ff, , , {screen2andWork})
@@ -40,19 +40,19 @@ __export const char charset[2048] = {
 
 // spriteset at fixed location
 #pragma data(spriteset)
-__export const char spriteset[896] = {
+__export const char spriteset[1024] = {
 	#embed "balloon.bin"         // 0xa0
     #embed "balloonDecel.bin"    // 0xa1
     #embed "balloonThrust.bin"   // 0xa2
     #embed "balloonThrust2.bin"  // 0xa3
     #embed "balloonFlame.bin"    // 0xa4
-    #embed "citySprite.bin"      // 0xa5
-    #embed "cityBridge.bin"      // 0xa6
-    #embed "cart.bin"            // 0xa7
+    #embed "citySprites.bin"     // 0xa5(bg), 0xa6(shade), 0xa7(outline)
     #embed "clouds.bin"          // 0xa8, 0xa9 2 sprites here, outline and backing
     #embed "balloonOutline.bin"  // 0xaa 
     #embed "balloonOutDecl.bin"  // 0xab
     #embed "passengerCarts.bin"  // 0xac, 0xad
+    #embed "cityBridge.bin"      // 0xae
+    #embed "cart.bin"            // 0xaf
 };
 
 #define BalloonSpriteLocation      0xa0
@@ -60,15 +60,17 @@ __export const char spriteset[896] = {
 #define BalloonBrakeFire1Location  0xa2
 #define BalloonBrakeFire2Location  0xa3
 #define BalloonFlameLocation       0xa4
-#define BalloonCityLocation        0xa5
-#define BalloonBridgeLocation      0xa6
-#define BalloonCartLocation        0xa7
+#define BalloonCityBgLocation      0xa5
+#define BalloonCityShadeLocation   0xa6
+#define BalloonCityOutlLocation    0xa7
 #define BalloonCloudOutlLocation   0xa8  // this one needs higher priority so it's in front
 #define BalloonCloudLocation       0xa9
 #define BalloonOutlineLocation     0xaa  // needs higher priority than BalloonSpriteLocation
 #define BalloonDecelOutlLocation   0xab  // needs higher priority than BalloonDecelLocation
 #define BalloonPsgrCartLocationLft 0xac
 #define BalloonPsgrCartLocationRgt 0xad
+#define BalloonBridgeLocation      0xae
+#define BalloonCartLocation        0xaf
 
 
 #pragma data(data)
@@ -105,7 +107,7 @@ volatile unsigned int yPos; // 20*8 = 160 pixel
                             // 0 is the top of screen, 40960 is bottom of 20th char
 volatile int yVel;          // signed int, yPos/50th of a second
                             // +ve velocity is downward, -ve is upward
-volatile unsigned int cityXPos;   // While in travelling mode, where is the city sprite?
+volatile unsigned int  cityXPos;  // While in travelling mode, where is the city sprite?
 volatile unsigned char cityYPos;  // While in travelling mode, where is the city sprite?
 volatile unsigned char cityNum;   // While in travelling mode, what city are we near?
 
@@ -145,7 +147,7 @@ const char terrain[256] =
     072,063,052,042,023,023,014,015,  025,025,025,024,034,043,053,052, 
     051,051,052,043,043,043,033,033,  024,034,044,043,043,032,022,012, 
     011,011,012,023,023,023,014,015,  025,025,025,024,034,043,053,052, 
-    051,051,052,043,043,043,032,032,  022,032,0222,042,042,035,025,014, // City #2
+    051,051,052,043,043,043,032,031,  021,031,0222,042,042,035,025,014, // City #2
     013,013,013,023,023,023,014,015,  025,025,025,024,034,043,053,052, 
     051,051,052,043,043,043,033,033,  024,034,044,043,043,032,022,012, 
     011,011,012,023,023,023,014,015,  025,025,025,024,034,043,053,052, 
@@ -157,34 +159,49 @@ const char terrain[256] =
 const char decelPattern[8] =  {2,3,4,5,6,7,8,16};
 const char mountainHeight[8] = {0,1,2,3,4,6,8,10};
 
+#define TOP_OF_SCREEN_RASTER     50
+#define HIGH_CLOUD_RASTER_LIMIT  85
+#define MID_CLOUD_RASTER_LIMIT  120
+#define LOW_RASTER_LIMIT        210
+#define BOTTOM_RASTER_LIMIT     250
 // SPRITE LIST
-// Travelling            Work Screen
-// #0 - Balloon Outline
-// #1 - Back thrust
-// #2 - Up thrust
-// #3 - City
-// #4 - Ramp
-// #5 - Balloon          Cargo In
-// #6 - Cloud Outline    Cargo Out
-// #7 - Cloud Background
+//         050-85        086-120               121-210
+//      Travelling Hi    Travelling Medium     Travelling Low     Work Screen
+// #0 - Balloon Outline  ----------------------------------->     Cargo In
+// #1 - Balloon Backgrnd ----------------------------------->     Cargo Out
+// #2 - Back thrust      ----------------------------------->     Psgr In
+// #3 - Up Thrust        ----------------------------------->     Psgr Out
+// #4 -                                        Ramp
+// #5 -                                        City Outline 
+// #6 - Cloud Outline    ----------------->    City Shape
+// #7 - Cloud Background ----------------->    City BackShade
 
 #define SPRITE_BALLOON_OUTLINE 0
 #define SPRITE_BALLOON_BG      1
 #define SPRITE_BACK_THRUST     2
 #define SPRITE_UP_THRUST       3
-#define SPRITE_CITY            4
+//#define SPRITE_UNUSED        4
 #define SPRITE_RAMP            5
 #define SPRITE_CLOUD_OUTLINE   6
 #define SPRITE_CLOUD_BG        7
+
+#define SPRITE_CITY_OUTLINE    4
+#define SPRITE_CITY_BG         6
+#define SPRITE_CITY_SHADE     7
+
 
 #define SPRITE_BALLOON_OUTLINE_ENABLE 0x01
 #define SPRITE_BALLOON_BG_ENABLE      0x02
 #define SPRITE_BACK_THRUST_ENABLE     0x04
 #define SPRITE_UP_THRUST_ENABLE       0x08
-#define SPRITE_CITY_ENABLE            0x10
 #define SPRITE_RAMP_ENABLE            0x20
 #define SPRITE_CLOUD_OUTLINE_ENABLE   0x40
 #define SPRITE_CLOUD_BG_ENABLE        0x80
+
+#define SPRITE_CITY_OUTLINE_ENABLE    0x10
+#define SPRITE_CITY_BG_ENABLE         0x40
+#define SPRITE_CITY_SHADE_ENABLE      0x80
+
 
 #define SPRITE_CARGO_IN        0
 #define SPRITE_CARGO_OUT       1
@@ -265,7 +282,16 @@ __interrupt void prepScreen(void)
     } else {
         vic.memptr = 0xb0 | (vic.memptr & 0x0f); // point to screen1
     }
-    // move the high level cloud
+    // set up the cloud sprite pointers
+    Screen0[0x03f8+SPRITE_CLOUD_OUTLINE   ] = BalloonCloudOutlLocation;
+    Screen1[0x03f8+SPRITE_CLOUD_OUTLINE   ] = BalloonCloudOutlLocation;
+    Screen0[0x03f8+SPRITE_CLOUD_BG        ] = BalloonCloudLocation;
+    Screen1[0x03f8+SPRITE_CLOUD_BG        ] = BalloonCloudLocation;
+    vic.spr_color[SPRITE_CLOUD_OUTLINE] = CLOUD_OUTLINE_COLOR;
+    vic.spr_color[SPRITE_CLOUD_BG] = CLOUD_COLOR;
+    vic.spr_enable |= SPRITE_CLOUD_OUTLINE_ENABLE | SPRITE_CLOUD_BG_ENABLE;
+
+    // move the high level cloud    
     unsigned char change = 1 - (status & STATUS_SCROLLING) + (counter%3) ? 1 : 0;
     if (cloudXPos[0] > 344) {
         cloudXPos[0] = 512;
@@ -277,6 +303,7 @@ __interrupt void prepScreen(void)
     setScrollAmnt (xScroll);
 }
 
+// Set up the cloud sprite for the middle level
 __interrupt void midCloudAdjustment(void) 
 {
     // move the mid level cloud
@@ -288,6 +315,39 @@ __interrupt void midCloudAdjustment(void)
     }
     vic_sprxy(SPRITE_CLOUD_OUTLINE,cloudXPos[1],cloudYPos[1]);
     vic_sprxy(SPRITE_CLOUD_BG,cloudXPos[1],cloudYPos[1]);
+    vic.spr_enable |= SPRITE_CLOUD_OUTLINE_ENABLE | SPRITE_CLOUD_BG_ENABLE;
+}
+
+// The low level is where the two cloud sprites might be used as city sprites
+__interrupt void lowCloudAdjustment(void) 
+{
+    if (status & STATUS_CITY_VIS) {
+        Screen0[0x03f8+SPRITE_CITY_OUTLINE ] = BalloonCityOutlLocation; 
+        Screen1[0x03f8+SPRITE_CITY_OUTLINE ] = BalloonCityOutlLocation;
+        vic.spr_color[SPRITE_CITY_OUTLINE] = CITY_OUTLINE_COLOR;
+        
+        Screen0[0x03f8+SPRITE_CITY_BG ] = BalloonCityBgLocation;
+        Screen1[0x03f8+SPRITE_CITY_BG ] = BalloonCityBgLocation;
+        vic.spr_color[SPRITE_CITY_BG] = CITY_COLOR;
+        
+        Screen0[0x03f8+SPRITE_CITY_SHADE] = BalloonCityShadeLocation;
+        Screen1[0x03f8+SPRITE_CITY_SHADE] = BalloonCityShadeLocation;
+        vic.spr_color[SPRITE_CITY_SHADE] = CITY_SHADE_COLOR;
+
+        vic.spr_enable |= SPRITE_CITY_BG_ENABLE | SPRITE_CITY_OUTLINE_ENABLE | SPRITE_CITY_SHADE_ENABLE;
+
+        vic_sprxy(SPRITE_CITY_OUTLINE, cityXPos, cityYPos);
+        vic_sprxy(SPRITE_CITY_BG, cityXPos, cityYPos);
+        vic_sprxy(SPRITE_CITY_SHADE, cityXPos, cityYPos);
+        
+        if (status & STATUS_CITY_RAMP) {
+            vic_sprxy(SPRITE_RAMP, cityXPos-23, cityYPos+8);
+        }
+        
+    } else {
+        vic.spr_enable &= ~(SPRITE_CITY_BG_ENABLE | SPRITE_CITY_OUTLINE_ENABLE | SPRITE_CITY_SHADE_ENABLE);
+    }
+
 }
 
 __interrupt void lowerStatBarWorkScreen(void)
@@ -342,14 +402,11 @@ __interrupt void lowerStatBar(void)
     }
     // handle city movement    
     if (cityXPos) {
-        vic_sprxy(SPRITE_CITY, cityXPos, cityYPos);
         if (status & STATUS_CITY_RAMP){
             if (cityXPos < 24) {
                 status &= ~STATUS_CITY_RAMP;
                 vic.spr_enable &= ~SPRITE_RAMP_ENABLE;
                 cityNum = 0;
-            } else {
-                vic_sprxy(SPRITE_RAMP, cityXPos-23, cityYPos);
             }
         }
     } 
@@ -406,15 +463,14 @@ __interrupt void scrollLeft(void)
             if (status & STATUS_CITY_VIS) {
                 cityXPos--;
                 if (cityXPos == 0) {
-                    status &= ~STATUS_CITY_RAMP;         // turn off city
-                    vic.spr_enable &= ~SPRITE_CITY_ENABLE; // turn off city sprite
+                    status &= ~(STATUS_CITY_VIS | STATUS_CITY_RAMP); // turn off city and ramp
                 }  
             }
         } 
     }
 }
 
-RIRQCode spmux[4];
+RIRQCode spmux[5];
 void setupRasterIrqs(void)
 {
     rirq_stop();
@@ -424,15 +480,19 @@ void setupRasterIrqs(void)
 
     rirq_build(spmux+1, 1);
     rirq_call(spmux+1, 0, midCloudAdjustment);
-    rirq_set(1, 90, spmux+1);
+    rirq_set(1, HIGH_CLOUD_RASTER_LIMIT, spmux+1);
 
     rirq_build(spmux+2, 1);
-    rirq_call(spmux+2, 0, lowerStatBar);
-    rirq_set(2, 210, spmux+2);
+    rirq_call(spmux+2, 0, lowCloudAdjustment);
+    rirq_set(2, MID_CLOUD_RASTER_LIMIT, spmux+2);
 
     rirq_build(spmux+3, 1);
-    rirq_call(spmux+3, 0, scrollLeft);
-    rirq_set(3, 250, spmux+3);
+    rirq_call(spmux+3, 0, lowerStatBar);
+    rirq_set(3, LOW_RASTER_LIMIT, spmux+3);
+
+    rirq_build(spmux+4, 1);
+    rirq_call(spmux+4, 0, scrollLeft);
+    rirq_set(4, BOTTOM_RASTER_LIMIT, spmux+4);
 
 	// Sort interrupts and start processing
 	rirq_sort();
@@ -484,28 +544,27 @@ void setupUpCargoSprites(void) {
 
 void setupTravellingSprites(void) {
     // Setup sprite images
-    // Sprite #0
-	Screen0[0x03f8+SPRITE_BALLOON_OUTLINE] = BalloonOutlineLocation; // 0xa0 * 0x40 = 0x2800 (sprite #1 data location)
+	Screen0[0x03f8+SPRITE_BALLOON_OUTLINE] = BalloonOutlineLocation;
 	Screen1[0x03f8+SPRITE_BALLOON_OUTLINE] = BalloonOutlineLocation;
-	Screen0[0x03f8+SPRITE_BALLOON_BG     ] = BalloonSpriteLocation;  // 0xa0 * 0x40 = 0x2800 (sprite #1 data location)
+
+	Screen0[0x03f8+SPRITE_BALLOON_BG     ] = BalloonSpriteLocation;
 	Screen1[0x03f8+SPRITE_BALLOON_BG     ] = BalloonSpriteLocation;
-    // Sprite #1
+
 	Screen0[0x03f8+SPRITE_BACK_THRUST     ] = BalloonBrakeFire1Location; // 0xa2 * 0x40 = 0x2880 (sprite back thrust data location)
 	Screen1[0x03f8+SPRITE_BACK_THRUST     ] = BalloonBrakeFire1Location;
-    // Sprite #2
+
 	Screen0[0x03f8+SPRITE_UP_THRUST       ] = BalloonFlameLocation; // 0xa4 * 0x40 = 0x2900 (sprite up thrust data location)
 	Screen1[0x03f8+SPRITE_UP_THRUST       ] = BalloonFlameLocation;
-    // Sprite #3
-	Screen0[0x03f8+SPRITE_CITY            ] = BalloonCityLocation; // 0xa5 * 0x40 = 0x2940 (city sprite)
-	Screen1[0x03f8+SPRITE_CITY            ] = BalloonCityLocation;
-    // Sprite #4
+
+	Screen0[0x03f8+SPRITE_CITY_OUTLINE    ] = BalloonCityOutlLocation; // 0xa5 * 0x40 = 0x2940 (city sprite)
+	Screen1[0x03f8+SPRITE_CITY_OUTLINE    ] = BalloonCityOutlLocation;
+
 	Screen0[0x03f8+SPRITE_RAMP            ] = BalloonBridgeLocation; // 0xa6 * 0x40 = 0x2980 (city bridge sprite)
 	Screen1[0x03f8+SPRITE_RAMP            ] = BalloonBridgeLocation;
-    
-    // Sprite #6
+
 	Screen0[0x03f8+SPRITE_CLOUD_OUTLINE   ] = BalloonCloudOutlLocation; // 0xa8 * 0x40 = 0x---- (cloud outline)
 	Screen1[0x03f8+SPRITE_CLOUD_OUTLINE   ] = BalloonCloudOutlLocation;
-    // Sprite #7
+
 	Screen0[0x03f8+SPRITE_CLOUD_BG        ] = BalloonCloudLocation; // 0xa9 * 0x40 = 0x29c0 (cloud background)
 	Screen1[0x03f8+SPRITE_CLOUD_BG        ] = BalloonCloudLocation;
 
@@ -520,10 +579,10 @@ void setupTravellingSprites(void) {
     vic.spr_color[SPRITE_BALLOON_BG] = BALLOON_COLOR;
     vic.spr_color[SPRITE_BACK_THRUST] = VCOL_BLACK;
     vic.spr_color[SPRITE_UP_THRUST] = VCOL_RED;
-    vic.spr_color[SPRITE_CITY] = CITY_COLOR;
+    vic.spr_color[SPRITE_CITY_OUTLINE] = CITY_OUTLINE_COLOR;
     vic.spr_color[SPRITE_RAMP] = RAMP_COLOR;
-    vic.spr_color[SPRITE_CLOUD_OUTLINE] = VCOL_BLUE;
-    vic.spr_color[SPRITE_CLOUD_BG] = VCOL_WHITE;
+    vic.spr_color[SPRITE_CLOUD_OUTLINE] = CLOUD_OUTLINE_COLOR;
+    vic.spr_color[SPRITE_CLOUD_BG] = CLOUD_COLOR;
 
 }
 
@@ -1205,10 +1264,11 @@ int main(void)
             }
         }
         unsigned char sprColl = vic.spr_sprcol;
+        //if (sprColl) {debugChar(6,sprColl);}
         if ((sprColl & (SPRITE_RAMP_ENABLE | SPRITE_BALLOON_BG_ENABLE)) == (SPRITE_RAMP_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
             // Collision with Ramp - GOOD
             landingOccurred(&playerData);
-        } else if ((sprColl & (SPRITE_CITY_ENABLE | SPRITE_BALLOON_BG_ENABLE)) == (SPRITE_CITY_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
+        } else if ((sprColl & (SPRITE_CITY_OUTLINE_ENABLE | SPRITE_BALLOON_BG_ENABLE)) == (SPRITE_CITY_OUTLINE_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
             // Collision with City - BAD
             if (terrainCollisionOccurred()) {
                 balloonDamage(&playerData);
@@ -1220,7 +1280,7 @@ int main(void)
         for (unsigned char cloudNum = 0; cloudNum < NUM_CLOUDS; cloudNum++) {
             if (cloudXPos[cloudNum] > 344) {
                 cloudXPos[cloudNum] = 0;
-                cloudYPos[cloudNum] = (rand()&15) + 45 + 50*cloudNum;
+                cloudYPos[cloudNum] = TOP_OF_SCREEN_RASTER + 35*cloudNum + (rand()&15);
                 vic.spr_enable |= SPRITE_CLOUD_OUTLINE_ENABLE | SPRITE_CLOUD_BG_ENABLE; 
             }
         }
@@ -1265,10 +1325,8 @@ int main(void)
             if (city) {
                 status |= STATUS_CITY_VIS;
                 cityNum = city;
-                vic.spr_enable |= SPRITE_CITY_ENABLE;
                 cityXPos = (unsigned int)(256+92);
                 cityYPos = 202 - (8*mountainHeight[(terrain[currCoord] & 0x7)]) - 16;
-                vic_sprxy(SPRITE_CITY, cityXPos, 202 - cityYPos);
             }
             flip = 0;
         }

@@ -11,8 +11,13 @@
 #define CARRIAGE_COLOR         VCOL_BROWN
 #define SKY_COLOR              VCOL_LT_BLUE
 #define MOUNTAIN_COLOR         VCOL_DARK_GREY
-#define CITY_COLOR             VCOL_LT_GREEN
+#define CITY_COLOR             VCOL_WHITE
+#define CITY_OUTLINE_COLOR     VCOL_BLUE
+#define CITY_SHADE_COLOR       VCOL_PURPLE
 #define RAMP_COLOR             VCOL_BROWN
+#define CLOUD_COLOR            VCOL_WHITE
+#define CLOUD_OUTLINE_COLOR    VCOL_BLUE
+
 
 #define Screen0 ((char *)0x0400)
 #define Screen1 ((char *)0x2c00)
