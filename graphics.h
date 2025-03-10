@@ -259,16 +259,24 @@ unsigned char getMenuChoice(unsigned char num, unsigned char initChoice, const c
                         if (currSelect < currHome) {
                             currHome = currSelect;
                         }
-                        break;
+                    } else {
+                        currSelect = num - 1;
+                        if (currSelect > currHome + maxDisplayedChoices - 1) {
+                            currHome = (currSelect - maxDisplayedChoices + 1);
+                        }
                     }
+                    break;
                 } else if (ch == 'S') {
                     if (currSelect < num-1) {
                         currSelect ++;
                         if (currSelect >= currHome + maxDisplayedChoices) {
                             currHome = currSelect - maxDisplayedChoices + 1;
                         }
-                        break;
+                    } else {
+                        currSelect = 0;
+                        currHome = 0;
                     }
+                    break;
                 } else if (ch == 10) {
                     return currSelect;
                 }
