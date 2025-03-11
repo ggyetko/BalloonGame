@@ -34,6 +34,15 @@ void clearWorkScreen(void)
     }    
 }
 
+void clearFullWorkScreen(void)
+{
+    for (unsigned char x = 0;x<40;x++) {
+        for (unsigned char y = 0;y<25;y++) {
+            ScreenWork[x+y*40] = 32;
+        }
+    }    
+}
+
 void drawBox(unsigned char x1,unsigned char y1,unsigned char x2,unsigned char y2,unsigned char col)
 {
     ScreenWork[x1+y1*40] = 103;
@@ -251,8 +260,8 @@ unsigned char getMenuChoice(unsigned char num, unsigned char initChoice, const c
         for (;;) {
             if (kbhit()){
                 char ch = getch();
-                ScreenWork[19] = ch/10 +48;
-                ScreenWork[20] = ch%10 +48;
+                //ScreenWork[19] = ch/10 +48;
+                //ScreenWork[20] = ch%10 +48;
                 if (ch == 'W') {  
                     if (currSelect) {
                         currSelect --;

@@ -141,7 +141,7 @@ const char terrain[256] =
     011,011,012,023,023,023,014,015,  025,025,025,024,034,043,053,052, 
     051,051,052,043,043,043,033,033,  024,034,044,043,043,032,022,012, 
     011,011,012,023,023,023,014,015,  025,025,025,024,034,043,053,052, 
-    051,051,052,041,041,041,0132,032, 032,034,044,043,043,032,022,012, // City #1
+    051,051,051,041,041,041,0133,033, 033,034,044,043,043,032,022,012, // City #1
     011,011,012,023,024,025,016,017,  027,027,022,022,033,044,043,052, 
     051,041,042,043,043,043,043,042,  041,041,052,061,062,062,071,072, 
     072,063,052,042,023,023,014,015,  025,025,025,024,034,043,053,052, 
@@ -470,6 +470,35 @@ __interrupt void scrollLeft(void)
     }
 }
 
+__interrupt
+void introScreenInterrupt (void)
+{
+    vic.color_back = VCOL_BLACK;
+    counter ++;
+    if (counter & 0x01) {
+        vic.spr_color[SPRITE_BACK_THRUST] = VCOL_ORANGE;
+    } else {
+        vic.spr_color[SPRITE_BACK_THRUST] = VCOL_RED;
+    }
+    if (counter & 0x02) {
+        ScreenWork[0x03f8+SPRITE_BACK_THRUST] = BalloonBrakeFire1Location;
+    } else {
+        ScreenWork[0x03f8+SPRITE_BACK_THRUST] = BalloonBrakeFire2Location;
+    }
+    
+    for (unsigned char cloud = 0; cloud < 2; cloud ++) {
+        cloudXPos[cloud] ++;
+        if (cloudXPos[cloud] > 344) {
+            cloudXPos[cloud] = 0;
+            cloudYPos[cloud] = rand() % 100 + 50 + 100 * cloud;
+        }
+    }
+    vic_sprxy(SPRITE_CLOUD_BG, cloudXPos[0], cloudYPos[0]);
+    vic_sprxy(SPRITE_CLOUD_OUTLINE, cloudXPos[0], cloudYPos[0]);
+    vic_sprxy(SPRITE_RAMP, cloudXPos[1], cloudYPos[1]);
+    vic_sprxy(SPRITE_UP_THRUST, cloudXPos[1], cloudYPos[1]);
+}
+
 RIRQCode spmux[5];
 void setupRasterIrqs(void)
 {
@@ -499,6 +528,18 @@ void setupRasterIrqs(void)
 	rirq_start();
 }
 
+void setupRasterIrqsIntro1(void)
+{
+    rirq_stop();
+    rirq_build(spmux, 1);
+    rirq_call(spmux, 0, introScreenInterrupt);
+    rirq_set(0, 250, spmux);
+
+	// Sort interrupts and start processing
+	rirq_sort();
+	rirq_start();    
+}
+
 void setupRasterIrqsWorkScreen(void)
 {
     rirq_stop();
@@ -526,7 +567,32 @@ void clearRasterIrqs(void)
     rirq_start();
 }
 
+void setupUpIntroSprites(void) {
+    vic.spr_expand_x = 0xff;
+    vic.spr_expand_y = 0xff;
+    vic.spr_priority = 0xff;  // all sprite behind text
+    ScreenWork[0x03f8+SPRITE_BALLOON_OUTLINE] = BalloonOutlineLocation;
+	ScreenWork[0x03f8+SPRITE_BALLOON_BG     ] = BalloonSpriteLocation;
+	ScreenWork[0x03f8+SPRITE_BACK_THRUST     ] = BalloonBrakeFire1Location; 
+
+   
+	ScreenWork[0x03f8+SPRITE_CLOUD_OUTLINE   ] = BalloonCloudOutlLocation; 
+	ScreenWork[0x03f8+SPRITE_CLOUD_BG        ] = BalloonCloudLocation; 
+	ScreenWork[0x03f8+SPRITE_UP_THRUST       ] = BalloonCloudOutlLocation; 
+	ScreenWork[0x03f8+SPRITE_RAMP            ] = BalloonCloudLocation; 
+
+    vic.spr_color[SPRITE_BALLOON_OUTLINE] = BALLOON_OUTLINE_COLOR;
+    vic.spr_color[SPRITE_BALLOON_BG] = BALLOON_COLOR;
+    vic.spr_color[SPRITE_BACK_THRUST] = VCOL_RED;
+    vic.spr_color[SPRITE_CLOUD_OUTLINE] = CLOUD_OUTLINE_COLOR;
+    vic.spr_color[SPRITE_CLOUD_BG] = VCOL_LT_GREY;
+    vic.spr_color[SPRITE_UP_THRUST] = CLOUD_OUTLINE_COLOR;
+    vic.spr_color[SPRITE_RAMP] = VCOL_LT_GREY;
+}
+
 void setupUpCargoSprites(void) {
+    vic.spr_expand_x = 0x00;
+    vic.spr_expand_y = 0x00;
 	ScreenWork[0x03f8+SPRITE_CARGO_IN] = BalloonCartLocation;
     vic.spr_color[SPRITE_CARGO_IN] = VCOL_BROWN;
 
@@ -543,6 +609,9 @@ void setupUpCargoSprites(void) {
 }
 
 void setupTravellingSprites(void) {
+    vic.spr_expand_x = 0x00;
+    vic.spr_expand_y = 0x00;
+    vic.spr_priority = 0x00;  // all sprite in front of text
     // Setup sprite images
 	Screen0[0x03f8+SPRITE_BALLOON_OUTLINE] = BalloonOutlineLocation;
 	Screen1[0x03f8+SPRITE_BALLOON_OUTLINE] = BalloonOutlineLocation;
@@ -963,6 +1032,15 @@ void cityMenuInventory(PlayerData *data, Passenger *tmpPsgrData)
     }
     drawBalloonDockScreen();
 }
+
+void cityMenuMayor(PlayerData *data)
+{
+    for (;;) {
+        unsigned char mayorList[3][10] = {s"return    ",s"talk      ",s"deliver   "};
+        unsigned char responseMayor = getMenuChoice(3, 0, mayorList, false, nullptr);
+
+    }
+}
     
 void cityMenu(PlayerData *data, Passenger *tmpPsgrData) 
 {
@@ -972,6 +1050,8 @@ void cityMenu(PlayerData *data, Passenger *tmpPsgrData)
             cityMenuBuy(data);            
         } else if (response == MENU_OPTION_SELL) {
             cityMenuSell(data);
+        } else if (response == MENU_OPTION_MAYOR) {
+            cityMenuMayor(data);
         } else if (response == MENU_OPTION_REPAIR) {
             cityMenuRepair(data);
         } else if (response == MENU_OPTION_REFUEL) {
@@ -1211,14 +1291,8 @@ void showScoreBoard(struct PlayerData* data) {
     }
 }
 
-
-
-int main(void)
+void startGame(void) 
 {
-    mmap_set(MMAP_NO_BASIC);
- 	// Keep kernal alive 
-	rirq_init(true);
-    
     xScroll = 4;    // middle of scroll
     currScreen = 0; // start with Screen 0 (0x0400)
     flip = 1;       // act like flip has happened, this triggers copy to Screen 1
@@ -1234,19 +1308,23 @@ int main(void)
     struct PlayerData playerData;
     playerDataInit(&playerData);
     showScoreBoard(&playerData);
+    
+    // Initialise clouds
+    vic.spr_enable |= SPRITE_CLOUD_OUTLINE_ENABLE | SPRITE_CLOUD_BG_ENABLE; 
+    cloudXPos[0] = 0;
+    cloudYPos[0] = TOP_OF_SCREEN_RASTER + (rand()&15);
+    cloudXPos[1] = 200;
+    cloudYPos[1] = TOP_OF_SCREEN_RASTER + 35 + (rand()&15);
 
     setupTravellingSprites();
     for (unsigned char cloudNum = 0; cloudNum < NUM_CLOUDS; cloudNum++) {
         cloudXPos[cloudNum] = 512;
     }
-
     int dummy = vic.spr_backcol;  // clear sprite-bg collisions
     dummy = vic.spr_sprcol;       // clear sprite^2 collisions
 
     // Two Raster IRQs, one at line 20, one at bottom of screen
     setupRasterIrqs();
-    // Set up character memory
-    vic.memptr = (vic.memptr & 0xf1) | 0x08; // xxxx100x means $2000 for charmap
     
     // Begin scrolling
     status |= STATUS_SCROLLING;
@@ -1333,6 +1411,73 @@ int main(void)
     }
 
     clearRasterIrqs();
+
+}
+
+unsigned char introScreen(void)
+{
+    // set up sprites
+    setupUpIntroSprites();
+    setupRasterIrqsIntro1();
+    // go to Screen Work
+    vic.memptr = 0xc0 | (vic.memptr & 0x0f);
+    vic.ctrl2 = 0xc8; // 40 columns, no scroll
+    vic.color_border = VCOL_BLACK;
+    vic.color_back = VCOL_BLACK;
+    
+    clearFullWorkScreen();
+    cloudXPos[0] = 0;
+    cloudYPos[0] = 80;
+    cloudXPos[1] = 150;
+    cloudYPos[1] = 160;
+    putText(s"odyssey of the aeronaut",2,4,23,VCOL_YELLOW);
+    putText(s"an airborne adventure",3,13,21,VCOL_YELLOW);
+    putText(s"copyright @ 8-bit gyetko games",5,23,30,VCOL_LT_GREY);
+    putText(s"a totally awesome production",6,24,28,VCOL_LT_GREY);
+    vic_sprxy(SPRITE_BALLOON_OUTLINE,100,100);
+    vic_sprxy(SPRITE_BALLOON_BG,100,100);    
+    vic_sprxy(SPRITE_BACK_THRUST,103,100);
+    vic_sprxy(SPRITE_CLOUD_BG,cloudXPos[0],cloudYPos[0]);
+    vic_sprxy(SPRITE_CLOUD_OUTLINE,cloudXPos[0],cloudYPos[0]);
+    vic_sprxy(SPRITE_RAMP,cloudXPos[1],cloudYPos[1]);
+    vic_sprxy(SPRITE_UP_THRUST,cloudXPos[1],cloudYPos[1]);
+    vic.spr_enable = SPRITE_BALLOON_OUTLINE_ENABLE | SPRITE_BALLOON_BG_ENABLE | SPRITE_BACK_THRUST_ENABLE | 
+                     SPRITE_CLOUD_BG_ENABLE| SPRITE_CLOUD_OUTLINE_ENABLE | SPRITE_RAMP_ENABLE | SPRITE_UP_THRUST_ENABLE ;
+    
+    char menuOptions[4][10] = {
+    s"new game  ",
+    s"load game ",
+    s"instructns",
+    s"exit game "};
+    
+    for (;;) {
+        unsigned char result = getMenuChoice(4, 0, menuOptions, false, nullptr);
+        
+        if (result == 0) {
+            return 1;
+        } else if (result == 1) {
+            
+        } else if (result == 2) {
+            
+        } else {
+            return 0;
+        }
+    }
+    vic.spr_enable = 0x00;
+    clearRasterIrqs();
+}
+
+int main(void)
+{
+    mmap_set(MMAP_NO_BASIC);
+ 	// Keep kernal alive 
+	rirq_init(true);
+    vic.memptr = (vic.memptr & 0xf1) | 0x08; // xxxx100x means $2000 for character map
+
+    for (;;) {
+        if (introScreen() == 0) break;
+        startGame();
+    }
 
 	return 0;
 }

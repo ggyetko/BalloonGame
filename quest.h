@@ -21,7 +21,7 @@ struct Reward{
 };
 
 struct Quest{
-    unsigned char cityNumber;  
+    unsigned char cityNumber;  // the home city of the reward (the mayor you talk to)
     // XX.MMM##  
     // XX - 00 (sell home city's item to other city) 
     //      01 (buy quest, bring home city something and sell it) 
@@ -30,6 +30,7 @@ struct Quest{
     // .  - ?
     // MMM- map number of home city of quest
     // ## - city number of home city
+    unsigned char respectLevel;    // the respect level needed to start the quest
     unsigned char destinationCity; // 0xff - none, otherwise ...MMM##
     unsigned char itemIndex; 
         // 00-01-10: item type involved in quest
@@ -41,6 +42,7 @@ struct Quest{
     // numItems   - quest complete
     // numItems+1 - quest complete and reward claimed
     char questExplanation[128];
+    char questConclusion[64];
 };
 
 // call this whenever a good is sold to anyone
