@@ -563,6 +563,7 @@ void clearRasterIrqs(void)
     rirq_clear(1);
     rirq_clear(2);
     rirq_clear(3);
+    rirq_clear(4);
     rirq_sort();
     rirq_start();
 }
@@ -1039,6 +1040,7 @@ void cityMenuMayor(PlayerData *data)
         unsigned char mayorList[3][10] = {s"return    ",s"talk      ",s"deliver   "};
         unsigned char responseMayor = getMenuChoice(3, 0, mayorList, false, nullptr);
 
+        if (responseMayor == 0) { break; }
     }
 }
     
@@ -1432,8 +1434,8 @@ unsigned char introScreen(void)
     cloudYPos[1] = 160;
     putText(s"odyssey of the aeronaut",2,4,23,VCOL_YELLOW);
     putText(s"an airborne adventure",3,13,21,VCOL_YELLOW);
-    putText(s"copyright @ 8-bit gyetko games",5,23,30,VCOL_LT_GREY);
-    putText(s"a totally awesome production",6,24,28,VCOL_LT_GREY);
+    putText(s"8-bit gyetko games",11,23,18,VCOL_LT_GREY);
+    putText(s"copyright @mmxxv",12,24,16,VCOL_LT_GREY);
     vic_sprxy(SPRITE_BALLOON_OUTLINE,100,100);
     vic_sprxy(SPRITE_BALLOON_BG,100,100);    
     vic_sprxy(SPRITE_BACK_THRUST,103,100);
