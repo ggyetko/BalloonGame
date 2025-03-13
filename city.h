@@ -17,10 +17,10 @@ enum CityFacilities {
     CITY_FACILITY_CARGO          = 0x04
 };
 
-const unsigned int REPAIR_COST_BALLOON_FABRIC;
-const unsigned int REPAIR_COST_PSGR_CABIN;
-const unsigned int REPAIR_COST_CARGO;
-const unsigned int REPAIR_COST_FACILITY_REDUCTION;
+extern const unsigned int REPAIR_COST_BALLOON_FABRIC = 400;
+extern const unsigned int REPAIR_COST_PSGR_CABIN     = 600;
+extern const unsigned int REPAIR_COST_CARGO          = 850;
+extern const unsigned int REPAIR_COST_FACILITY_REDUCTION = 150;
 
 #define MAX_BUY_GOODS 4
 #define MAX_SELL_GOODS 4
@@ -53,16 +53,15 @@ struct Passenger {
     CityCode destination;
 };
 
-
 #define MAX_PASSENGERS_AVAILABLE     10
 #define PASSENGER_COST_PER_PASSAGE   50
 #define PASSENGER_COST_PER_MAP       100
 #define PASSENGER_COST_GALLEY_BONUS  50   
 #define PASSENGER_COST_1ST_CLS_BONUS 100
 
-PassengerName psgrNames[20];
-unsigned char psgrNameCount;
-const CityData cities[1][3];
+extern PassengerName psgrNames[20];
+extern unsigned char psgrNameCount;
+extern const CityData cities[1][3];
 
 // call this upon landing to make up a newly generated passenger list
 void generateCurrentCityTmpData(Passenger *tempPsgData, CityCode currentCity); // Assume size 10 array

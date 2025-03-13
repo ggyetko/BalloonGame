@@ -18,20 +18,20 @@ PassengerName psgrNames[NUM_PASSENGER_NAMES] = {
     {s"tofinetti ",false},
     {s"campbell  ",false},
     {s"brown     ",false},
-    {s"verne     ",false},
-    {s"diggs     ",false},
-    {s"wright    ",false},
-    {s"earhart   ",false},
-    {s"bly       ",false},
-    {s"polo      ",false},
-    {s"scoresby  ",false},
-    {s"blanchard ",false},
-    {s"corominas ",false},
-    {s"yeager    ",false},
-    {s"maverick  ",false},
-    {s"stark     ",false},
-    {s"hadfield  ",false},
-    {s"garneau   ",false}
+    {s"verne     ",false},  // Jules Verne
+    {s"diggs     ",false},  // Wizard of OZ
+    {s"wright    ",false},  // orville or wilbur
+    {s"earhart   ",false},  // Amelia
+    {s"bly       ",false},  // around the world in 72 days
+    {s"polo      ",false},  // marco
+    {s"scoresby  ",false},  // Lee, from Golden Compass
+    {s"blanchard ",false},  // Sophie
+    {s"corominas ",false},  // Mercedes
+    {s"yeager    ",false},  // Chuck
+    {s"maverick  ",false},  // Air brakes!
+    {s"stark     ",false},  // Not tony, the other one
+    {s"hadfield  ",false},  // Oh, I thought you said "Astronaut"
+    {s"garneau   ",false}   // I thought you said "Astronaut" again
 };
 unsigned char psgrNameCount = NUM_PASSENGER_NAMES;
 
@@ -46,7 +46,7 @@ const CityData cities[1][3] = {
         // NAME         RESPECT            FACILITY
         {s"cloud city", CITY_RESPECT_LOW, CITY_FACILITY_BALLOON_FABRIC, 
             // Demands
-            {{0,1},{3,1}},
+            {{0,1},{3,1},{0xff,0},{0xff,0}},
             // For sale
             {{1,  2, CITY_RESPECT_LOW, 2},  // wheat
              {9,  2, CITY_RESPECT_LOW, 1},  // Bronze
@@ -55,7 +55,7 @@ const CityData cities[1][3] = {
             }
         },
         {s"floria    ", CITY_RESPECT_LOW, 0,
-            {{1,1}, {7,1}},
+            {{1,1}, {7,1},{0xff,0},{0xff,0}},
             {{2, 2, CITY_RESPECT_LOW, 2},  // corn
              {3, 2, CITY_RESPECT_LOW, 2},  // spinach
              {19,2, CITY_RESPECT_MED, 2},  // eggs
@@ -63,7 +63,7 @@ const CityData cities[1][3] = {
             } 
         },
         {s"sirenia   ", CITY_RESPECT_LOW, 0,
-            {{2,1}, {9,1}},
+            {{2,1},{9,1},{0xff,0},{0xff,0}},
             {{0,2,CITY_RESPECT_LOW,2}, // rice
              {7,2,CITY_RESPECT_LOW,2}, // soy beans
              {21,2,CITY_RESPECT_MED,2}, // bok choy

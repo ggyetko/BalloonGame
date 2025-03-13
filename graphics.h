@@ -74,7 +74,7 @@ unsigned char max(unsigned char a, unsigned char b)
     return b;
 }
 
-void putText(const char* text, unsigned char x, unsigned char y, unsigned char n, unsigned int color)
+void putText(char const* text, unsigned char x, unsigned char y, unsigned char n, unsigned int color)
 {
     unsigned int location = x + y*40;
     unsigned char c;
@@ -224,6 +224,43 @@ void showWorkCargo(PlayerData *data)
     }
 }
 
+void showMayor(PlayerData *data)
+{
+    clearWorkScreen();
+    putText (s"hello ",2,2,6,VCOL_WHITE);
+    putText (PlayerDataTitles[data->title],8,2,3,VCOL_WHITE);
+    putText (data->name,(data->title==1)?12:11,2,10,VCOL_WHITE);
+}
+
+void getInputText(unsigned char x, unsigned char y, unsigned char maxLength, char const* prompt10, char* input)
+{
+    for (unsigned char x = 0; x < maxLength; x++) {
+        input[x] = 32;
+    }
+    putText(prompt10,x,y,10,VCOL_WHITE);
+    unsigned char length = 0;
+    unsigned int cursorScreenLocation = x+length+((y+1)*40);
+    for (;;) {
+        ScreenWork[cursorScreenLocation] = 79;
+        ScreenColor[cursorScreenLocation] = VCOL_WHITE;
+        if (kbhit()){
+            char ch = getch();
+            if ((ch > 64) && (ch < 91) && (length < maxLength)) {
+                input[length] = ch-64; // convert keycode to screencode
+                ScreenWork[cursorScreenLocation] = ch-64;
+                length++;
+                cursorScreenLocation++;
+            } else if (ch == 20) {
+                ScreenWork[cursorScreenLocation] = 32;
+                length--;
+                cursorScreenLocation--;
+            } else if ((ch == 10) && (length > 1)) {
+                break;
+            }
+        }
+    }
+}
+
 // Takes an array of text options [10] * num
 // return 0-based player's choice
 // navigates with w-up, s-down, ENTER-select
@@ -260,8 +297,8 @@ unsigned char getMenuChoice(unsigned char num, unsigned char initChoice, const c
         for (;;) {
             if (kbhit()){
                 char ch = getch();
-                //ScreenWork[19] = ch/10 +48;
-                //ScreenWork[20] = ch%10 +48;
+                ScreenWork[19] = ch/10 +48;
+                ScreenWork[20] = ch%10 +48;
                 if (ch == 'W') {  
                     if (currSelect) {
                         currSelect --;

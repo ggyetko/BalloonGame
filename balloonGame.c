@@ -11,6 +11,7 @@
 #include "graphics.h"
 #include "city.h"
 #include "playerData.h"
+#include "quest.h"
 
 // Screen1 is        0x0400 to 0x7ff
 // Weird stuff from 0x0800 to 0x09ff, don't touch this region or it goes bad
@@ -127,7 +128,7 @@ volatile unsigned char psgrOutYPos;
 volatile unsigned int cloudXPos[NUM_CLOUDS];
 volatile unsigned char cloudYPos[NUM_CLOUDS];
 
-volatile unsigned char counter;
+volatile unsigned char counter; // counter incremented once for every screen refresh (use it for all kinds of stuff)
 
 /* ??...... : info - (0=nothing 1,2,3:city number)
  * ..???... : stalagtite length (ceiling)
@@ -147,12 +148,12 @@ const char terrain[256] =
     072,063,052,042,023,023,014,015,  025,025,025,024,034,043,053,052, 
     051,051,052,043,043,043,033,033,  024,034,044,043,043,032,022,012, 
     011,011,012,023,023,023,014,015,  025,025,025,024,034,043,053,052, 
-    051,051,052,043,043,043,032,031,  021,031,0222,042,042,035,025,014, // City #2
+    051,051,052,043,043,042,031,031, 021,031,0223,043,043,035,025,014, // City #2
     013,013,013,023,023,023,014,015,  025,025,025,024,034,043,053,052, 
     051,051,052,043,043,043,033,033,  024,034,044,043,043,032,022,012, 
     011,011,012,023,023,023,014,015,  025,025,025,024,034,043,053,052, 
     051,051,052,043,043,043,033,033,  024,034,044,043,043,032,022,012, 
-    011,011,012,0323,023,023,014,015,  025,025,025,024,034,043,053,052, // City #3
+    011,011,012,0323,023,023,014,015, 025,025,025,024,034,043,053,052, // City #3
     051,051,052,043,043,043,033,033,  024,034,044,043,043,032,022,012
 };
 
@@ -908,12 +909,15 @@ void cityMenuRepair(PlayerData *data)
         unsigned int repairListCosts[4] = 
             {0, REPAIR_COST_BALLOON_FABRIC, REPAIR_COST_PSGR_CABIN, REPAIR_COST_CARGO};
 
-        if (cities[currMap][cityNum-1].facility & CITY_FACILITY_BALLOON_FABRIC)
-            { repairListCosts[1] -= REPAIR_COST_FACILITY_REDUCTION; }
-        if (cities[currMap][cityNum-1].facility & CITY_FACILITY_PSGR_CABIN)
-            { repairListCosts[2] -= REPAIR_COST_FACILITY_REDUCTION; }
-        if (cities[currMap][cityNum-1].facility & CITY_FACILITY_CARGO) 
-            { repairListCosts[3] -= REPAIR_COST_FACILITY_REDUCTION; }
+        if (cities[currMap][cityNum-1].facility & CITY_FACILITY_BALLOON_FABRIC) {
+            repairListCosts[1] -= REPAIR_COST_FACILITY_REDUCTION; 
+        }
+        if (cities[currMap][cityNum-1].facility & CITY_FACILITY_PSGR_CABIN) {
+            repairListCosts[2] -= REPAIR_COST_FACILITY_REDUCTION;
+        }
+        if (cities[currMap][cityNum-1].facility & CITY_FACILITY_CARGO) {
+            repairListCosts[3] -= REPAIR_COST_FACILITY_REDUCTION;
+        }
             
         unsigned char responseRepair = getMenuChoice(4, 0, repairList, true, repairListCosts);
         if (responseRepair == 0) {
@@ -1036,12 +1040,41 @@ void cityMenuInventory(PlayerData *data, Passenger *tmpPsgrData)
 
 void cityMenuMayor(PlayerData *data)
 {
+    showMayor(data);
     for (;;) {
-        unsigned char mayorList[3][10] = {s"return    ",s"talk      ",s"deliver   "};
-        unsigned char responseMayor = getMenuChoice(3, 0, mayorList, false, nullptr);
+        unsigned char mayorList[4][10] = {s"return    ",s"town      ",s"chat      ",s"gift      "};
+        unsigned char responseMayor = getMenuChoice(4, 0, mayorList, false, nullptr);
 
         if (responseMayor == 0) { break; }
+        else if (responseMayor == 1) {
+            // list of town needs
+            putText (s"my town needs",2,4,13,VCOL_WHITE);
+            for (unsigned char x=0; x<MAX_BUY_GOODS; x++) {
+                unsigned char index = cities[currMap][cityNum-1].buyGoods[x].goodsIndex;
+                if (index == NO_GOODS) break;
+                putText (goods[index].name , 3, 5+x, 10, VCOL_WHITE);
+            }
+        } else if (responseMayor == 2) {
+            // the mayor names his next quest
+            CityCode cityCode = {CityCode_generateCityCode(currMap,cityNum)};
+            unsigned char questIndex = Quest_getCityQuest(
+                cityCode,
+                &cities[currMap][cityNum-1]);
+            if (questIndex != INVALID_QUEST_INDEX) {
+                for (unsigned char y=0;y<QUEST_TEXT_LENGTH/20;y++) {
+                    putText(
+                        &allQuests[questIndex].questExplanation[y*20],
+                        2,
+                        y+4,
+                        20,
+                        VCOL_WHITE);
+                }
+            }
+        } else {
+            // gift
+        }
     }
+    drawBalloonDockScreen();
 }
     
 void cityMenu(PlayerData *data, Passenger *tmpPsgrData) 
@@ -1293,22 +1326,35 @@ void showScoreBoard(struct PlayerData* data) {
     }
 }
 
-void startGame(void) 
+void initialiseGameVariables(void)
 {
     xScroll = 4;    // middle of scroll
     currScreen = 0; // start with Screen 0 (0x0400)
     flip = 1;       // act like flip has happened, this triggers copy to Screen 1
     yPos = 20480;   // internal Y position of balloon, middle of field
     yVel = 0;       // No starting velocity
-    
+    holdCount = 0;
+    flameDelay = 0;
+
     // set up map
     currMap = 0;
     mapXCoord = 0;
+
+    status = 0;
+    cityNum = 0;
+    vic.spr_enable = 0;
+}
+
+void startGame(char *name, unsigned char title) 
+{
+    initialiseGameVariables();
+    Quest_init();
     initScreenWithDefaultColors(true);
 
-    // set up scoreboard
     struct PlayerData playerData;
-    playerDataInit(&playerData);
+    playerDataInit(&playerData, name, title);
+    
+    // set up scoreboard
     showScoreBoard(&playerData);
     
     // Initialise clouds
@@ -1416,7 +1462,7 @@ void startGame(void)
 
 }
 
-unsigned char introScreen(void)
+unsigned char introScreen(char *name, unsigned char* title)
 {
     // set up sprites
     setupUpIntroSprites();
@@ -1456,6 +1502,13 @@ unsigned char introScreen(void)
         unsigned char result = getMenuChoice(4, 0, menuOptions, false, nullptr);
         
         if (result == 0) {
+            getInputText(28, 12, 10, s"your name ", name);
+            char titleOptions[4][10] = {
+                s"mr        ",
+                s"mrs       ",
+                s"ms        ",
+                s"mx        "};
+            *title = getMenuChoice(4,0,titleOptions,false,nullptr);
             return 1;
         } else if (result == 1) {
             
@@ -1476,9 +1529,11 @@ int main(void)
 	rirq_init(true);
     vic.memptr = (vic.memptr & 0xf1) | 0x08; // xxxx100x means $2000 for character map
 
+    char tempName[10];
+    unsigned char tempTitle;
     for (;;) {
-        if (introScreen() == 0) break;
-        startGame();
+        if (introScreen(tempName, &tempTitle) == 0) break;
+        startGame(tempName, tempTitle);
     }
 
 	return 0;

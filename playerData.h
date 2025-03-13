@@ -16,6 +16,8 @@
 
 const unsigned char MAX_CARGO_SPACE = 16;
 
+const char PlayerDataTitles[4][3] = {s"mr ",s"mrs",s"ms ",s"mx "};
+
 struct Cargo {
     Passenger psgr[MAX_PASSENGERS];
     unsigned char cargoSpace; // reduced by damage, max 16
@@ -30,13 +32,17 @@ enum BALLOON_UPGRADES {
     BALLOON_AIRDROP    = 0x10
 };
 struct PlayerData {
+    char          name[10];
+    unsigned char title;
     unsigned char balloonUpgrades;
-    unsigned int fuel;  // fuel max out of 65535
-    unsigned int money;
+    unsigned int  fuel;  // fuel max out of 65535
+    unsigned int  money;
     unsigned char balloonHealth; // value out of 8
     Cargo cargo;
 };
-void playerDataInit(PlayerData *data){
+void playerDataInit(PlayerData *data, char* tempName, unsigned char tempTitle){
+    tenCharCopy(data->name, tempName);
+    data->title = tempTitle;
     data->balloonUpgrades = 0;
     data->fuel = 20000;
     data->money = 1000;
