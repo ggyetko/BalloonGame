@@ -6,8 +6,10 @@ unsigned char CityCode_getCityNum(CityCode cityCode){
 unsigned char CityCode_getMapNum(CityCode cityCode){
     return (cityCode.code & 0x1C) >> 2;
 }
-unsigned char CityCode_generateCityCode(unsigned char mapNum, unsigned char cityNum) {
-    return (mapNum << 2) | cityNum;
+CityCode CityCode_generateCityCode(unsigned char mapNum, unsigned char cityNum) {
+    CityCode retval;
+    retval.code = (mapNum << 2) | cityNum;
+    return retval;
 }
 
 #define NUM_PASSENGER_NAMES 20
@@ -85,13 +87,13 @@ void generateCurrentCityTmpData(Passenger *tempPsgData, CityCode currentCity) //
             unsigned char nameIndex = takeRandomName();
             tenCharCopy(tempPsgData[psgDataIndex].name,psgrNames[nameIndex].name);
             tempPsgData[psgDataIndex].fare = PASSENGER_COST_PER_PASSAGE;
-            tempPsgData[psgDataIndex].destination.code = CityCode_generateCityCode(currMapNum, city);
+            tempPsgData[psgDataIndex].destination = CityCode_generateCityCode(currMapNum, city);
             psgDataIndex++;
             
             nameIndex = takeRandomName();
             tenCharCopy(tempPsgData[psgDataIndex].name,psgrNames[nameIndex].name);
             tempPsgData[psgDataIndex].fare = PASSENGER_COST_PER_PASSAGE;
-            tempPsgData[psgDataIndex].destination.code = CityCode_generateCityCode(currMapNum, city);
+            tempPsgData[psgDataIndex].destination = CityCode_generateCityCode(currMapNum, city);
             psgDataIndex++;
         }
     }

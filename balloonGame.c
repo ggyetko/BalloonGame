@@ -889,6 +889,7 @@ void cityMenuSell(PlayerData *data)
             break;
         } else {
             cargoOutAnimation();
+            Quest_processDeliverTrigger(goodsIndexList[responseSell-1], CityCode_generateCityCode(currMap, cityNum));
             removeCargo(data, goodsIndexList[responseSell-1]);
             data->money += sellMenuCosts[responseSell];
             showScoreBoard(data);
@@ -1111,7 +1112,7 @@ void cityMenuMayor(PlayerData *data)
                 }
             } else if (responseMayor == 2) {
                 // the mayor names his next quest
-                CityCode cityCode = {CityCode_generateCityCode(currMap,cityNum)};
+                CityCode cityCode = CityCode_generateCityCode(currMap,cityNum);
                 unsigned char questIndex = Quest_getCityQuest(
                     cityCode,
                     &cities[currMap][cityNum-1]);
@@ -1191,8 +1192,7 @@ void landingOccurred(PlayerData *data)
     drawBalloonDockScreen();
     
     Passenger tmpPsgrData[10];
-    CityCode cityCode;
-    cityCode.code = CityCode_generateCityCode(currMap, cityNum);
+    CityCode cityCode = CityCode_generateCityCode(currMap, cityNum);
     generateCurrentCityTmpData(tmpPsgrData, cityCode);
 
     const char respect[7] = s"respect";

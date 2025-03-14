@@ -36,6 +36,12 @@ extern QuestLog questLog[MAX_QUESTS_IN_PROGRESS];
 #define QUEST_TEXT_LENGTH            100
 #define QUEST_CONCLUSION_TEXT_LENGTH 60
 
+#define QUEST_TYPE_MASK  0xc0
+#define QUEST_TYPE_SELL  0x00
+#define QUEST_TYPE_BUY   0x40
+#define QUEST_TYPE_BRIBE 0x80
+#define QUEST_TYPE_TPORT 0xc0
+
 struct Quest{
     char questTitle[10];
     CityCode cityNumber;  // the home city of the reward (the mayor you talk to)
@@ -48,7 +54,7 @@ struct Quest{
     // MMM- map number of home city of quest
     // ## - city number of home city
     unsigned char respectLevel;    // the respect level needed to start the quest
-    unsigned char destinationCity; // 0xff - none, otherwise ...MMM##
+    CityCode destinationCity; // 0xff - none, otherwise ...MMM##
     unsigned char itemIndex; 
         // 00-01-10: item type involved in quest
         // 11: Person's ID from person list

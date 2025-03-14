@@ -11,8 +11,8 @@ const Quest allQuests[QUEST_COUNT] = {
     {s"bronze    ",
      0b00000001,        // Cloud City
      CITY_RESPECT_NONE,
-     0b00000011,        // Sirenia
-     0,                 // Bronze
+     {0b00000011},        // Sirenia
+     9,                 // Bronze
      20,
      {REWARD_RESPECT_MED,0,0},
      //0---------0---------2---------0---------4---------0---------6---------0---------8---------0---------
@@ -34,6 +34,29 @@ void Quest_init(void)
 // call this whenever a good is sold to anyone
 unsigned char Quest_processDeliverTrigger(unsigned char const itemIndex, CityCode const destCity)
 {
+    unsigned char questIndex = INVALID_QUEST_INDEX;
+    for (unsigned x = 0; x<MAX_QUESTS_IN_PROGRESS; x++) {
+        unsigned char questIndex = questLog[x].questIndex;
+        if (questIndex != INVALID_QUEST_INDEX) {
+            // check for "sell my stuff" quests
+            /*debugChar(1,x);
+            debugChar(2,allQuests[questIndex].cityNumber.code);
+            debugChar(3,allQuests[questIndex].destinationCity.code);
+            debugChar(4,destCity.code);
+            debugChar(5,allQuests[questIndex].itemIndex);
+            debugChar(6,itemIndex);
+            debugChar(7,questLog[x].completeness);
+            debugChar(8,allQuests[questIndex].numItems);*/
+            
+            if (((allQuests[questIndex].cityNumber.code & QUEST_TYPE_MASK) == QUEST_TYPE_SELL)
+                && (allQuests[questIndex].destinationCity.code == destCity.code)
+                && (allQuests[questIndex].itemIndex == itemIndex)
+                && (questLog[x].completeness < allQuests[questIndex].numItems)) {
+                questLog[x].completeness ++;
+            }
+            // check for "buy me this stuff" quests
+        }
+    }
     return INVALID_QUEST_INDEX;
 }
 

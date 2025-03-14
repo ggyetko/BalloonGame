@@ -38,7 +38,7 @@ struct CityCode {
 };
 unsigned char CityCode_getCityNum(CityCode cityCode);
 unsigned char CityCode_getMapNum(CityCode cityCode);
-unsigned char CityCode_generateCityCode(unsigned char mapNum, unsigned char cityNum);
+CityCode CityCode_generateCityCode(unsigned char mapNum, unsigned char cityNum);
 #define DESTINATION_CODE_NO_PASSENGER     0
 #define DESTINATION_CODE_DAMAGED_CABIN    0xff
 
