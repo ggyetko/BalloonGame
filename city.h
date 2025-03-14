@@ -72,4 +72,6 @@ unsigned int getGoodsPurchasePrice(CityData const *cityData, unsigned char goods
 
 unsigned char takeRandomName(void);
 void returnName(char *name);
+
+char const* getCityNameFromCityCode(CityCode cityCode);
 #endif

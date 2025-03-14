@@ -8,7 +8,8 @@ unsigned char questBitmap[1] = {0};
 
 // constant quest data
 const Quest allQuests[QUEST_COUNT] = {
-    {0b00000001,        // Cloud City
+    {s"bronze    ",
+     0b00000001,        // Cloud City
      CITY_RESPECT_NONE,
      0b00000011,        // Sirenia
      0,                 // Bronze
@@ -20,7 +21,6 @@ const Quest allQuests[QUEST_COUNT] = {
     }
 };
 
-#define MAX_QUESTS_IN_PROGRESS   10
 QuestLog questLog[MAX_QUESTS_IN_PROGRESS];
 
 void Quest_init(void)
@@ -65,9 +65,11 @@ bool logQuest(unsigned char questIndex)
             questLog[q].questIndex = questIndex;
             questLog[q].completeness = 0;
             logged = true;
+            break;
         }
     }
     if (logged) {
+        debugChar(1,99);
         unsigned char index = questIndex >> 3;
         unsigned char column = questIndex & 3;
         questBitmap[index] |= 1 << column;
@@ -83,7 +85,7 @@ unsigned char Quest_getCityQuest(CityCode const city, CityData const *currCity)
     unsigned char q;
     for (unsigned char q=0; q<QUEST_COUNT; q++) {
         if (isQuestLogged(q)) continue;
-        if (((allQuests[q].cityNumber & 0x1f) == city.code) && (allQuests[q].respectLevel <= currCity->respect)) {
+        if (((allQuests[q].cityNumber.code & 0x1f) == city.code) && (allQuests[q].respectLevel <= currCity->respect)) {
             if (logQuest(q)) {
                 return q;
             } else {

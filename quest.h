@@ -30,12 +30,15 @@ struct QuestLog{
     // numItems   - quest complete
     // numItems+1 - quest complete and reward claimed
 };
+#define MAX_QUESTS_IN_PROGRESS   10
+extern QuestLog questLog[MAX_QUESTS_IN_PROGRESS];
 
 #define QUEST_TEXT_LENGTH            100
 #define QUEST_CONCLUSION_TEXT_LENGTH 60
 
 struct Quest{
-    unsigned char cityNumber;  // the home city of the reward (the mayor you talk to)
+    char questTitle[10];
+    CityCode cityNumber;  // the home city of the reward (the mayor you talk to)
     // XX.MMM##  
     // XX - 00 (sell home city's item to other city) 
     //      01 (buy quest, bring home city something and sell it) 

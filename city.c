@@ -17,7 +17,7 @@ PassengerName psgrNames[NUM_PASSENGER_NAMES] = {
     {s"gyetko    ",false},
     {s"tofinetti ",false},
     {s"campbell  ",false},
-    {s"brown     ",false},
+    {s"brown     ",false},  // Great Scott!
     {s"verne     ",false},  // Jules Verne
     {s"diggs     ",false},  // Wizard of OZ
     {s"wright    ",false},  // orville or wilbur
@@ -172,4 +172,11 @@ void returnName(char *name)
             break;
         }
     }
+}
+
+char const* getCityNameFromCityCode(CityCode cityCode)
+{
+    unsigned char mapNum = CityCode_getMapNum(cityCode);
+    unsigned char cityNum = CityCode_getCityNum(cityCode);
+    return cities[mapNum][cityNum-1].name;
 }

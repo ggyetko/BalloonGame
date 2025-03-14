@@ -25,10 +25,10 @@
 #define ScreenColor ((char *)0xd800)
 
 // Graphics Routines
-void clearWorkScreen(void)
+void clearWorkScreen(unsigned char topLine = 1)
 {
     for (unsigned char x = 1;x<24;x++) {
-        for (unsigned char y = 1;y<19;y++) {
+        for (unsigned char y = topLine;y<19;y++) {
             ScreenWork[x+y*40] = 32;
         }
     }    

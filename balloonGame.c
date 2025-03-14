@@ -1020,18 +1020,59 @@ void cityMenuPassenger(PlayerData *data, Passenger *tmpPsgrData)
     }
 }
 
+void displayQuest(unsigned char questIndex) {
+    for (unsigned char y=0;y<QUEST_TEXT_LENGTH/20;y++) {
+        putText(
+            &allQuests[questIndex].questExplanation[y*20],
+            2,
+            y+4,
+            20,
+            VCOL_WHITE);
+    }
+}
+    
+void cityMenuQuest(PlayerData *data)
+{
+    unsigned char lastChoice = 0;
+    for (;;) {
+        unsigned char invList[MAX_QUESTS_IN_PROGRESS+1][10] = {s"return    "};
+        unsigned char invQuestIndexList[MAX_QUESTS_IN_PROGRESS+1] = {0};
+        unsigned char invListLength = 1;
+        unsigned char x;
+        for (x=0; x<MAX_QUESTS_IN_PROGRESS; x++) {
+            if (questLog[x].questIndex != INVALID_QUEST_INDEX) {
+                tenCharCopy(invList[invListLength], allQuests[questLog[x].questIndex].questTitle);
+                invQuestIndexList[invListLength] = questLog[x].questIndex;
+                invListLength++;
+            }
+        }
+        unsigned char responseQuest = getMenuChoice(invListLength, lastChoice, invList, false, nullptr);
+        
+        if (responseQuest == 0) {
+            break;
+        } else {
+            clearWorkScreen();
+            putText(getCityNameFromCityCode(allQuests[questLog[invQuestIndexList[responseQuest]].questIndex].cityNumber), 2, 2, 10, VCOL_WHITE);
+            displayQuest(invQuestIndexList[responseQuest]);
+            lastChoice = responseQuest;
+        }
+    }
+}
+
 void cityMenuInventory(PlayerData *data, Passenger *tmpPsgrData) 
 {
     unsigned char lastChoice = 0;
     for (;;) {
-        unsigned char invList[3][10] = {s"return    ",s"passengers",s"cargo     "};
-        unsigned char responseInv = getMenuChoice(3, lastChoice, invList, false, nullptr);
+        unsigned char invList[4][10] = {s"return    ",s"passengers",s"cargo     ",s"quest     "};
+        unsigned char responseInv = getMenuChoice(4, lastChoice, invList, false, nullptr);
         if (responseInv == 0) {
             break;
         } else if (responseInv == 1) {
             showWorkPassengers(data->cargo.psgr);
-        } else {
+        } else if (responseInv == 2) {
             showWorkCargo(data);
+        } else {
+            cityMenuQuest(data);
         }
         lastChoice = responseInv;
     }
@@ -1046,32 +1087,28 @@ void cityMenuMayor(PlayerData *data)
         unsigned char responseMayor = getMenuChoice(4, 0, mayorList, false, nullptr);
 
         if (responseMayor == 0) { break; }
-        else if (responseMayor == 1) {
-            // list of town needs
-            putText (s"my town needs",2,4,13,VCOL_WHITE);
-            for (unsigned char x=0; x<MAX_BUY_GOODS; x++) {
-                unsigned char index = cities[currMap][cityNum-1].buyGoods[x].goodsIndex;
-                if (index == NO_GOODS) break;
-                putText (goods[index].name , 3, 5+x, 10, VCOL_WHITE);
-            }
-        } else if (responseMayor == 2) {
-            // the mayor names his next quest
-            CityCode cityCode = {CityCode_generateCityCode(currMap,cityNum)};
-            unsigned char questIndex = Quest_getCityQuest(
-                cityCode,
-                &cities[currMap][cityNum-1]);
-            if (questIndex != INVALID_QUEST_INDEX) {
-                for (unsigned char y=0;y<QUEST_TEXT_LENGTH/20;y++) {
-                    putText(
-                        &allQuests[questIndex].questExplanation[y*20],
-                        2,
-                        y+4,
-                        20,
-                        VCOL_WHITE);
+        else {
+            clearWorkScreen(3);
+            if (responseMayor == 1) {
+                // list of town needs
+                putText (s"my town needs",2,4,13,VCOL_WHITE);
+                for (unsigned char x=0; x<MAX_BUY_GOODS; x++) {
+                    unsigned char index = cities[currMap][cityNum-1].buyGoods[x].goodsIndex;
+                    if (index == NO_GOODS) break;
+                    putText (goods[index].name , 3, 5+x, 10, VCOL_WHITE);
                 }
+            } else if (responseMayor == 2) {
+                // the mayor names his next quest
+                CityCode cityCode = {CityCode_generateCityCode(currMap,cityNum)};
+                unsigned char questIndex = Quest_getCityQuest(
+                    cityCode,
+                    &cities[currMap][cityNum-1]);
+                if (questIndex != INVALID_QUEST_INDEX) {
+                    displayQuest(questIndex);
+                }
+            } else {
+                // gift
             }
-        } else {
-            // gift
         }
     }
     drawBalloonDockScreen();
@@ -1345,7 +1382,7 @@ void initialiseGameVariables(void)
     vic.spr_enable = 0;
 }
 
-void startGame(char *name, unsigned char title) 
+void startGame(char *name, unsigned char title)
 {
     initialiseGameVariables();
     Quest_init();
@@ -1353,7 +1390,7 @@ void startGame(char *name, unsigned char title)
 
     struct PlayerData playerData;
     playerDataInit(&playerData, name, title);
-    
+
     // set up scoreboard
     showScoreBoard(&playerData);
     
