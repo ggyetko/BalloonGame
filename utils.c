@@ -20,7 +20,7 @@ void ucharToString(unsigned int in, char* out)
     bool nonzero = false;
     for (char x=0;x<3;x++) {
         char digit = in/tens[x];  // rounds down, so we're fine
-        if (digit > 0) {nonzero = true;}
+        if ((digit > 0) || (x==2)) {nonzero = true;}
         if (nonzero) {
             out[x] = digit + 48;
         }

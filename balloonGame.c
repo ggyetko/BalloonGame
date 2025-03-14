@@ -1052,9 +1052,21 @@ void cityMenuQuest(PlayerData *data)
             break;
         } else {
             clearWorkScreen();
-            putText(getCityNameFromCityCode(allQuests[questLog[invQuestIndexList[responseQuest]].questIndex].cityNumber), 2, 2, 10, VCOL_WHITE);
-            displayQuest(invQuestIndexList[responseQuest]);
+            unsigned char qi = questLog[invQuestIndexList[responseQuest]].questIndex;
+            // show home city of quest
+            putText(getCityNameFromCityCode(allQuests[qi].cityNumber), 2, 2, 10, VCOL_WHITE);
+            displayQuest(qi);
             lastChoice = responseQuest;
+            // show fraction complete
+            char out[3];
+            unsigned char num = questLog[invQuestIndexList[responseQuest]].completeness;
+            ucharToString(num, out);
+            putText(out, 2, 12, 3, VCOL_DARK_GREY);
+            num = allQuests[qi].numItems;
+            ucharToString(num, out);
+            putText(out, 8, 12, 3, VCOL_DARK_GREY);  
+            ScreenWork[6 + 12*40] = 71;
+            ScreenColor[6 + 12*40] = VCOL_DARK_GREY;
         }
     }
 }
