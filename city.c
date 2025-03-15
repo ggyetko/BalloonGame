@@ -42,6 +42,7 @@ const unsigned int REPAIR_COST_PSGR_CABIN     = 600;
 const unsigned int REPAIR_COST_CARGO          = 850;
 const unsigned int REPAIR_COST_FACILITY_REDUCTION = 150;
 
+// constant data related to cities - NO SAVING REQUIRED
 const CityData cities[1][3] = {
     // MAP #0
     {
@@ -75,6 +76,7 @@ const CityData cities[1][3] = {
     }
     // MAP #1
 };
+// variable city data - MUST BE SAVED with SAVE GAME
 unsigned char cityRespectLevel[1][3] = {
     {CITY_RESPECT_LOW,CITY_RESPECT_LOW,CITY_RESPECT_LOW}
 };

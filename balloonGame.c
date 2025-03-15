@@ -1121,6 +1121,23 @@ void finishQuest(PlayerData *data, unsigned char questIndex)
     }
 }
 
+void updateCityWindow(void)
+{
+    const char respect[7] = s"respect";
+    // City Name
+    putText(cities[currMap][cityNum-1].name, 27, 1, 10, VCOL_WHITE);
+    putText(respect, 26, 3, 7, VCOL_DARK_GREY);
+    if (cityRespectLevel[currMap][cityNum-1] == CITY_RESPECT_NONE) {
+        putText(s"n/a ", 34, 3, 4, VCOL_BLACK);
+    } else if (cityRespectLevel[currMap][cityNum-1] == CITY_RESPECT_LOW){
+        putText(s"low ", 34, 3, 4, VCOL_DARK_GREY);
+    } else if (cityRespectLevel[currMap][cityNum-1] == CITY_RESPECT_MED){
+        putText(s"med ", 34, 3, 4, VCOL_DARK_GREY);
+    } else {
+        putText(s"high", 34, 3, 4, VCOL_YELLOW);
+    }   
+}
+
 void cityMenuMayor(PlayerData *data)
 {
     showMayor(data);
@@ -1147,6 +1164,7 @@ void cityMenuMayor(PlayerData *data)
                 if (completedQuestIndex != INVALID_QUEST_INDEX) {
                     finishQuest(data, completedQuestIndex);
                     showScoreBoard(data);
+                    updateCityWindow();
                 } else {
                     // check if the mayor has a new quest
                     unsigned char questIndex = Quest_getCityQuest(
@@ -1232,19 +1250,7 @@ void landingOccurred(PlayerData *data)
     CityCode cityCode = CityCode_generateCityCode(currMap, cityNum);
     generateCurrentCityTmpData(tmpPsgrData, cityCode);
 
-    const char respect[7] = s"respect";
-    // City Name
-    putText(cities[currMap][cityNum-1].name, 27, 1, 10, VCOL_WHITE);
-    putText(respect, 26, 3, 7, VCOL_DARK_GREY);
-    if (cityRespectLevel[currMap][cityNum-1] == CITY_RESPECT_NONE) {
-        putText(s"n/a ", 34, 3, 4, VCOL_BLACK);
-    } else if (cityRespectLevel[currMap][cityNum-1] == CITY_RESPECT_LOW){
-        putText(s"low ", 34, 3, 4, VCOL_DARK_GREY);
-    } else if (cityRespectLevel[currMap][cityNum-1] == CITY_RESPECT_MED){
-        putText(s"med ", 34, 3, 4, VCOL_DARK_GREY);
-    } else {
-        putText(s"high", 34, 3, 4, VCOL_YELLOW);
-    }
+    updateCityWindow();
 
     setupRasterIrqsWorkScreen();
     clearKeyboardCache();

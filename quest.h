@@ -64,7 +64,7 @@ struct Quest{
     char questConclusion[QUEST_CONCLUSION_TEXT_LENGTH];
 };
 
-#define QUEST_COUNT 1
+#define QUEST_COUNT 2
 extern const Quest allQuests[QUEST_COUNT];
 
 void Quest_init(void);

@@ -18,7 +18,18 @@ const Quest allQuests[QUEST_COUNT] = {
      //0---------0---------2---------0---------4---------0---------6---------0---------8---------0---------
      s"please deliver 20   crates of bronze to our neighbours in   sirenia                                 ",
      s"you have earned my  trust. thanks for   delivering our goods"
-    }
+    },
+    {s"cloud lady",
+     0b00000001,        // Cloud City
+     CITY_RESPECT_MED,
+     {0b00000010},      // Floria
+     0xff,                 // Bronze
+     1, // 1 person
+     {REWARD_RESPECT_HIGH,0,0},
+     //0---------0---------2---------0---------4---------0---------6---------0---------8---------0---------
+     s"my daugter needs a  ride in your balloonto our friendly     neigbhours in floria                    ",
+     s"thank you for safelytranporting my      daugther            "
+    },
 };
 
 QuestLog questLog[MAX_QUESTS_IN_PROGRESS];
