@@ -13,11 +13,11 @@ const Quest allQuests[QUEST_COUNT] = {
      CITY_RESPECT_NONE,
      {0b00000011},        // Sirenia
      9,                 // Bronze
-     20,
+     2, // should be 20
      {REWARD_RESPECT_MED,0,0},
      //0---------0---------2---------0---------4---------0---------6---------0---------8---------0---------
      s"please deliver 20   crates of bronze to our neighbours in   sirenia                                 ",
-     s"you have earned my  trust. Thanks for   delivering our goods"
+     s"you have earned my  trust. thanks for   delivering our goods"
     }
 };
 
@@ -31,10 +31,26 @@ void Quest_init(void)
     }
 }
 
-// call this whenever a good is sold to anyone
-unsigned char Quest_processDeliverTrigger(unsigned char const itemIndex, CityCode const destCity)
+unsigned char Quest_checkComplete(CityCode const cityCode)
 {
-    unsigned char questIndex = INVALID_QUEST_INDEX;
+    for (unsigned x = 0; x<MAX_QUESTS_IN_PROGRESS; x++) {
+        unsigned char questIndex = questLog[x].questIndex;
+        if (questIndex != INVALID_QUEST_INDEX) {
+            if (
+                ((allQuests[questIndex].cityNumber.code & 0x1f) == cityCode.code)
+                && (questLog[x].completeness == allQuests[questIndex].numItems)) {
+                // remove it from the log
+                questLog[x].questIndex = INVALID_QUEST_INDEX;
+                return questIndex;
+            }
+        }
+    }    
+    return INVALID_QUEST_INDEX;
+}
+
+// call this whenever a good is sold to anyone
+void Quest_processDeliverTrigger(unsigned char const itemIndex, CityCode const destCity)
+{
     for (unsigned x = 0; x<MAX_QUESTS_IN_PROGRESS; x++) {
         unsigned char questIndex = questLog[x].questIndex;
         if (questIndex != INVALID_QUEST_INDEX) {
@@ -57,11 +73,10 @@ unsigned char Quest_processDeliverTrigger(unsigned char const itemIndex, CityCod
             // check for "buy me this stuff" quests
         }
     }
-    return INVALID_QUEST_INDEX;
 }
 
 // call this whenever a passenger arrives anywhere
-unsigned char Quest_processArrivalTrigger(char const *name, CityCode const destCity)
+void Quest_processArrivalTrigger(char const *name, CityCode const destCity)
 {
     return INVALID_QUEST_INDEX;    
 }
@@ -100,15 +115,27 @@ bool logQuest(unsigned char questIndex)
     return logged;
 }
 
+// the quest is complete AND claimed. Remove it.
+void unLogQuest(unsigned char questIndex)
+{
+    for (unsigned char q=0;q<MAX_QUESTS_IN_PROGRESS;q++) {
+        if (questLog[q].questIndex == questIndex) {
+            questLog[q].questIndex = INVALID_QUEST_INDEX;
+            questLog[q].completeness = 0;
+            break;
+        }
+    }
+}
+
 // returns the index of an available Quest
 // INVALID_QUEST_INDEX if no quest available
 // there should only be one Quest per respect level per city.
-unsigned char Quest_getCityQuest(CityCode const city, CityData const *currCity)
+unsigned char Quest_getCityQuest(CityCode const city, unsigned char currCityRespect)
 {
     unsigned char q;
     for (unsigned char q=0; q<QUEST_COUNT; q++) {
         if (isQuestLogged(q)) continue;
-        if (((allQuests[q].cityNumber.code & 0x1f) == city.code) && (allQuests[q].respectLevel <= currCity->respect)) {
+        if (((allQuests[q].cityNumber.code & 0x1f) == city.code) && (allQuests[q].respectLevel <= currCityRespect)) {
             if (logQuest(q)) {
                 return q;
             } else {

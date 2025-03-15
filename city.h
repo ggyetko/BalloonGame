@@ -27,7 +27,6 @@ extern const unsigned int REPAIR_COST_FACILITY_REDUCTION = 150;
 
 struct CityData {
     unsigned char name[10];
-    unsigned char respect;
     unsigned char facility;
     DemandedGoods buyGoods[MAX_BUY_GOODS];
     AvailableGoods sellGoods[MAX_SELL_GOODS];
@@ -62,6 +61,7 @@ struct Passenger {
 extern PassengerName psgrNames[20];
 extern unsigned char psgrNameCount;
 extern const CityData cities[1][3];
+extern unsigned char cityRespectLevel[1][3];
 
 // call this upon landing to make up a newly generated passenger list
 void generateCurrentCityTmpData(Passenger *tempPsgData, CityCode currentCity); // Assume size 10 array

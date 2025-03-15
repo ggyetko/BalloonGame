@@ -38,6 +38,7 @@ struct PlayerData {
     unsigned int  fuel;  // fuel max out of 65535
     unsigned int  money;
     unsigned char balloonHealth; // value out of 8
+    unsigned char knownMaps; // bitmap of maps
     Cargo cargo;
 };
 void playerDataInit(PlayerData *data, char* tempName, unsigned char tempTitle){
@@ -57,8 +58,20 @@ void playerDataInit(PlayerData *data, char* tempName, unsigned char tempTitle){
     for (unsigned char x=0; x<MAX_PASSENGERS; x++) {
         data->cargo.psgr[x].destination.code = DESTINATION_CODE_NO_PASSENGER;
     }
-    
+    // known maps
+    data->knownMaps = 0x01; // only the primary map is accessible
 }
+
+bool isMapAccessible(PlayerData const *data, unsigned char mapIndex)
+{
+    return ((1<<mapIndex) & data->knownMaps) ? true : false;
+}
+
+void addMapAccessible(PlayerData *data, unsigned char mapIndex)
+{
+    data->knownMaps |= 1 << mapIndex;
+}
+
 void balloonDamage(PlayerData *data){
     if (data->balloonHealth) {
         data->balloonHealth--;

@@ -69,22 +69,24 @@ extern const Quest allQuests[QUEST_COUNT];
 
 void Quest_init(void);
 
-// call this whenever a good is sold to anyone
-// returns if this completes a quest
 // INVALID_QUEST_INDEX if it completes no quest
-unsigned char Quest_processDeliverTrigger(unsigned char const itemIndex, CityCode const destCity);
+unsigned char Quest_checkComplete(CityCode const cityCode);
+
+// the quest is complete AND claimed. Remove it.
+void unLogQuest(unsigned char questIndex);
+
+// call this whenever a good is sold to anyone
+void Quest_processDeliverTrigger(unsigned char const itemIndex, CityCode const destCity);
 
 // call this whenever a passenger arrives anywhere
-// returns if this completes a quest
-// INVALID_QUEST_INDEX if it completes no quest
-unsigned char Quest_processArrivalTrigger(char const *name, CityCode const destCity);
+void Quest_processArrivalTrigger(char const *name, CityCode const destCity);
 
 // this will tell the caller if the mayor wants an item, 0xff if nothing
 unsigned char Quest_getMayorDesire(char const CityCode);
 
 // returns the index of an available Quest
 // INVALID_QUEST_INDEX if no quest available
-unsigned char Quest_getCityQuest(CityCode const city, CityData const *currCity);
+unsigned char Quest_getCityQuest(CityCode const city, unsigned char currCityRespect);
 
 
 #endif

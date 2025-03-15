@@ -840,7 +840,7 @@ void cityMenuBuy(PlayerData *data)
         tenCharCopy(buyMenuOptions[0], s"return    ");
         buyMenuCosts[0] = 0;
         for (x = 1; x < MAX_SELL_GOODS+1; x++){
-            if (cities[currMap][cityNum-1].respect >= cities[currMap][cityNum-1].sellGoods[x-1].reqRespectRate) {
+            if (cityRespectLevel[currMap][cityNum-1] >= cities[currMap][cityNum-1].sellGoods[x-1].reqRespectRate) {
                 tenCharCopy(
                     buyMenuOptions[x], 
                     goods[cities[currMap][cityNum-1].sellGoods[x-1].goodsIndex].name);
@@ -1092,6 +1092,35 @@ void cityMenuInventory(PlayerData *data, Passenger *tmpPsgrData)
     drawBalloonDockScreen();
 }
 
+void finishQuest(PlayerData *data, unsigned char questIndex)
+{
+    bool success = false;
+    for (unsigned char y=0;y<QUEST_CONCLUSION_TEXT_LENGTH/20;y++) {
+        putText(
+            &allQuests[questIndex].questConclusion[y*20],
+            2,
+            y+4,
+            20,
+            VCOL_WHITE);
+    }
+    unsigned char rw = allQuests[questIndex].reward.rewardType;
+    if (rw == REWARD_RESPECT_MED) {
+        cityRespectLevel[currMap][cityNum-1] = CITY_RESPECT_MED;
+        success = true;
+    } else if (rw == REWARD_RESPECT_HIGH) {
+        cityRespectLevel[currMap][cityNum-1] = CITY_RESPECT_HIGH;
+        success = true;
+    } else if (rw == REWARD_SPECIAL_ITEM) {
+        // in case there's no room, we will leave the quest "complete but unclaimed"
+        success = addCargoIfPossible(data, allQuests[questIndex].reward.index);
+    } else if (rw == REWARD_MAP_ACCESS) {
+        addMapAccessible(data, allQuests[questIndex].reward.index);
+    }
+    if (success) {
+        
+    }
+}
+
 void cityMenuMayor(PlayerData *data)
 {
     showMayor(data);
@@ -1111,13 +1140,20 @@ void cityMenuMayor(PlayerData *data)
                     putText (goods[index].name , 3, 5+x, 10, VCOL_WHITE);
                 }
             } else if (responseMayor == 2) {
-                // the mayor names his next quest
                 CityCode cityCode = CityCode_generateCityCode(currMap,cityNum);
-                unsigned char questIndex = Quest_getCityQuest(
-                    cityCode,
-                    &cities[currMap][cityNum-1]);
-                if (questIndex != INVALID_QUEST_INDEX) {
-                    displayQuest(questIndex);
+                // check for quest completion first
+                unsigned int completedQuestIndex = Quest_checkComplete(cityCode);
+                debugChar(1,completedQuestIndex);
+                if (completedQuestIndex != INVALID_QUEST_INDEX) {
+                    finishQuest(data, completedQuestIndex);
+                } else {
+                    // check if the mayor has a new quest
+                    unsigned char questIndex = Quest_getCityQuest(
+                        cityCode,
+                        cityRespectLevel[currMap][cityNum-1]);
+                    if (questIndex != INVALID_QUEST_INDEX) {
+                        displayQuest(questIndex);
+                    }
                 }
             } else {
                 // gift
@@ -1199,11 +1235,11 @@ void landingOccurred(PlayerData *data)
     // City Name
     putText(cities[currMap][cityNum-1].name, 27, 1, 10, VCOL_WHITE);
     putText(respect, 26, 3, 7, VCOL_DARK_GREY);
-    if (cities[currMap][cityNum-1].respect == CITY_RESPECT_NONE) {
+    if (cityRespectLevel[currMap][cityNum-1] == CITY_RESPECT_NONE) {
         putText(s"n/a ", 34, 3, 4, VCOL_BLACK);
-    } else if (cities[currMap][cityNum-1].respect == CITY_RESPECT_LOW){
+    } else if (cityRespectLevel[currMap][cityNum-1] == CITY_RESPECT_LOW){
         putText(s"low ", 34, 3, 4, VCOL_DARK_GREY);
-    } else if (cities[currMap][cityNum-1].respect == CITY_RESPECT_MED){
+    } else if (cityRespectLevel[currMap][cityNum-1] == CITY_RESPECT_MED){
         putText(s"med ", 34, 3, 4, VCOL_BROWN);
     } else {
         putText(s"high", 34, 3, 4, VCOL_YELLOW);
