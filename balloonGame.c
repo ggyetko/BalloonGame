@@ -1146,6 +1146,7 @@ void cityMenuMayor(PlayerData *data)
                 debugChar(1,completedQuestIndex);
                 if (completedQuestIndex != INVALID_QUEST_INDEX) {
                     finishQuest(data, completedQuestIndex);
+                    showScoreBoard(data);
                 } else {
                     // check if the mayor has a new quest
                     unsigned char questIndex = Quest_getCityQuest(
@@ -1240,7 +1241,7 @@ void landingOccurred(PlayerData *data)
     } else if (cityRespectLevel[currMap][cityNum-1] == CITY_RESPECT_LOW){
         putText(s"low ", 34, 3, 4, VCOL_DARK_GREY);
     } else if (cityRespectLevel[currMap][cityNum-1] == CITY_RESPECT_MED){
-        putText(s"med ", 34, 3, 4, VCOL_BROWN);
+        putText(s"med ", 34, 3, 4, VCOL_DARK_GREY);
     } else {
         putText(s"high", 34, 3, 4, VCOL_YELLOW);
     }
