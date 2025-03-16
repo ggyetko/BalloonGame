@@ -1,4 +1,5 @@
 #include "city.h"
+#include "namedPassenger.h"
 
 unsigned char CityCode_getCityNum(CityCode cityCode){
     return cityCode.code & 0x03;
@@ -86,6 +87,16 @@ void generateCurrentCityTmpData(Passenger *tempPsgData, CityCode currentCity) //
     unsigned char psgDataIndex = 0;
     unsigned char currMapNum = CityCode_getMapNum(currentCity);
     unsigned char currCityNum = CityCode_getCityNum(currentCity);
+    // Check for Quest Passengers
+    unsigned char specialGuest = NamedPassenger_getQuestPassenger(currentCity);
+    debugChar(6,specialGuest);
+    if (specialGuest != INVALID_NAMED_PASSENGER_INDEX) {
+        tenCharCopy(tempPsgData[psgDataIndex].name, namedPassengers[specialGuest].name);
+        tempPsgData[psgDataIndex].fare = 0;
+        tempPsgData[psgDataIndex].destination = namedPassengers[specialGuest].destinationCity;
+        psgDataIndex++;  
+    }
+    
     // 2 low-class customers for each nearby city
     for (unsigned char city=1; city<4; city++) {
         if (city != currCityNum) {
@@ -115,6 +126,21 @@ void generateCurrentCityTmpData(Passenger *tempPsgData, CityCode currentCity) //
         tempPsgData[psgDataIndex].destination.code = 0; // This is an invalid code
     }
 }
+
+void addRecentQuestToCityTmpData(Passenger *tempPsgData, unsigned char namedPassengerIndex)
+{
+    unsigned char psgDataIndex = 0;
+    for (unsigned char p = 0; p<MAX_PASSENGERS_AVAILABLE; p++) {
+        if (tempPsgData[psgDataIndex].destination.code = 0) {
+            break; 
+        }
+    }
+    tenCharCopy(tempPsgData[psgDataIndex].name, namedPassengers[namedPassengerIndex].name);
+    tempPsgData[psgDataIndex].fare = 0;
+    tempPsgData[psgDataIndex].destination = namedPassengers[namedPassengerIndex].destinationCity;
+    psgDataIndex++;
+}
+
 
 void removePassengerFromList(Passenger *tempPsgData, unsigned char index)
 {

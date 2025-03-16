@@ -42,6 +42,8 @@ extern QuestLog questLog[MAX_QUESTS_IN_PROGRESS];
 #define QUEST_TYPE_BRIBE 0x80
 #define QUEST_TYPE_TPORT 0xc0
 
+#define QUEST_TYPE_CITY_MASK  0x1f
+
 struct Quest{
     char questTitle[10];
     CityCode cityNumber;  // the home city of the reward (the mayor you talk to)
@@ -57,7 +59,7 @@ struct Quest{
     CityCode destinationCity; // 0xff - none, otherwise ...MMM##
     unsigned char itemIndex; 
         // 00-01-10: item type involved in quest
-        // 11: Person's ID from person list
+        // 11: Person's ID from person list ??
     unsigned char numItems;  // number of items to be deliver (usually 1)
     Reward reward;
     char questExplanation[QUEST_TEXT_LENGTH];
@@ -86,7 +88,7 @@ unsigned char Quest_getMayorDesire(char const CityCode);
 
 // returns the index of an available Quest
 // INVALID_QUEST_INDEX if no quest available
-unsigned char Quest_getCityQuest(CityCode const city, unsigned char currCityRespect);
+unsigned char Quest_getCityQuest(CityCode const city, unsigned char currCityRespect, Passenger *tmpPsgrData);
 
 
 #endif

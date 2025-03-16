@@ -1138,7 +1138,7 @@ void updateCityWindow(void)
     }   
 }
 
-void cityMenuMayor(PlayerData *data)
+void cityMenuMayor(PlayerData *data, Passenger *tmpPsgrData)
 {
     showMayor(data);
     for (;;) {
@@ -1169,7 +1169,8 @@ void cityMenuMayor(PlayerData *data)
                     // check if the mayor has a new quest
                     unsigned char questIndex = Quest_getCityQuest(
                         cityCode,
-                        cityRespectLevel[currMap][cityNum-1]);
+                        cityRespectLevel[currMap][cityNum-1],
+                        tmpPsgrData);
                     if (questIndex != INVALID_QUEST_INDEX) {
                         displayQuest(questIndex);
                     }
@@ -1191,7 +1192,7 @@ void cityMenu(PlayerData *data, Passenger *tmpPsgrData)
         } else if (response == MENU_OPTION_SELL) {
             cityMenuSell(data);
         } else if (response == MENU_OPTION_MAYOR) {
-            cityMenuMayor(data);
+            cityMenuMayor(data, tmpPsgrData);
         } else if (response == MENU_OPTION_REPAIR) {
             cityMenuRepair(data);
         } else if (response == MENU_OPTION_REFUEL) {

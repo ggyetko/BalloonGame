@@ -1,4 +1,6 @@
 #include "quest.h"
+#include "namedPassenger.h"
+#include "city.h"
 
 // if it's 0, this is a new quest, unknown to the user
 // if it's 1, this quest is 
@@ -23,11 +25,11 @@ const Quest allQuests[QUEST_COUNT] = {
      0b00000001,        // Cloud City
      CITY_RESPECT_MED,
      {0b00000010},      // Floria
-     0xff,                 // Bronze
+     Passenger_Id_Ms_Cloud,                 
      1, // 1 person
      {REWARD_RESPECT_HIGH,0,0},
      //0---------0---------2---------0---------4---------0---------6---------0---------8---------0---------
-     s"my daugter needs a  ride in your balloonto our friendly     neigbhours in floria                    ",
+     s"my daughter needs a ride in your balloonto visit our family in floria. she is   waiting at the dock.",
      s"thank you for safelytranporting my      daugther            "
     },
 };
@@ -141,13 +143,18 @@ void unLogQuest(unsigned char questIndex)
 // returns the index of an available Quest
 // INVALID_QUEST_INDEX if no quest available
 // there should only be one Quest per respect level per city.
-unsigned char Quest_getCityQuest(CityCode const city, unsigned char currCityRespect)
+unsigned char Quest_getCityQuest(CityCode const city, unsigned char currCityRespect, Passenger *tmpPsgrData)
 {
     unsigned char q;
     for (unsigned char q=0; q<QUEST_COUNT; q++) {
         if (isQuestLogged(q)) continue;
-        if (((allQuests[q].cityNumber.code & 0x1f) == city.code) && (allQuests[q].respectLevel <= currCityRespect)) {
+        if (((allQuests[q].cityNumber.code & QUEST_TYPE_CITY_MASK) == city.code) && (allQuests[q].respectLevel <= currCityRespect)) {
             if (logQuest(q)) {
+                if ((allQuests[q].cityNumber.code & QUEST_TYPE_MASK) == QUEST_TYPE_TPORT) {
+                    debugChar(7,77);
+                    NamedPassenger_activatePassenger(allQuests[q].itemIndex);
+                    addRecentQuestToCityTmpData(tmpPsgrData, allQuests[q].itemIndex);
+                }
                 return q;
             } else {
                 return INVALID_QUEST_INDEX;
