@@ -34,6 +34,14 @@ void tenCharCopy(char *dst, char const *src) {
     }
 }
 
+char tenCharCmp(char const *txt1, char const *txt2) {
+    for (unsigned char x = 0; x<10; x++) {
+        if (txt1[x] != txt2[x]) return 1;
+    }
+    return 0;
+}
+
+
 #define Screen0 ((char *)0x0400)
 void debugChar(unsigned char index, unsigned displayNumber)
 {

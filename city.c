@@ -89,7 +89,6 @@ void generateCurrentCityTmpData(Passenger *tempPsgData, CityCode currentCity) //
     unsigned char currCityNum = CityCode_getCityNum(currentCity);
     // Check for Quest Passengers
     unsigned char specialGuest = NamedPassenger_getQuestPassenger(currentCity);
-    debugChar(6,specialGuest);
     if (specialGuest != INVALID_NAMED_PASSENGER_INDEX) {
         tenCharCopy(tempPsgData[psgDataIndex].name, namedPassengers[specialGuest].name);
         tempPsgData[psgDataIndex].fare = 0;
@@ -130,15 +129,21 @@ void generateCurrentCityTmpData(Passenger *tempPsgData, CityCode currentCity) //
 void addRecentQuestToCityTmpData(Passenger *tempPsgData, unsigned char namedPassengerIndex)
 {
     unsigned char psgDataIndex = 0;
-    for (unsigned char p = 0; p<MAX_PASSENGERS_AVAILABLE; p++) {
-        if (tempPsgData[psgDataIndex].destination.code = 0) {
+    for (psgDataIndex = 0; psgDataIndex<MAX_PASSENGERS_AVAILABLE; psgDataIndex++) {
+        debugChar(psgDataIndex,tempPsgData[psgDataIndex].destination.code);
+        if (tempPsgData[psgDataIndex].destination.code == 0) {
             break; 
         }
     }
-    tenCharCopy(tempPsgData[psgDataIndex].name, namedPassengers[namedPassengerIndex].name);
-    tempPsgData[psgDataIndex].fare = 0;
-    tempPsgData[psgDataIndex].destination = namedPassengers[namedPassengerIndex].destinationCity;
-    psgDataIndex++;
+    if (psgDataIndex < MAX_PASSENGERS_AVAILABLE) {
+        //debugChar(9,psgDataIndex);
+        tenCharCopy(tempPsgData[psgDataIndex].name, namedPassengers[namedPassengerIndex].name);
+        tempPsgData[psgDataIndex].fare = 0;
+        tempPsgData[psgDataIndex].destination = namedPassengers[namedPassengerIndex].destinationCity;
+        if (psgDataIndex + 1 < MAX_PASSENGERS_AVAILABLE) {
+            tempPsgData[psgDataIndex+1].destination.code = 0;
+        }
+    }
 }
 
 
@@ -192,14 +197,7 @@ unsigned char takeRandomName(void)
 void returnName(char *name)
 {
     for (unsigned char p=0; p<NUM_PASSENGER_NAMES; p++) {
-        bool diff = false;
-        for (unsigned char ch=0; ch<10; ch++) {
-            if (psgrNames[p].name[ch] !=  name[ch]) {
-                diff = true;
-                break;
-            }
-        }
-        if (!diff) {
+        if (tenCharCmp(psgrNames[p].name, name) == 0) {
             psgrNames[p].inUse = false;
             psgrNameCount ++;
             break;

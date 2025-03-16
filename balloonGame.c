@@ -1037,13 +1037,13 @@ void cityMenuQuest(PlayerData *data)
     unsigned char lastChoice = 0;
     for (;;) {
         unsigned char invList[MAX_QUESTS_IN_PROGRESS+1][10] = {s"return    "};
-        unsigned char invQuestIndexList[MAX_QUESTS_IN_PROGRESS+1] = {0};
+        unsigned char invQuestIndexList[MAX_QUESTS_IN_PROGRESS+1] = {0}; // this list will contain the QUEST index (not the QUEST LOG index)
         unsigned char invListLength = 1;
-        unsigned char x;
-        for (x=0; x<MAX_QUESTS_IN_PROGRESS; x++) {
-            if (questLog[x].questIndex != INVALID_QUEST_INDEX) {
-                tenCharCopy(invList[invListLength], allQuests[questLog[x].questIndex].questTitle);
-                invQuestIndexList[invListLength] = questLog[x].questIndex;
+        unsigned char questLogIndex;
+        for (questLogIndex=0; questLogIndex<MAX_QUESTS_IN_PROGRESS; questLogIndex++) {
+            if (questLog[questLogIndex].questIndex != INVALID_QUEST_INDEX) {
+                tenCharCopy(invList[invListLength], allQuests[questLog[questLogIndex].questIndex].questTitle);
+                invQuestIndexList[invListLength] = questLog[questLogIndex].questIndex;
                 invListLength++;
             }
         }
@@ -1053,7 +1053,7 @@ void cityMenuQuest(PlayerData *data)
             break;
         } else {
             clearWorkScreen();
-            unsigned char qi = questLog[invQuestIndexList[responseQuest]].questIndex;
+            unsigned char qi = invQuestIndexList[responseQuest];
             // show home city of quest
             putText(getCityNameFromCityCode(allQuests[qi].cityNumber), 2, 2, 10, VCOL_WHITE);
             displayQuest(qi);
@@ -1160,7 +1160,6 @@ void cityMenuMayor(PlayerData *data, Passenger *tmpPsgrData)
                 CityCode cityCode = CityCode_generateCityCode(currMap,cityNum);
                 // check for quest completion first
                 unsigned int completedQuestIndex = Quest_checkComplete(cityCode);
-                debugChar(1,completedQuestIndex);
                 if (completedQuestIndex != INVALID_QUEST_INDEX) {
                     finishQuest(data, completedQuestIndex);
                     showScoreBoard(data);
@@ -1216,6 +1215,8 @@ void checkForLandingPassengers(PlayerData *data)
             passengerOutAnimation();
             // take fare
             data->money += data->cargo.psgr[p].fare;
+            // inform quest code
+            Quest_processArrivalTrigger(data->cargo.psgr[p].name, CityCode_generateCityCode(currMap, cityNum));
             // add passenger name back to list
             returnName(data->cargo.psgr[p].name);
             // remove passenger
@@ -1483,7 +1484,6 @@ void startGame(char *name, unsigned char title)
             }
         }
         unsigned char sprColl = vic.spr_sprcol;
-        //if (sprColl) {debugChar(6,sprColl);}
         if ((sprColl & (SPRITE_RAMP_ENABLE | SPRITE_BALLOON_BG_ENABLE)) == (SPRITE_RAMP_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
             // Collision with Ramp - GOOD
             landingOccurred(&playerData);

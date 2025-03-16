@@ -7,8 +7,9 @@ enum {
     REWARD_NONE         = 0, // the reward is whatever happened
     REWARD_RESPECT_MED  = 1,
     REWARD_RESPECT_HIGH = 2,
-    REWARD_SPECIAL_ITEM = 3,
-    REWARD_MAP_ACCESS   = 4
+    REWARD_SPECIAL_ITEM = 3, // index = itemindex
+    REWARD_MAP_ACCESS   = 4, // index = map index
+    REWARD_TYPE_MONEY   = 5  // index = 100*index (100-25500 cash)
 };
 
 struct Reward{  
@@ -16,9 +17,11 @@ struct Reward{
     unsigned char index; 
     // if the reward is: an item  - item index
     //                   a map    - map index
+    //                   cash     - 100*index
     unsigned char count; 
     // if the reward is: an item  - number of items
     //                      map   - irrelevant
+    //                      cash  - irrelevant
 };
 
 #define INVALID_QUEST_INDEX    0xff

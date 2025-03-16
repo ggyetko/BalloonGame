@@ -1,25 +1,30 @@
 #include "namedPassenger.h"
 
-NamedPassenger namedPassengers[NAMED_PASSENGER_TOTAL] = {
+NamedPassengerStatus namedPassengerStatus[NAMED_PASSENGER_TOTAL] = {
+    Passenger_Status_Inactive,
+    Passenger_Status_Inactive_First_Class,
+};
+
+NamedPassenger const namedPassengers[NAMED_PASSENGER_TOTAL] = {
     {Passenger_Status_Inactive,
      0b00000001, // Cloud City
      0b00000010, // Floria
-     "ms cloud  "
+     s"ms cloud  "
     },
     {Passenger_Status_Inactive_First_Class,
      0b00000011, // Serenia
      0b00001101, // Map #3, City #1
-     "princess  "
+     s"princess  "
     }
 };
 
 void NamedPassenger_activatePassenger(unsigned char passengerIndex)
 {
     if (passengerIndex < NAMED_PASSENGER_TOTAL) {
-        if (namedPassengers[passengerIndex].status == Passenger_Status_Inactive_First_Class) {
-            namedPassengers[passengerIndex].status = Passenger_Status_Waiting_First_Class;
+        if (namedPassengerStatus[passengerIndex].status == Passenger_Status_Inactive_First_Class) {
+            namedPassengerStatus[passengerIndex].status = Passenger_Status_Waiting_First_Class;
         } else {
-            namedPassengers[passengerIndex].status = Passenger_Status_Waiting;
+            namedPassengerStatus[passengerIndex].status = Passenger_Status_Waiting;
         }
     }
 }

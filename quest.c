@@ -1,6 +1,7 @@
 #include "quest.h"
 #include "namedPassenger.h"
 #include "city.h"
+#include "utils.h"
 
 // if it's 0, this is a new quest, unknown to the user
 // if it's 1, this quest is 
@@ -12,7 +13,7 @@ unsigned char questBitmap[1] = {0};
 const Quest allQuests[QUEST_COUNT] = {
     {s"bronze    ",
      0b00000001,        // Cloud City
-     CITY_RESPECT_NONE,
+     CITY_RESPECT_HIGH,
      {0b00000011},        // Sirenia
      9,                 // Bronze
      2, // should be 20
@@ -22,8 +23,8 @@ const Quest allQuests[QUEST_COUNT] = {
      s"you have earned my  trust. thanks for   delivering our goods"
     },
     {s"cloud lady",
-     0b00000001,        // Cloud City
-     CITY_RESPECT_MED,
+     0b11000001,        // Cloud City
+     CITY_RESPECT_LOW,
      {0b00000010},      // Floria
      Passenger_Id_Ms_Cloud,                 
      1, // 1 person
@@ -91,7 +92,17 @@ void Quest_processDeliverTrigger(unsigned char const itemIndex, CityCode const d
 // call this whenever a passenger arrives anywhere
 void Quest_processArrivalTrigger(char const *name, CityCode const destCity)
 {
-    return INVALID_QUEST_INDEX;    
+    unsigned char questLogIndex;
+    for (questLogIndex=0;questLogIndex<MAX_QUESTS_IN_PROGRESS;questLogIndex++) {
+        unsigned char questIndex = questLog[questLogIndex].questIndex;
+        if ((allQuests[questIndex].destinationCity.code == destCity.code)
+            && ((allQuests[questIndex].cityNumber.code & QUEST_TYPE_MASK) == QUEST_TYPE_TPORT)
+            && (tenCharCmp(name, namedPassengers[allQuests[questIndex].itemIndex].name) == 0))
+        {
+                debugChar(9,99);
+                questLog[questLogIndex].completeness = 1;
+        }
+    }
 }
 
 // this will tell the caller if the mayor wants an item, 0xff if nothing
@@ -110,17 +121,16 @@ bool isQuestLogged(unsigned char questIndex)
 bool logQuest(unsigned char questIndex)
 {
     bool logged = false;
-    unsigned char q;
-    for (q=0;q<MAX_QUESTS_IN_PROGRESS;q++) {
-        if (questLog[q].questIndex == INVALID_QUEST_INDEX) {
-            questLog[q].questIndex = questIndex;
-            questLog[q].completeness = 0;
+    unsigned char questLogIndex;
+    for (questLogIndex=0;questLogIndex<MAX_QUESTS_IN_PROGRESS;questLogIndex++) {
+        if (questLog[questLogIndex].questIndex == INVALID_QUEST_INDEX) {
+            questLog[questLogIndex].questIndex = questIndex;
+            questLog[questLogIndex].completeness = 0;
             logged = true;
             break;
         }
     }
     if (logged) {
-        debugChar(1,99);
         unsigned char index = questIndex >> 3;
         unsigned char column = questIndex & 3;
         questBitmap[index] |= 1 << column;
@@ -151,7 +161,6 @@ unsigned char Quest_getCityQuest(CityCode const city, unsigned char currCityResp
         if (((allQuests[q].cityNumber.code & QUEST_TYPE_CITY_MASK) == city.code) && (allQuests[q].respectLevel <= currCityRespect)) {
             if (logQuest(q)) {
                 if ((allQuests[q].cityNumber.code & QUEST_TYPE_MASK) == QUEST_TYPE_TPORT) {
-                    debugChar(7,77);
                     NamedPassenger_activatePassenger(allQuests[q].itemIndex);
                     addRecentQuestToCityTmpData(tmpPsgrData, allQuests[q].itemIndex);
                 }

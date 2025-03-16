@@ -8,7 +8,7 @@
 
 enum {
     Passenger_Id_Ms_Cloud = 0,
-    Passenger_Id_Princess = 0,
+    Passenger_Id_Princess = 1
 };
 
 enum {
@@ -18,9 +18,12 @@ enum {
     Passenger_Status_Waiting_First_Class,
     Passenger_Status_Aboard,
     Passenger_Status_Aboard_First_Class,
-    Passenger_Status_Complete,
+    Passenger_Status_Complete
 };    
 
+struct NamedPassengerStatus {
+    unsigned char status;
+};
 struct NamedPassenger {
     unsigned char status;
     CityCode sourceCity;
@@ -28,7 +31,8 @@ struct NamedPassenger {
     char name[10];
 };
 
-extern NamedPassenger namedPassengers[NAMED_PASSENGER_TOTAL];
+extern NamedPassengerStatus namedPassengerStatus[NAMED_PASSENGER_TOTAL];
+extern NamedPassenger const namedPassengers[NAMED_PASSENGER_TOTAL];
 
 void NamedPassenger_activatePassenger(unsigned char passengerIndex);
 
