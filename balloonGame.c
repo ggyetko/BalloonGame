@@ -101,6 +101,7 @@ volatile unsigned char decelIndex; // which index are we at
 volatile unsigned char decelCount; // how many have we counted at this index
 volatile unsigned char holdCount;
 volatile unsigned char flameDelay; // keep internal burner sprite on until this hits zero
+volatile unsigned char dummy;
 
 volatile unsigned int yPos; // 20*8 = 160 pixel
                             // 256 positions per pixel,
@@ -1249,6 +1250,12 @@ void checkForLandingPassengers(PlayerData *data)
     }
 }
 
+void clearCollisions(void)
+{
+    int dummy = vic.spr_backcol;  // clear sprite-bg collisions
+    dummy = vic.spr_sprcol;       // clear sprite^2 collisions
+}
+
 void landingOccurred(PlayerData *data)
 {
     clearRasterIrqs();
@@ -1293,6 +1300,7 @@ void landingOccurred(PlayerData *data)
     initScreenWithDefaultColors(false);
     setupTravellingSprites();
     setupRasterIrqs();
+    clearCollisions();
 }
 
 void getFinalChars(char const* roof, char const* ground, unsigned char *finalRoofChar, unsigned char *finalGroundChar ){
@@ -1482,8 +1490,7 @@ void startGame(char *name, unsigned char title)
     for (unsigned char cloudNum = 0; cloudNum < NUM_CLOUDS; cloudNum++) {
         cloudXPos[cloudNum] = 512;
     }
-    int dummy = vic.spr_backcol;  // clear sprite-bg collisions
-    dummy = vic.spr_sprcol;       // clear sprite^2 collisions
+    clearCollisions();
 
     // Two Raster IRQs, one at line 20, one at bottom of screen
     setupRasterIrqs();
