@@ -1043,7 +1043,7 @@ void cityMenuQuest(PlayerData *data)
         for (questLogIndex=0; questLogIndex<MAX_QUESTS_IN_PROGRESS; questLogIndex++) {
             if (questLog[questLogIndex].questIndex != INVALID_QUEST_INDEX) {
                 tenCharCopy(invList[invListLength], allQuests[questLog[questLogIndex].questIndex].questTitle);
-                invQuestIndexList[invListLength] = questLog[questLogIndex].questIndex;
+                invQuestIndexList[invListLength] = questLogIndex; //questLog[questLogIndex].questIndex;
                 invListLength++;
             }
         }
@@ -1053,14 +1053,15 @@ void cityMenuQuest(PlayerData *data)
             break;
         } else {
             clearWorkScreen();
-            unsigned char qi = invQuestIndexList[responseQuest];
+            unsigned char qli = invQuestIndexList[responseQuest];
+            unsigned char qi = questLog[qli].questIndex;
             // show home city of quest
             putText(getCityNameFromCityCode(allQuests[qi].cityNumber), 2, 2, 10, VCOL_WHITE);
             displayQuest(qi);
             lastChoice = responseQuest;
             // show fraction complete
             char out[3];
-            unsigned char num = questLog[invQuestIndexList[responseQuest]].completeness;
+            unsigned char num = questLog[qli].completeness;
             ucharToString(num, out);
             putText(out, 2, 12, 3, VCOL_DARK_GREY);
             num = allQuests[qi].numItems;

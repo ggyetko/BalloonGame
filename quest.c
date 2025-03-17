@@ -41,7 +41,10 @@ void Quest_init(void)
 {
     for (unsigned char x = 0; x < MAX_QUESTS_IN_PROGRESS; x++) {
         questLog[x].questIndex = INVALID_QUEST_INDEX;
-        questLog[x].completeness = INVALID_QUEST_INDEX;
+        questLog[x].completeness = 0;
+    }
+    for (unsigned char x = 0; x < (QUEST_COUNT+7)/8; x++) {
+        questBitmap[x] = 0;
     }
 }
 
@@ -93,14 +96,15 @@ void Quest_processDeliverTrigger(unsigned char const itemIndex, CityCode const d
 void Quest_processArrivalTrigger(char const *name, CityCode const destCity)
 {
     unsigned char questLogIndex;
-    for (questLogIndex=0;questLogIndex<MAX_QUESTS_IN_PROGRESS;questLogIndex++) {
+    //for (questLogIndex=0;questLogIndex<MAX_QUESTS_IN_PROGRESS;questLogIndex++) {
+    for (questLogIndex=0;questLogIndex<1;questLogIndex++) {
         unsigned char questIndex = questLog[questLogIndex].questIndex;
         if ((allQuests[questIndex].destinationCity.code == destCity.code)
             && ((allQuests[questIndex].cityNumber.code & QUEST_TYPE_MASK) == QUEST_TYPE_TPORT)
             && (tenCharCmp(name, namedPassengers[allQuests[questIndex].itemIndex].name) == 0))
         {
-                debugChar(9,99);
                 questLog[questLogIndex].completeness = 1;
+                break;
         }
     }
 }

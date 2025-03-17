@@ -1,3 +1,5 @@
+#include "utils.h"
+
 void uint16ToString(unsigned int in, char* out)
 {
     const unsigned int tens[5] = {10000, 1000, 100, 10, 1};

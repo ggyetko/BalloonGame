@@ -130,13 +130,11 @@ void addRecentQuestToCityTmpData(Passenger *tempPsgData, unsigned char namedPass
 {
     unsigned char psgDataIndex = 0;
     for (psgDataIndex = 0; psgDataIndex<MAX_PASSENGERS_AVAILABLE; psgDataIndex++) {
-        debugChar(psgDataIndex,tempPsgData[psgDataIndex].destination.code);
         if (tempPsgData[psgDataIndex].destination.code == 0) {
             break; 
         }
     }
     if (psgDataIndex < MAX_PASSENGERS_AVAILABLE) {
-        //debugChar(9,psgDataIndex);
         tenCharCopy(tempPsgData[psgDataIndex].name, namedPassengers[namedPassengerIndex].name);
         tempPsgData[psgDataIndex].fare = 0;
         tempPsgData[psgDataIndex].destination = namedPassengers[namedPassengerIndex].destinationCity;
