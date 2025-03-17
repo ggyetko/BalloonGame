@@ -161,17 +161,23 @@ void drawBalloonDockScreen(void)
         114,115,115,118,118,118,
         117,32,32,79,79,79
     };
+    #define CS CITY_SHADE_COLOR
+    #define CC CITY_COLOR
+    char cityArtColor[49] = {
+        0,0,0,0,CS,CS,
+        0,0,0,CC,CS,CS,
+        0,0,CC,CC,CS,CS,
+        0,CS,CC,CC,CC,CC,
+        0,CC,CC,CC,CC,CC,
+        CC,CC,CC,CC,CC,CC,
+        CC,CC,CC,CS,CS,CS,
+        CC,CC,CC,CS,CS,CS,
+    };
     for (y=9;y<17;y++) {
         for (x=18;x<24;x++) {
             ScreenWork[x+y*40] = cityArt[index];
-            ScreenColor[x+y*40] = CITY_COLOR;
+            ScreenColor[x+y*40] = cityArtColor[index];
             index ++;
-        }
-    }
-    ScreenWork[19+12*40] = CITY_SHADE_COLOR;
-    for (y=9;y<12;y++) {
-        for (x=22;x<24;x++) {
-            ScreenColor[x+y*40] = CITY_SHADE_COLOR;
         }
     }
 

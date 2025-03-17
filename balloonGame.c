@@ -1252,7 +1252,7 @@ void checkForLandingPassengers(PlayerData *data)
 
 void clearCollisions(void)
 {
-    int dummy = vic.spr_backcol;  // clear sprite-bg collisions
+    dummy = vic.spr_backcol;  // clear sprite-bg collisions
     dummy = vic.spr_sprcol;       // clear sprite^2 collisions
 }
 
