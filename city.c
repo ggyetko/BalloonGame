@@ -44,7 +44,7 @@ const unsigned int REPAIR_COST_CARGO          = 850;
 const unsigned int REPAIR_COST_FACILITY_REDUCTION = 150;
 
 // constant data related to cities - NO SAVING REQUIRED
-const CityData cities[2][3] = {
+const CityData cities[CITY_NUM_MAPS][CITY_NUM_CITIES_PER_MAP] = {
     // MAP #0
     {
         // NAME         FACILITY
@@ -107,10 +107,16 @@ const CityData cities[2][3] = {
     }
 };
 // variable city data - MUST BE SAVED with SAVE GAME
-unsigned char cityRespectLevel[2][3] = {
-    {CITY_RESPECT_LOW,CITY_RESPECT_LOW,CITY_RESPECT_LOW},
-    {CITY_RESPECT_LOW,CITY_RESPECT_LOW,CITY_RESPECT_LOW}
-};
+unsigned char cityRespectLevel[CITY_NUM_MAPS][CITY_NUM_CITIES_PER_MAP];
+
+void City_initCityVariables(void)
+{
+    for (unsigned char m=0;m<CITY_NUM_MAPS;m++) {
+        for (unsigned char c=0;c<CITY_NUM_CITIES_PER_MAP;c++) {
+            cityRespectLevel[m][c] = CITY_RESPECT_LOW;
+        }
+    }
+}
 
 void generateCurrentCityTmpData(Passenger *tempPsgData, CityCode currentCity) // Assume size 10 array
 {

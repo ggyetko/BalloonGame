@@ -1087,7 +1087,7 @@ void cityMenuQuest(PlayerData *data)
             num = allQuests[qi].numItems;
             ucharToString(num, out);
             putText(out, 8, 12, 3, VCOL_DARK_GREY);  
-            ScreenWork[6 + 12*40] = 71;
+            ScreenWork[6 + 12*40] = 59;
             ScreenColor[6 + 12*40] = VCOL_DARK_GREY;
         }
     }
@@ -1448,8 +1448,11 @@ void showScoreBoard(struct PlayerData* data) {
     }
 }
 
-void initialiseGameVariables(void)
+void initialiseGameVariables()
 {
+    Quest_init();
+    City_initCityVariables();
+
     xScroll = 4;    // middle of scroll
     currScreen = 0; // start with Screen 0 (0x0400)
     flip = 1;       // act like flip has happened, this triggers copy to Screen 1
@@ -1470,12 +1473,11 @@ void initialiseGameVariables(void)
 void startGame(char *name, unsigned char title)
 {
     initialiseGameVariables();
-    Quest_init();
     initScreenWithDefaultColors(true);
 
     struct PlayerData playerData;
     playerDataInit(&playerData, name, title);
-
+ 
     // set up scoreboard
     showScoreBoard(&playerData);
     

@@ -4,6 +4,9 @@
 #include "goods.h"
 #include "utils.h"
 
+#define CITY_NUM_MAPS           2
+#define CITY_NUM_CITIES_PER_MAP 3
+
 enum CityRespect {
     CITY_RESPECT_NONE=0,
     CITY_RESPECT_LOW,
@@ -60,8 +63,10 @@ struct Passenger {
 
 extern PassengerName psgrNames[20];
 extern unsigned char psgrNameCount;
-extern const CityData cities[2][3];
-extern unsigned char cityRespectLevel[2][3];
+extern const CityData cities[CITY_NUM_MAPS][CITY_NUM_CITIES_PER_MAP];
+extern unsigned char cityRespectLevel[CITY_NUM_MAPS][CITY_NUM_CITIES_PER_MAP];
+
+void City_initCityVariables(void);
 
 // call this upon landing to make up a newly generated passenger list
 void generateCurrentCityTmpData(Passenger *tempPsgData, CityCode currentCity); // Assume size 10 array
