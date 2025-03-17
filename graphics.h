@@ -152,21 +152,29 @@ void drawBalloonDockScreen(void)
     // City
     unsigned int index = 0;
     char cityArt[49] = {
-        32,32,32,111,116,116,
+        32,32,32,32,111,116,
+        32,32,32,111,111,116,
         32,32,113,116,111,116,
-        32,32,111,116,116,116,
+        32,125,111,116,116,116,
         32,113,116,116,116,112,
         111,116,111,112,116,116,
         114,115,115,118,118,118,
         117,32,32,79,79,79
     };
-    for (y=10;y<17;y++) {
+    for (y=9;y<17;y++) {
         for (x=18;x<24;x++) {
             ScreenWork[x+y*40] = cityArt[index];
             ScreenColor[x+y*40] = CITY_COLOR;
             index ++;
         }
     }
+    ScreenWork[19+12*40] = CITY_SHADE_COLOR;
+    for (y=9;y<12;y++) {
+        for (x=22;x<24;x++) {
+            ScreenColor[x+y*40] = CITY_SHADE_COLOR;
+        }
+    }
+
 }
 
 void showWorkPassengers(Passenger *psgData) 
