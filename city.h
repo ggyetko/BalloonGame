@@ -60,8 +60,8 @@ struct Passenger {
 
 extern PassengerName psgrNames[20];
 extern unsigned char psgrNameCount;
-extern const CityData cities[1][3];
-extern unsigned char cityRespectLevel[1][3];
+extern const CityData cities[2][3];
+extern unsigned char cityRespectLevel[2][3];
 
 // call this upon landing to make up a newly generated passenger list
 void generateCurrentCityTmpData(Passenger *tempPsgData, CityCode currentCity); // Assume size 10 array

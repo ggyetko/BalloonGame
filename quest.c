@@ -12,8 +12,8 @@ unsigned char questBitmap[1] = {0};
 // constant quest data
 const Quest allQuests[QUEST_COUNT] = {
     {s"bronze    ",
-     0b00000001,        // Cloud City
-     CITY_RESPECT_HIGH,
+     QUEST_TYPE_SELL | 0b00000001,        // Cloud City
+     CITY_RESPECT_LOW,
      {0b00000011},        // Sirenia
      9,                 // Bronze
      2, // should be 20
@@ -23,15 +23,15 @@ const Quest allQuests[QUEST_COUNT] = {
      s"you have earned my  trust. thanks for   delivering our goods"
     },
     {s"cloud lady",
-     0b11000001,        // Cloud City
-     CITY_RESPECT_LOW,
+     QUEST_TYPE_TPORT | 0b00000001,        // Cloud City
+     CITY_RESPECT_MED,
      {0b00000010},      // Floria
      Passenger_Id_Ms_Cloud,                 
      1, // 1 person
      {REWARD_RESPECT_HIGH,0,0},
      //0---------0---------2---------0---------4---------0---------6---------0---------8---------0---------
      s"my daughter needs a ride in your balloonto visit our family in floria. she is   waiting at the dock.",
-     s"thank you for safelytranporting my      daugther            "
+     s"thank you for safelytransporting my     daugther            "
     },
 };
 

@@ -1541,7 +1541,7 @@ void startGame(char *name, unsigned char title)
                     invokeInternalFlame(25, &playerData);
                 } else if (ch == 'X') {
                     break;
-                } else if (ch == 'P') {
+                } else if (ch == 'I') {
                     if (status & STATUS_CITY_VIS) {
                         status |= STATUS_CITY_RAMP;
                         vic.spr_enable |= SPRITE_RAMP_ENABLE;

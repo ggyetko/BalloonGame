@@ -44,7 +44,7 @@ const unsigned int REPAIR_COST_CARGO          = 850;
 const unsigned int REPAIR_COST_FACILITY_REDUCTION = 150;
 
 // constant data related to cities - NO SAVING REQUIRED
-const CityData cities[1][3] = {
+const CityData cities[2][3] = {
     // MAP #0
     {
         // NAME         FACILITY
@@ -74,11 +74,41 @@ const CityData cities[1][3] = {
              {22,2,CITY_RESPECT_HIGH,2} // black beans
             } 
         }
-    }
+    },
     // MAP #1
+    {
+        // NAME         FACILITY
+        {s"frieren   ", CITY_FACILITY_BALLOON_FABRIC, 
+            // Demands
+            {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
+            // For sale
+            {{0xff, 2, CITY_RESPECT_LOW, 2},
+             {0xff, 2, CITY_RESPECT_LOW, 1},
+             {0xff, 2, CITY_RESPECT_MED,  1},
+             {0xff, 2, CITY_RESPECT_HIGH, 1}
+            }
+        },
+        {s"granzam   ", 0,
+            {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
+            {{0xff, 2, CITY_RESPECT_LOW, 2},
+             {0xff, 2, CITY_RESPECT_LOW, 1},
+             {0xff, 2, CITY_RESPECT_MED,  1},
+             {0xff, 2, CITY_RESPECT_HIGH, 1}
+            } 
+        },
+        {s"hoth      ", 0,
+            {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
+            {{0xff, 2, CITY_RESPECT_LOW, 2},
+             {0xff, 2, CITY_RESPECT_LOW, 1},
+             {0xff, 2, CITY_RESPECT_MED,  1},
+             {0xff, 2, CITY_RESPECT_HIGH, 1}
+            } 
+        }
+    }
 };
 // variable city data - MUST BE SAVED with SAVE GAME
-unsigned char cityRespectLevel[1][3] = {
+unsigned char cityRespectLevel[2][3] = {
+    {CITY_RESPECT_LOW,CITY_RESPECT_LOW,CITY_RESPECT_LOW},
     {CITY_RESPECT_LOW,CITY_RESPECT_LOW,CITY_RESPECT_LOW}
 };
 
