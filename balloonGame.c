@@ -102,6 +102,7 @@ volatile unsigned char decelCount; // how many have we counted at this index
 volatile unsigned char holdCount;
 volatile unsigned char flameDelay; // keep internal burner sprite on until this hits zero
 volatile unsigned char dummy;
+volatile unsigned char noCollisionCounter; // stupid collision stopper
 
 volatile unsigned int yPos; // 20*8 = 160 pixel
                             // 256 positions per pixel,
@@ -297,6 +298,7 @@ __interrupt void prepWorkScreen(void)
 __interrupt void prepScreen(void)
 {
     counter ++;
+    if (noCollisionCounter) noCollisionCounter--;
     // Getting this interrupt means we're in travelling mode, set the screen
     if (currScreen == 0) {
         vic.memptr = 0x10 | (vic.memptr & 0x0f); // point to screen0
@@ -1254,6 +1256,7 @@ void clearCollisions(void)
 {
     dummy = vic.spr_backcol;  // clear sprite-bg collisions
     dummy = vic.spr_sprcol;       // clear sprite^2 collisions
+    noCollisionCounter = 100; // 2 seconds of no collisions
 }
 
 void landingOccurred(PlayerData *data)
@@ -1513,17 +1516,19 @@ void startGame(char *name, unsigned char title)
             }
         }
         unsigned char sprColl = vic.spr_sprcol;
-        if ((sprColl & (SPRITE_RAMP_ENABLE | SPRITE_BALLOON_BG_ENABLE)) == (SPRITE_RAMP_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
-            // Collision with Ramp - GOOD
-            landingOccurred(&playerData);
-        } else if ((sprColl & (SPRITE_CITY_OUTLINE_ENABLE | SPRITE_BALLOON_BG_ENABLE)) == (SPRITE_CITY_OUTLINE_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
-            // Collision with City - BAD
-            if (terrainCollisionOccurred()) {
-                balloonDamage(&playerData);
-            } else {
-                carriageDamage(&playerData);
+        if (!noCollisionCounter) {
+            if ((sprColl & (SPRITE_RAMP_ENABLE | SPRITE_BALLOON_BG_ENABLE)) == (SPRITE_RAMP_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
+                // Collision with Ramp - GOOD
+                landingOccurred(&playerData);
+            } else if ((sprColl & (SPRITE_CITY_OUTLINE_ENABLE | SPRITE_BALLOON_BG_ENABLE)) == (SPRITE_CITY_OUTLINE_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
+                // Collision with City - BAD
+                if (terrainCollisionOccurred()) {
+                    balloonDamage(&playerData);
+                } else {
+                    carriageDamage(&playerData);
+                }
+                showScoreBoard(&playerData);
             }
-            showScoreBoard(&playerData);
         }
         for (unsigned char cloudNum = 0; cloudNum < NUM_CLOUDS; cloudNum++) {
             if (cloudXPos[cloudNum] > 344) {
