@@ -111,11 +111,12 @@ unsigned char cityRespectLevel[CITY_NUM_MAPS][CITY_NUM_CITIES_PER_MAP];
 
 void City_initCityVariables(void)
 {
-    for (unsigned char m=0;m<CITY_NUM_MAPS;m++) {
-        for (unsigned char c=0;c<CITY_NUM_CITIES_PER_MAP;c++) {
-            cityRespectLevel[m][c] = CITY_RESPECT_LOW;
-        }
-    }
+    cityRespectLevel[0][0] = CITY_RESPECT_LOW;
+    cityRespectLevel[0][1] = CITY_RESPECT_LOW;
+    cityRespectLevel[0][2] = CITY_RESPECT_LOW;
+    cityRespectLevel[1][0] = CITY_RESPECT_LOW;
+    cityRespectLevel[1][1] = CITY_RESPECT_LOW;
+    cityRespectLevel[1][2] = CITY_RESPECT_LOW;
 }
 
 void generateCurrentCityTmpData(Passenger *tempPsgData, CityCode currentCity) // Assume size 10 array
