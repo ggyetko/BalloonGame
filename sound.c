@@ -19,19 +19,21 @@ const unsigned int freqList[106] = {
 // 6 36 38 40 41 43 45 47
 // 7 48 50 52
 
-const Instrument instruments[6] =
+const Instrument instruments[9] =
 {
+    {0x8C, 0x9C, WAVE_TRIANGLE }, // flute
+    {0xf0, 0x21, WAVE_NOISE },   // warp wind
+    {0x00, 0x01, WAVE_NOISE },   // stick hit
+    {0xca, 0x4a, WAVE_TRIANGLE | WAVE_SAW }, // violin
+    {0x28, 0x20, WAVE_TRIANGLE }, // piano
+    {0x13, 0x05, WAVE_NOISE},    // snare
     {0x08, 0x00, WAVE_TRIANGLE | 0x04}, // ringing xylo 
     {0x08, 0x00, WAVE_TRIANGLE}, // xylo
-    {0xca, 0x8a, WAVE_TRIANGLE | WAVE_SAW | 0x04}, // violin
-    {0x8C, 0x9C, WAVE_TRIANGLE}, // flute
-    {0x13, 0x05, WAVE_NOISE},    // snare
-
     {0x08, 0x20, WAVE_TRIANGLE | WAVE_SAW}, //harpsichord
 };
 
-unsigned char songIndex;    // where we are in the current song
-unsigned char songTickDown; // clock ticks until next action
+unsigned char songIndex[2];    // where we are in the current song
+unsigned char songTickDown[2]; // clock ticks until next action
 bool playingSong;
 
 void Sound_initSid(void)
@@ -52,7 +54,7 @@ void Sound_initSid(void)
 
 
 #define SONG_MAIN_LENGTH   46
-Note song[SONG_MAIN_LENGTH] = {
+Note const themeSongVoice1[SONG_MAIN_LENGTH] = {
     {0, 24, 25}, {0, 0xff, 5},
     {0, 26, 25}, {0, 0xff, 5},
     {0, 24, 10}, {0, 0xff, 5},
@@ -81,45 +83,58 @@ Note song[SONG_MAIN_LENGTH] = {
     {0, 24, 25}, {0, 0xff, 5+120},
     
     };
+    
+Note const themeSongVoice2[8] = {
+    {4, 12, 100}, {0, 0xff, 20},
+    {4, 16, 100}, {0, 0xff, 20},
+    {4, 19, 100}, {0, 0xff, 20},
+    {4, 12, 100}, {0, 0xff, 20+120},
+    };
+
+struct SongVoice {
+    Note *notes[2];
+};
+
+Note const *themeSong[2] = {themeSongVoice1, themeSongVoice2};
+unsigned char themeSongLength[2] = {SONG_MAIN_LENGTH, 8};
 
 void Sound_startSong(void)
 {
-    songIndex = 0;
-    songTickDown = 0;
+    songIndex[0] = 0;
+    songIndex[1] = 0;
+    songTickDown[0] = 0;
+    songTickDown[1] = 0;
     playingSong = true;
-    Sound_tick();
+    
 }
 
 void Sound_tick(void)
 {
-    static unsigned char myinstr = 0;
-    debugChar(0,songTickDown);
-    if (songTickDown == 0) {
-        //unsigned char myinstr = song[songIndex].instIndex;
-        
-        if (song[songIndex].freqIndex == 255) {
-            sid.voices[0].ctrl = instruments[myinstr].waveform | 0x00; // VOICE OFF
-            debugChar(9,0);
+    if (!playingSong) return;
+    
+    for (unsigned char v=0;v<2;v++) {
+        if (songTickDown[v] == 0) {
+            unsigned char myinstr = themeSong[v][songIndex[v]].instIndex;
+                        
+            if (themeSong[v][songIndex[v]].freqIndex == 255) {
+                sid.voices[v].ctrl = instruments[myinstr].waveform | 0x00; // VOICE OFF
+            } else {
+                debugChar(v, themeSong[v][songIndex[v]].freqIndex);
+                sid.voices[v].attdec = instruments[myinstr].attackDecay;
+                sid.voices[v].susrel = instruments[myinstr].sustainRelease;
+
+                unsigned char index = (themeSong[v][songIndex[v]].freqIndex)*2;
+                sid.voices[v].freq = (freqList[index]<<8)|(freqList[index+1]);
+                sid.voices[v].ctrl = instruments[myinstr].waveform | 0x01; // VOICE ON
+            }
+            songTickDown[v] = themeSong[v][songIndex[v]].duration;
+            songIndex[v]++;
+            if (songIndex[v] == themeSongLength[v]) {
+                songIndex[v] = 0;
+            }
         } else {
-            sid.voices[0].attdec = instruments[myinstr].attackDecay;
-            sid.voices[0].susrel = instruments[myinstr].sustainRelease;
-
-            unsigned char index = (song[songIndex].freqIndex-12)*2;
-            sid.voices[0].freq = (freqList[index]<<8)|(freqList[index+1]);
-            debugChar(1,freqList[index]);
-            debugChar(2,freqList[index+1]);
-            sid.voices[0].ctrl = instruments[myinstr].waveform | 0x01; // VOICE ON
-
-            debugChar(9,instruments[myinstr].waveform | 0x01);
+            songTickDown[v]--;
         }
-        songTickDown = song[songIndex].duration;
-        songIndex++;
-        if (songIndex == SONG_MAIN_LENGTH) {
-            songIndex = 0;
-            myinstr ++;
-            if (myinstr == 5) myinstr = 0;
-        }
-    } else {
-        songTickDown--;
+        
     }
 }
