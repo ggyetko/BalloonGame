@@ -799,8 +799,12 @@ void clearMovement(void)
 
 // returns 0 for bottom collision
 // returns 1 for top collision
-unsigned char terrainCollisionOccurred(void)
+// returns 2 if GAME OVER
+unsigned char terrainCollisionOccurred(PlayerData *data)
 {
+    if (data->fuel == 0) {
+        return 2;
+    }
     // turn off sidescrolling
     setScrollActive(0, 150);
     
@@ -1555,7 +1559,11 @@ void startGame(char *name, unsigned char title)
         if (vic.spr_backcol & (SPRITE_BALLOON_OUTLINE_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
             // Check the status. This loop can go around twice and count a collision each time.
             if (status & STATUS_SCROLLING) {
-                if (terrainCollisionOccurred()) {
+                if (playerData.fuel == 0) {
+                    // GAME OVER SCREEN?
+                    break;
+                }
+                if (terrainCollisionOccurred(&playerData) == 1) {
                     balloonDamage(&playerData);
                 } else {
                     carriageDamage(&playerData);
@@ -1566,12 +1574,17 @@ void startGame(char *name, unsigned char title)
         unsigned char sprColl = vic.spr_sprcol;
         if ((sprColl & (SPRITE_RAMP_ENABLE | SPRITE_BALLOON_BG_ENABLE)) == (SPRITE_RAMP_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
             // Collision with Ramp - GOOD
+            debugChar(0,sprColl);
             Sound_endSong();
             landingOccurred(&playerData);
             Sound_startSong(SOUND_SONG_AIRBORNE);
         } else if ((sprColl & (SPRITE_CITY_OUTLINE_ENABLE | SPRITE_BALLOON_BG_ENABLE)) == (SPRITE_CITY_OUTLINE_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
             // Collision with City - BAD
-            if (terrainCollisionOccurred()) {
+            if (playerData.fuel == 0) {
+                // GAME OVER screen
+                break;
+            }
+            if (terrainCollisionOccurred(&playerData) == 1) {
                 balloonDamage(&playerData);
             } else {
                 carriageDamage(&playerData);
@@ -1592,12 +1605,18 @@ void startGame(char *name, unsigned char title)
                     invokeDecel(64);
                     playerData.fuel -= 600;
                 } else if (ch == 'W') {
-                    playerData.fuel -= 200;
-                    invokeInternalFlame(25, &playerData);
+                    if (playerData.fuel) {
+                        if (playerData.fuel > 200) {
+                            playerData.fuel -= 200;
+                        } else {
+                            playerData.fuel = 0;
+                        }
+                        invokeInternalFlame(25, &playerData);
+                    } 
                 } else if (ch == 'X') {
                     break;
                 } else if (ch == 'I') {
-                    if (status & STATUS_CITY_VIS) {
+                    if ((status & STATUS_CITY_VIS) && (cityXPos > 80)){
                         status |= STATUS_CITY_RAMP;
                         vic.spr_enable |= SPRITE_RAMP_ENABLE;
                         showScoreBoard(&playerData);
