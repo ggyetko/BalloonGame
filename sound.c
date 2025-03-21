@@ -53,8 +53,8 @@ void Sound_initSid(void)
 }
 
 
-#define SONG_MAIN_LENGTH   46
-Note const themeSongVoice1[SONG_MAIN_LENGTH] = {
+#define SONG_THEME_V1_LENGTH   46
+Note const themeSongVoice1[SONG_THEME_V1_LENGTH] = {
     {0, 24, 25}, {0, 0xff, 5},
     {0, 26, 25}, {0, 0xff, 5},
     {0, 24, 10}, {0, 0xff, 5},
@@ -84,6 +84,7 @@ Note const themeSongVoice1[SONG_MAIN_LENGTH] = {
     
     };
     
+#define SONG_THEME_V2_LENGTH   16
 Note const themeSongVoice2[16] = {
     {4, 12, 100}, {0, 0xff, 20},
     {4, 16, 100}, {0, 0xff, 20},
@@ -95,21 +96,99 @@ Note const themeSongVoice2[16] = {
     {5, 10, 25}, {0, 0xff, 5},
     };
 
+#define SONG_AIRBORNE_V1_LENGTH   66
+Note const airborneSongVoice1[SONG_AIRBORNE_V1_LENGTH] = {
+    {0, 24, 10}, {0, 0xff, 5},
+    {0, 26, 10}, {0, 0xff, 5+30},    
+    {0, 24, 10}, {0, 0xff, 5},
+    {0, 26, 10}, {0, 0xff, 5+30},
+    
+    {0, 24, 10}, {0, 0xff, 5},
+    {0, 26, 10}, {0, 0xff, 5},    
+    {0, 21, 25}, {0, 0xff, 5},
+    {0, 17, 55}, {0, 0xff, 5},
+    
+    {0, 19, 10}, {0, 0xff, 5},
+    {0, 21, 10}, {0, 0xff, 5+30},    
+    {0, 19, 10}, {0, 0xff, 5},
+    {0, 21, 10}, {0, 0xff, 5+30},
+       
+    {0, 19, 10}, {0, 0xff, 5},
+    {0, 21, 10}, {0, 0xff, 5},    
+    {0, 24, 25}, {0, 0xff, 5},
+    {0, 16, 55}, {0, 0xff, 5},
+
+    {0, 24, 10}, {0, 0xff, 5},
+    {0, 26, 10}, {0, 0xff, 5+30},    
+    {0, 24, 10}, {0, 0xff, 5},
+    {0, 26, 10}, {0, 0xff, 5+30},
+    
+    {0, 24, 10}, {0, 0xff, 5},
+    {0, 26, 10}, {0, 0xff, 5},    
+    {0, 28, 25}, {0, 0xff, 5},
+    {0, 31, 55}, {0, 0xff, 5},
+    
+    {0, 31, 10}, {0, 0xff, 5},
+    {0, 33, 10}, {0, 0xff, 5+30},    
+    {0, 31, 10}, {0, 0xff, 5},
+    {0, 33, 10}, {0, 0xff, 5+30},
+    
+    {0, 31, 10}, {0, 0xff, 5},
+    {0, 33, 10}, {0, 0xff, 5},    
+    {0, 31, 10}, {0, 0xff, 5},
+    {0, 29, 10}, {0, 0xff, 5},    
+    {0, 24, 55}, {0, 0xff, 5+120},
+};
+
+#define SONG_AIRBORNE_V2_LENGTH   16
+Note const airborneSongVoice2[SONG_AIRBORNE_V2_LENGTH] = {
+    {4, 24, 100}, {0, 0xff, 20},
+    {4, 17, 100}, {0, 0xff, 20},
+    {4, 19, 100}, {0, 0xff, 20},
+    {4, 26, 100}, {0, 0xff, 20},
+    {4, 24, 100}, {0, 0xff, 20},
+    {4, 33, 100}, {0, 0xff, 20},
+    {4, 31, 100}, {0, 0xff, 20},
+    {4, 24, 100}, {0, 0xff, 20},
+
+};
+
 struct SongVoice {
     Note *notes[2];
 };
 
-Note const *themeSong[2] = {themeSongVoice1, themeSongVoice2};
-unsigned char themeSongLength[2] = {SONG_MAIN_LENGTH, 16};
+Note const *themeSong[2];
+unsigned char themeSongLength[2];
 
-void Sound_startSong(void)
+void Sound_startSong(unsigned char songCatalogueIndex)
 {
+    if (songCatalogueIndex == SOUND_SONG_THEME) {
+        themeSong[0] = themeSongVoice1;
+        themeSong[1] = themeSongVoice2;
+        themeSongLength[0] = SONG_THEME_V1_LENGTH;
+        themeSongLength[1] = SONG_THEME_V2_LENGTH;
+    } else if (songCatalogueIndex == SOUND_SONG_AIRBORNE) {
+        themeSong[0] = airborneSongVoice1;
+        themeSong[1] = airborneSongVoice2;
+        themeSongLength[0] = SONG_AIRBORNE_V1_LENGTH;
+        themeSongLength[1] = SONG_AIRBORNE_V2_LENGTH;        
+    }
+    
     songIndex[0] = 0;
     songIndex[1] = 0;
     songTickDown[0] = 0;
     songTickDown[1] = 0;
     playingSong = true;
     
+}
+
+void Sound_endSong(void)
+{
+    debugChar(9,99);
+    playingSong = false;
+    for (unsigned char v=0;v<2;v++) {
+        sid.voices[v].ctrl = 0; 
+    }
 }
 
 void Sound_tick(void)
@@ -141,4 +220,10 @@ void Sound_tick(void)
         }
         
     }
+}
+
+// use voice 3 to initiate a sound, cancelling any previous sound
+void Sound_doSound(unsigned char soundEffectsIndex)
+{
+    
 }

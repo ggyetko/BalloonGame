@@ -357,6 +357,8 @@ __interrupt void midCloudAdjustment(void)
     vic_sprxy(SPRITE_CLOUD_OUTLINE,cloudXPos[1],cloudYPos[1]);
     vic_sprxy(SPRITE_CLOUD_BG,cloudXPos[1],cloudYPos[1]);
     vic.spr_enable |= SPRITE_CLOUD_OUTLINE_ENABLE | SPRITE_CLOUD_BG_ENABLE;
+    
+    Sound_tick();
 }
 
 // The low level is where the two cloud sprites might be used as city sprites
@@ -1537,6 +1539,7 @@ void startGame(char *name, unsigned char title)
     cloudYPos[1] = TOP_OF_SCREEN_RASTER + 35 + (rand()&15);
 
     setupTravellingSprites();
+    Sound_startSong(SOUND_SONG_AIRBORNE);
     for (unsigned char cloudNum = 0; cloudNum < NUM_CLOUDS; cloudNum++) {
         cloudXPos[cloudNum] = 512;
     }
@@ -1563,7 +1566,9 @@ void startGame(char *name, unsigned char title)
         unsigned char sprColl = vic.spr_sprcol;
         if ((sprColl & (SPRITE_RAMP_ENABLE | SPRITE_BALLOON_BG_ENABLE)) == (SPRITE_RAMP_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
             // Collision with Ramp - GOOD
+            Sound_endSong();
             landingOccurred(&playerData);
+            Sound_startSong(SOUND_SONG_AIRBORNE);
         } else if ((sprColl & (SPRITE_CITY_OUTLINE_ENABLE | SPRITE_BALLOON_BG_ENABLE)) == (SPRITE_CITY_OUTLINE_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
             // Collision with City - BAD
             if (terrainCollisionOccurred()) {
@@ -1636,7 +1641,7 @@ unsigned char introScreen(char *name, unsigned char* title)
 {
     // sound
     Sound_initSid();
-    Sound_startSong();
+    Sound_startSong(SOUND_SONG_THEME);
     // set up sprites
     setupUpIntroSprites();
     setupRasterIrqsIntro1();
@@ -1671,6 +1676,7 @@ unsigned char introScreen(char *name, unsigned char* title)
     s"instructns",
     s"exit game "};
     
+    unsigned char returnValue = 0;
     for (;;) {
         unsigned char result = getMenuChoice(4, 0, menuOptions, false, nullptr);
         
@@ -1682,17 +1688,21 @@ unsigned char introScreen(char *name, unsigned char* title)
                 s"ms        ",
                 s"mx        "};
             *title = getMenuChoice(4,0,titleOptions,false,nullptr);
-            return 1;
+            returnValue = 1;
+            break;
         } else if (result == 1) {
             
         } else if (result == 2) {
             
         } else {
-            return 0;
+            returnValue = 0;
+            break;
         }
     }
     vic.spr_enable = 0x00;
     clearRasterIrqs();
+    Sound_endSong();
+    return returnValue;
 }
 
 int main(void)

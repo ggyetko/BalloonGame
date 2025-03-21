@@ -28,8 +28,23 @@ struct Note {
 
 extern void Sound_initSid(void);
 
-extern void Sound_startSong(void);
+enum Sound_Songs {
+    SOUND_SONG_THEME = 0,
+    SOUND_SONG_AIRBORNE = 1,
+};
+// Configure a song using index from Sound_Songs
+extern void Sound_startSong(unsigned char songCatalogueIndex);
 
+// End any songs in progress
+extern void Sound_endSong(void);
+
+// Once a song is started, call this every screen refresh
 extern void Sound_tick(void);
+
+enum Sound_SoundEffects {
+    SOUND_INDEX_BURN = 0,
+};
+// use voice 3 to initiate a sound, cancelling any catalogued sound from Sound_SoundEffects
+extern void Sound_doSound(unsigned char soundEffectsIndex);
 
 #endif
