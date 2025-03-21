@@ -15,9 +15,15 @@ enum CityRespect {
 };
 
 enum CityFacilities {
-    CITY_FACILITY_BALLOON_FABRIC = 0x01,
-    CITY_FACILITY_PSGR_CABIN     = 0x02,
-    CITY_FACILITY_CARGO          = 0x04
+    CITY_FACILITY_BALLOON_FABRIC    = 0x0001,
+    CITY_FACILITY_PSGR_CABIN        = 0x0002,
+    CITY_FACILITY_CARGO             = 0x0004,
+    CITY_FACILITY_PORTAL_UPGRADE    = 0x0008,
+    CITY_FACILITY_FIREPROOF_UPGRADE = 0x0010,
+    CITY_FACILITY_ICEPROOF_UPGRADE  = 0x0020,
+    CITY_FACILITY_FIRSTCLASS_UPGRADE= 0x0040,
+    CITY_FACILITY_GALLEY_UPGRADE    = 0x0080,
+    CITY_FACILITY_AIRDROP_UPGRADE   = 0x0100,
 };
 
 extern const unsigned int REPAIR_COST_BALLOON_FABRIC = 400;
@@ -30,7 +36,7 @@ extern const unsigned int REPAIR_COST_FACILITY_REDUCTION = 150;
 
 struct CityData {
     unsigned char name[10];
-    unsigned char facility;
+    unsigned int facility;
     DemandedGoods buyGoods[MAX_BUY_GOODS];
     AvailableGoods sellGoods[MAX_SELL_GOODS];
 };

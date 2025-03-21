@@ -12,6 +12,7 @@
 #include "city.h"
 #include "playerData.h"
 #include "quest.h"
+#include "upgrade.h"
 
 // Screen1 is        0x0400 to 0x7ff
 // Weird stuff from 0x0800 to 0x09ff, don't touch this region or it goes bad
@@ -90,6 +91,7 @@ enum {
     STATUS_CARGO_OUT = 0x10,
     STATUS_PSGR_IN   = 0x20,
     STATUS_PSGR_OUT  = 0x40,
+    STATUS_SWIRL_ON  = 0x80,
 };
 
 // GLOBALS
@@ -193,8 +195,8 @@ const char mountainHeight[8] = {0,1,2,3,4,6,8,10};
 // #1 - Balloon Backgrnd ----------------------------------->     Cargo Out
 // #2 - Back thrust      ----------------------------------->     Psgr In
 // #3 - Up Thrust        ----------------------------------->     Psgr Out
-// #4 -                                        Ramp
-// #5 -                                        City Outline 
+// #4 -                                        Ramp/Swirl
+// #5 -                                        City Outline
 // #6 - Cloud Outline    ----------------->    City Shape
 // #7 - Cloud Background ----------------->    City BackShade
 
@@ -204,6 +206,7 @@ const char mountainHeight[8] = {0,1,2,3,4,6,8,10};
 #define SPRITE_UP_THRUST       3
 //#define SPRITE_UNUSED        4
 #define SPRITE_RAMP            5
+#define SPRITE_SWIRL           5
 #define SPRITE_CLOUD_OUTLINE   6
 #define SPRITE_CLOUD_BG        7
 
@@ -217,6 +220,7 @@ const char mountainHeight[8] = {0,1,2,3,4,6,8,10};
 #define SPRITE_BACK_THRUST_ENABLE     0x04
 #define SPRITE_UP_THRUST_ENABLE       0x08
 #define SPRITE_RAMP_ENABLE            0x20
+#define SPRITE_SWIRL_ENABLE            0x20
 #define SPRITE_CLOUD_OUTLINE_ENABLE   0x40
 #define SPRITE_CLOUD_BG_ENABLE        0x80
 
@@ -426,7 +430,7 @@ __interrupt void lowerStatBar(void)
     // handle city movement    
     if (cityXPos) {
         if (status & STATUS_CITY_RAMP){
-            if (cityXPos < 24) {
+            if (cityXPos < 80) {
                 status &= ~STATUS_CITY_RAMP;
                 vic.spr_enable &= ~SPRITE_RAMP_ENABLE;
                 cityNum = 0;
@@ -1161,6 +1165,30 @@ void updateCityWindow(void)
     }   
 }
 
+void cityMenuUpgrade(PlayerData *data)
+{
+    for (;;) {
+        unsigned char listLength = 1;
+        unsigned char upgradeList[4][10] = {s"return    "};
+        unsigned int costList[4] = {0,0};
+        unsigned char upgradeIndexList[4] = {0};
+        for (unsigned char x=0; x<UPGRADE_NUM_UPGRADES ;x++) {
+            if (cities[currMap][cityNum-1].facility & upgrades[x].facilityMask) {
+                tenCharCopy(upgradeList[listLength], upgrades[x].name);
+                costList[listLength] = upgrades[x].cost;
+                upgradeIndexList[listLength] = x;
+                listLength++;
+            }
+        }
+        unsigned char respUpgrade = getMenuChoice(listLength,0,upgradeList,true,costList);
+        if (respUpgrade == 0) {
+            return;
+        } else {
+            
+        }
+    }
+}
+
 void cityMenuMayor(PlayerData *data, Passenger *tmpPsgrData)
 {
     showMayor(data);
@@ -1219,6 +1247,8 @@ void cityMenu(PlayerData *data, Passenger *tmpPsgrData)
             cityMenuRepair(data);
         } else if (response == MENU_OPTION_REFUEL) {
             cityMenuRefuel(data);
+        } else if (response == MENU_OPTION_UPGRADE) {
+            cityMenuUpgrade(data);
         } else if (response == MENU_OPTION_PASSENGER) {
             cityMenuPassenger(data, tmpPsgrData);
         } else if (response == MENU_OPTION_INVENTORY) {

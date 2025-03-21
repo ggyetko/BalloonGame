@@ -66,7 +66,7 @@ const CityData cities[CITY_NUM_MAPS][CITY_NUM_CITIES_PER_MAP] = {
              {20,2, CITY_RESPECT_HIGH,2}   // quail eggs
             } 
         },
-        {s"sirenia   ", 0,
+        {s"sirenia   ", CITY_FACILITY_PORTAL_UPGRADE,
             {{2,1},{9,1},{0xff,0},{0xff,0}},
             {{0,2,CITY_RESPECT_LOW,2}, // rice
              {7,2,CITY_RESPECT_LOW,2}, // soy beans
