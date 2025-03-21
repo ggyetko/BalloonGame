@@ -24,7 +24,7 @@ const Instrument instruments[9] =
     {0x8C, 0x9C, WAVE_TRIANGLE }, // flute
     {0xf0, 0x21, WAVE_NOISE },   // warp wind
     {0x00, 0x01, WAVE_NOISE },   // stick hit
-    {0xca, 0x4a, WAVE_TRIANGLE | WAVE_SAW }, // violin
+    {0xca, 0x4a, WAVE_TRIANGLE | WAVE_SAW }, // buzzy brass
     {0x28, 0x20, WAVE_TRIANGLE }, // piano
     {0x13, 0x05, WAVE_NOISE},    // snare
     {0x08, 0x00, WAVE_TRIANGLE | 0x04}, // ringing xylo 
@@ -84,11 +84,15 @@ Note const themeSongVoice1[SONG_MAIN_LENGTH] = {
     
     };
     
-Note const themeSongVoice2[8] = {
+Note const themeSongVoice2[16] = {
     {4, 12, 100}, {0, 0xff, 20},
     {4, 16, 100}, {0, 0xff, 20},
     {4, 19, 100}, {0, 0xff, 20},
-    {4, 12, 100}, {0, 0xff, 20+120},
+    {4, 12, 100}, {0, 0xff, 20},
+    {5, 10, 25}, {0, 0xff, 5},
+    {5, 10, 25}, {0, 0xff, 5},
+    {5, 10, 25}, {0, 0xff, 5},
+    {5, 10, 25}, {0, 0xff, 5},
     };
 
 struct SongVoice {
@@ -96,7 +100,7 @@ struct SongVoice {
 };
 
 Note const *themeSong[2] = {themeSongVoice1, themeSongVoice2};
-unsigned char themeSongLength[2] = {SONG_MAIN_LENGTH, 8};
+unsigned char themeSongLength[2] = {SONG_MAIN_LENGTH, 16};
 
 void Sound_startSong(void)
 {
@@ -127,7 +131,7 @@ void Sound_tick(void)
                 sid.voices[v].freq = (freqList[index]<<8)|(freqList[index+1]);
                 sid.voices[v].ctrl = instruments[myinstr].waveform | 0x01; // VOICE ON
             }
-            songTickDown[v] = themeSong[v][songIndex[v]].duration;
+            songTickDown[v] = themeSong[v][songIndex[v]].duration-1;
             songIndex[v]++;
             if (songIndex[v] == themeSongLength[v]) {
                 songIndex[v] = 0;
