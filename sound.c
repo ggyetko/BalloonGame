@@ -116,7 +116,7 @@ Note const airborneSongVoice1[SONG_AIRBORNE_V1_LENGTH] = {
     {0, 19, 10}, {0, 0xff, 5},
     {0, 21, 10}, {0, 0xff, 5},    
     {0, 24, 25}, {0, 0xff, 5},
-    {0, 16, 55}, {0, 0xff, 5},
+    {0, 26, 55}, {0, 0xff, 5},
 
     {0, 24, 10}, {0, 0xff, 5},
     {0, 26, 10}, {0, 0xff, 5+30},    
@@ -142,14 +142,14 @@ Note const airborneSongVoice1[SONG_AIRBORNE_V1_LENGTH] = {
 
 #define SONG_AIRBORNE_V2_LENGTH   16
 Note const airborneSongVoice2[SONG_AIRBORNE_V2_LENGTH] = {
-    {4, 24, 100}, {0, 0xff, 20},
-    {4, 17, 100}, {0, 0xff, 20},
-    {4, 19, 100}, {0, 0xff, 20},
-    {4, 26, 100}, {0, 0xff, 20},
-    {4, 24, 100}, {0, 0xff, 20},
-    {4, 33, 100}, {0, 0xff, 20},
-    {4, 31, 100}, {0, 0xff, 20},
-    {4, 24, 100}, {0, 0xff, 20},
+    {4, 24-12, 100}, {0, 0xff, 20},
+    {4, 17-12, 100}, {0, 0xff, 20},
+    {4, 19-12, 100}, {0, 0xff, 20},
+    {4, 26-12, 100}, {0, 0xff, 20},
+    {4, 24-12, 100}, {0, 0xff, 20},
+    {4, 33-12, 100}, {0, 0xff, 20},
+    {4, 31-12, 100}, {0, 0xff, 20},
+    {4, 24-12, 100}, {0, 0xff, 20+120},
 
 };
 
@@ -202,7 +202,7 @@ void Sound_tick(void)
             if (themeSong[v][songIndex[v]].freqIndex == 255) {
                 sid.voices[v].ctrl = instruments[myinstr].waveform | 0x00; // VOICE OFF
             } else {
-                debugChar(v, themeSong[v][songIndex[v]].freqIndex);
+                //debugChar(v, themeSong[v][songIndex[v]].freqIndex);
                 sid.voices[v].attdec = instruments[myinstr].attackDecay;
                 sid.voices[v].susrel = instruments[myinstr].sustainRelease;
 
