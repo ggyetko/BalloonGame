@@ -6,13 +6,13 @@
 #include <c64/cia.h>
 #include <string.h>
 
-
 #include "utils.h"
 #include "graphics.h"
 #include "city.h"
 #include "playerData.h"
 #include "quest.h"
 #include "upgrade.h"
+#include "sound.h"
 
 // Screen1 is        0x0400 to 0x7ff
 // Weird stuff from 0x0800 to 0x09ff, don't touch this region or it goes bad
@@ -31,8 +31,12 @@
 #pragma section(screen2andWork, 0)
 #pragma region (screen2andWork, 0x2c00, 0x33ff, , , {screen2andWork})
 
+// My second batch of sprites go here
+#pragma section( spriteset2, 0)
+#pragma region( spriteset2, 0x3400, 0x4000, , , {spriteset2} )
+
 // everything beyond will be code, data, bss and heap to the end
-#pragma region( main, 0x3400, 0xd000, , , {code, data, bss, heap, stack} )
+#pragma region( main, 0x4000, 0xd000, , , {code, data, bss, heap, stack} )
 
 // My font at fixed location
 #pragma data(charset)
@@ -42,7 +46,7 @@ __export const char charset[2048] = {
 
 // spriteset at fixed location
 #pragma data(spriteset)
-__export const char spriteset[1024] = {
+__export const char spriteset[1024] = { // starts at 0x2800
 	#embed "balloon.bin"         // 0xa0
     #embed "balloonDecel.bin"    // 0xa1
     #embed "balloonThrust.bin"   // 0xa2
@@ -55,6 +59,11 @@ __export const char spriteset[1024] = {
     #embed "passengerCarts.bin"  // 0xac, 0xad
     #embed "cityBridge.bin"      // 0xae
     #embed "cart.bin"            // 0xaf
+};
+
+#pragma data(spriteset2)
+__export const char spriteset2[256] = { // starts at 0x3400
+    #embed "swirlSpritesFour.bin" // 0xd0 0xd1 0xd2 0xd3
 };
 
 #define BalloonSpriteLocation      0xa0
@@ -74,6 +83,10 @@ __export const char spriteset[1024] = {
 #define BalloonBridgeLocation      0xae
 #define BalloonCartLocation        0xaf
 
+#define PortalSwirl1Location       0xd0
+#define PortalSwirl2Location       0xd1
+#define PortalSwirl3Location       0xd2
+#define PortalSwirl4Location       0xd3
 
 #pragma data(data)
 
@@ -104,7 +117,6 @@ volatile unsigned char decelCount; // how many have we counted at this index
 volatile unsigned char holdCount;
 volatile unsigned char flameDelay; // keep internal burner sprite on until this hits zero
 volatile unsigned char dummy;
-volatile unsigned char noCollisionCounter; // stupid collision stopper
 
 volatile unsigned int yPos; // 20*8 = 160 pixel
                             // 256 positions per pixel,
@@ -133,6 +145,9 @@ volatile unsigned int cloudXPos[NUM_CLOUDS];
 volatile unsigned char cloudYPos[NUM_CLOUDS];
 
 volatile unsigned char counter; // counter incremented once for every screen refresh (use it for all kinds of stuff)
+
+volatile unsigned char currentSound;
+volatile unsigned char soundIndex;
 
 /* ??...... : info - (0=nothing 1,2,3:city number)
  * ..???... : stalagtite length (ceiling)
@@ -302,7 +317,6 @@ __interrupt void prepWorkScreen(void)
 __interrupt void prepScreen(void)
 {
     counter ++;
-    if (noCollisionCounter) noCollisionCounter--;
     // Getting this interrupt means we're in travelling mode, set the screen
     if (currScreen == 0) {
         vic.memptr = 0x10 | (vic.memptr & 0x0f); // point to screen0
@@ -524,6 +538,8 @@ void introScreenInterrupt (void)
     vic_sprxy(SPRITE_CLOUD_OUTLINE, cloudXPos[0], cloudYPos[0]);
     vic_sprxy(SPRITE_RAMP, cloudXPos[1], cloudYPos[1]);
     vic_sprxy(SPRITE_UP_THRUST, cloudXPos[1], cloudYPos[1]);
+    
+    Sound_tick();
 }
 
 RIRQCode spmux[5];
@@ -1286,7 +1302,6 @@ void clearCollisions(void)
 {
     dummy = vic.spr_backcol;  // clear sprite-bg collisions
     dummy = vic.spr_sprcol;       // clear sprite^2 collisions
-    noCollisionCounter = 100; // 2 seconds of no collisions
 }
 
 void landingOccurred(PlayerData *data)
@@ -1546,19 +1561,17 @@ void startGame(char *name, unsigned char title)
             }
         }
         unsigned char sprColl = vic.spr_sprcol;
-        if (!noCollisionCounter) {
-            if ((sprColl & (SPRITE_RAMP_ENABLE | SPRITE_BALLOON_BG_ENABLE)) == (SPRITE_RAMP_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
-                // Collision with Ramp - GOOD
-                landingOccurred(&playerData);
-            } else if ((sprColl & (SPRITE_CITY_OUTLINE_ENABLE | SPRITE_BALLOON_BG_ENABLE)) == (SPRITE_CITY_OUTLINE_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
-                // Collision with City - BAD
-                if (terrainCollisionOccurred()) {
-                    balloonDamage(&playerData);
-                } else {
-                    carriageDamage(&playerData);
-                }
-                showScoreBoard(&playerData);
+        if ((sprColl & (SPRITE_RAMP_ENABLE | SPRITE_BALLOON_BG_ENABLE)) == (SPRITE_RAMP_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
+            // Collision with Ramp - GOOD
+            landingOccurred(&playerData);
+        } else if ((sprColl & (SPRITE_CITY_OUTLINE_ENABLE | SPRITE_BALLOON_BG_ENABLE)) == (SPRITE_CITY_OUTLINE_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
+            // Collision with City - BAD
+            if (terrainCollisionOccurred()) {
+                balloonDamage(&playerData);
+            } else {
+                carriageDamage(&playerData);
             }
+            showScoreBoard(&playerData);
         }
         for (unsigned char cloudNum = 0; cloudNum < NUM_CLOUDS; cloudNum++) {
             if (cloudXPos[cloudNum] > 344) {
@@ -1621,6 +1634,9 @@ void startGame(char *name, unsigned char title)
 
 unsigned char introScreen(char *name, unsigned char* title)
 {
+    // sound
+    Sound_initSid();
+    Sound_startSong();
     // set up sprites
     setupUpIntroSprites();
     setupRasterIrqsIntro1();

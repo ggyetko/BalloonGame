@@ -45,11 +45,16 @@ char tenCharCmp(char const *txt1, char const *txt2) {
 
 
 #define Screen0 ((char *)0x0400)
+#define ScreenWork ((char *)0x3000)
+#define ScreenColor ((char *)0xd800)
 void debugChar(unsigned char index, unsigned displayNumber)
 {
     char out[3];
     ucharToString(displayNumber, out);
     Screen0[4*index+24*40] = out[0];
+    ScreenWork[4*index+24*40] = out[0];
     Screen0[4*index+24*40+1] = out[1];
+    ScreenWork[4*index+24*40+1] = out[1];
     Screen0[4*index+24*40+2] = out[2];
+    ScreenWork[4*index+24*40+2] = out[2];
 }
