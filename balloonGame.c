@@ -800,11 +800,8 @@ void clearMovement(void)
 // returns 0 for bottom collision
 // returns 1 for top collision
 // returns 2 if GAME OVER
-unsigned char terrainCollisionOccurred(PlayerData *data)
+unsigned char terrainCollisionOccurred()
 {
-    if (data->fuel == 0) {
-        return 2;
-    }
     // turn off sidescrolling
     setScrollActive(0, 150);
     
@@ -1206,7 +1203,12 @@ void cityMenuUpgrade(PlayerData *data)
         if (respUpgrade == 0) {
             return;
         } else {
-            
+            // If you can afford the upgrade and don't already have it
+            if ((costList[respUpgrade] <= data->money) 
+                && ((upgrades[upgradeIndexList[respUpgrade]].upgradeMask & data->balloonUpgrades) == 0) ) {
+                data->balloonUpgrades |= upgrades[upgradeIndexList[respUpgrade]].upgradeMask;
+                data->money -= costList[respUpgrade];
+            }
         }
     }
 }
@@ -1457,6 +1459,15 @@ void showScoreBoard(struct PlayerData* data) {
     for (char x=0;x<5;x++) {
         Screen0[881+5+x] = output[x];
     }
+    // Upgrades
+    for (unsigned char x=0; x<UPGRADE_NUM_UPGRADES; x++) {
+        Screen0[894+x] = upgrades[x].screenChar;
+        if (data->balloonUpgrades & upgrades[x].upgradeMask) {
+            ScreenColor[894+x] = upgrades[x].screenColor;
+        } else {
+            ScreenColor[894+x] = VCOL_DARK_GREY;
+        }
+    }
     // Cargo Space
     for (x=0;x<MAX_CARGO_SPACE;x++) {
         Screen0[921+5+x] = 78;
@@ -1563,7 +1574,7 @@ void startGame(char *name, unsigned char title)
                     // GAME OVER SCREEN?
                     break;
                 }
-                if (terrainCollisionOccurred(&playerData) == 1) {
+                if (terrainCollisionOccurred() == 1) {
                     balloonDamage(&playerData);
                 } else {
                     carriageDamage(&playerData);
@@ -1584,7 +1595,7 @@ void startGame(char *name, unsigned char title)
                 // GAME OVER screen
                 break;
             }
-            if (terrainCollisionOccurred(&playerData) == 1) {
+            if (terrainCollisionOccurred() == 1) {
                 balloonDamage(&playerData);
             } else {
                 carriageDamage(&playerData);

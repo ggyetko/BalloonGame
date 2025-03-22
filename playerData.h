@@ -24,14 +24,7 @@ struct Cargo {
     unsigned char currCargoCount; 
     int cargo[MAX_CARGO_SPACE];
 };
-enum BALLOON_UPGRADES {
-    BALLOON_FIREPROOF  = 0x01,
-    BALLOON_ICEPROOF   = 0x02,
-    BALLOON_FIRSTCLASS = 0x04,
-    BALLOON_GALLEY     = 0x08,
-    BALLOON_AIRDROP    = 0x10,
-    BALLOON_PORTAL     = 0x20,
-};
+
 struct PlayerData {
     char          name[10];
     unsigned char title;
