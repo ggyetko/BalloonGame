@@ -742,11 +742,14 @@ void invokeInternalFlame(char cycles, PlayerData *data)
     }
 }
 
-const char SIZEOFSCOREBOARDMAP = 28;
+const char SIZEOFSCOREBOARDMAP = 40;
 const unsigned char colorMapScoreBoard[SIZEOFSCOREBOARDMAP] = {
     40, VCOL_YELLOW,
     5,  VCOL_WHITE, 17, VCOL_GREEN, 1, VCOL_YELLOW, 4, VCOL_WHITE, 13, VCOL_GREEN,
-    5,  VCOL_WHITE, 17, VCOL_YELLOW, 5, VCOL_WHITE, 13, VCOL_GREEN,
+    5,  VCOL_WHITE, 9, VCOL_YELLOW,
+        1, upgrades[0].screenColor, 1, upgrades[1].screenColor, 1, upgrades[2].screenColor, 1, upgrades[3].screenColor,
+        1, upgrades[4].screenColor, 1, upgrades[5].screenColor,
+        7, VCOL_WHITE, 13, VCOL_GREEN,
     5,  VCOL_ORANGE, 17, VCOL_WHITE, 5, CITY_COLOR, 13, CITY_COLOR
 };
 void initScreenWithDefaultColors(bool clearScreen) {
@@ -1208,6 +1211,7 @@ void cityMenuUpgrade(PlayerData *data)
                 && ((upgrades[upgradeIndexList[respUpgrade]].upgradeMask & data->balloonUpgrades) == 0) ) {
                 data->balloonUpgrades |= upgrades[upgradeIndexList[respUpgrade]].upgradeMask;
                 data->money -= costList[respUpgrade];
+                showScoreBoard(data);
             }
         }
     }
@@ -1585,7 +1589,6 @@ void startGame(char *name, unsigned char title)
         unsigned char sprColl = vic.spr_sprcol;
         if ((sprColl & (SPRITE_RAMP_ENABLE | SPRITE_BALLOON_BG_ENABLE)) == (SPRITE_RAMP_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
             // Collision with Ramp - GOOD
-            debugChar(0,sprColl);
             Sound_endSong();
             landingOccurred(&playerData);
             Sound_startSong(SOUND_SONG_AIRBORNE);

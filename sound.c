@@ -205,7 +205,6 @@ void Sound_tick(void)
             if (themeSong[v][songIndex[v]].freqIndex == 255) {
                 sid.voices[v].ctrl = instruments[myinstr].waveform | 0x00; // VOICE OFF
             } else {
-                //debugChar(v, themeSong[v][songIndex[v]].freqIndex);
                 sid.voices[v].attdec = instruments[myinstr].attackDecay;
                 sid.voices[v].susrel = instruments[myinstr].sustainRelease;
 
