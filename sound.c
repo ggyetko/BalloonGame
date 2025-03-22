@@ -53,8 +53,9 @@ void Sound_initSid(void)
 }
 
 
-#define SONG_THEME_V1_LENGTH   46
+#define SONG_THEME_V1_LENGTH   47
 Note const themeSongVoice1[SONG_THEME_V1_LENGTH] = {
+    {0, 0xff, 120},
     {0, 24, 25}, {0, 0xff, 5},
     {0, 26, 25}, {0, 0xff, 5},
     {0, 24, 10}, {0, 0xff, 5},
@@ -80,24 +81,25 @@ Note const themeSongVoice1[SONG_THEME_V1_LENGTH] = {
     {0, 26, 25}, {0, 0xff, 5},
     {0, 24, 10}, {0, 0xff, 5},
     {0, 21, 10}, {0, 0xff, 5},
-    {0, 24, 25}, {0, 0xff, 5+120},
+    {0, 24, 25}, {0, 0xff, 5},
     
     };
     
 #define SONG_THEME_V2_LENGTH   16
 Note const themeSongVoice2[16] = {
+    {5, 10, 25}, {0, 0xff, 5},
+    {5, 10, 25}, {0, 0xff, 5},
+    {5, 10, 25}, {0, 0xff, 5},
+    {5, 10, 25}, {0, 0xff, 5},
     {4, 12, 100}, {0, 0xff, 20},
     {4, 16, 100}, {0, 0xff, 20},
     {4, 19, 100}, {0, 0xff, 20},
     {4, 12, 100}, {0, 0xff, 20},
-    {5, 10, 25}, {0, 0xff, 5},
-    {5, 10, 25}, {0, 0xff, 5},
-    {5, 10, 25}, {0, 0xff, 5},
-    {5, 10, 25}, {0, 0xff, 5},
     };
 
-#define SONG_AIRBORNE_V1_LENGTH   66
+#define SONG_AIRBORNE_V1_LENGTH   67
 Note const airborneSongVoice1[SONG_AIRBORNE_V1_LENGTH] = {
+    {0, 0xff, 120},
     {0, 24, 10}, {0, 0xff, 5},
     {0, 26, 10}, {0, 0xff, 5+30},    
     {0, 24, 10}, {0, 0xff, 5},
@@ -137,19 +139,20 @@ Note const airborneSongVoice1[SONG_AIRBORNE_V1_LENGTH] = {
     {0, 33, 10}, {0, 0xff, 5},    
     {0, 31, 10}, {0, 0xff, 5},
     {0, 29, 10}, {0, 0xff, 5},    
-    {0, 24, 55}, {0, 0xff, 5+120},
+    {0, 24, 55}, {0, 0xff, 5},
 };
 
-#define SONG_AIRBORNE_V2_LENGTH   16
+#define SONG_AIRBORNE_V2_LENGTH   17
 Note const airborneSongVoice2[SONG_AIRBORNE_V2_LENGTH] = {
-    {4, 24-12, 100}, {0, 0xff, 20},
-    {4, 17-12, 100}, {0, 0xff, 20},
-    {4, 19-12, 100}, {0, 0xff, 20},
-    {4, 26-12, 100}, {0, 0xff, 20},
-    {4, 24-12, 100}, {0, 0xff, 20},
-    {4, 33-12, 100}, {0, 0xff, 20},
-    {4, 31-12, 100}, {0, 0xff, 20},
-    {4, 24-12, 100}, {0, 0xff, 20+120},
+    {0, 0xff, 120},
+    {4, 12, 100}, {0, 0xff, 20},
+    {4, 5, 100}, {0, 0xff, 20},
+    {4, 7, 100}, {0, 0xff, 20},
+    {4, 14, 100}, {0, 0xff, 20},
+    {4, 12, 100}, {0, 0xff, 20},
+    {4, 21, 100}, {0, 0xff, 20},
+    {4, 19, 100}, {0, 0xff, 20},
+    {4, 12, 100}, {0, 0xff, 20},
 
 };
 
