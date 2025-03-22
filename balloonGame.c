@@ -198,6 +198,8 @@ const char terrain[2][256] ={
 const char decelPattern[8] =  {2,3,4,5,6,7,8,16};
 const char mountainHeight[8] = {0,1,2,3,4,6,8,10};
 
+#define TOP_OF_RASTER             1
+#define SOUND_RASTER             25
 #define TOP_OF_SCREEN_RASTER     50
 #define HIGH_CLOUD_RASTER_LIMIT  85
 #define MID_CLOUD_RASTER_LIMIT  120
@@ -267,6 +269,11 @@ void setScrollActive(unsigned char active, unsigned char delay)
 void setScrollAmnt(char x)
 {
     vic.ctrl2 = (x & 0x7) | 0xc0; // set 38 columns as well
+}
+
+__interrupt void soundInterrupt(void)
+{
+    Sound_tick();
 }
 
 __interrupt void prepWorkScreen(void)
@@ -357,8 +364,6 @@ __interrupt void midCloudAdjustment(void)
     vic_sprxy(SPRITE_CLOUD_OUTLINE,cloudXPos[1],cloudYPos[1]);
     vic_sprxy(SPRITE_CLOUD_BG,cloudXPos[1],cloudYPos[1]);
     vic.spr_enable |= SPRITE_CLOUD_OUTLINE_ENABLE | SPRITE_CLOUD_BG_ENABLE;
-    
-    Sound_tick();
 }
 
 // The low level is where the two cloud sprites might be used as city sprites
@@ -540,33 +545,36 @@ void introScreenInterrupt (void)
     vic_sprxy(SPRITE_CLOUD_OUTLINE, cloudXPos[0], cloudYPos[0]);
     vic_sprxy(SPRITE_RAMP, cloudXPos[1], cloudYPos[1]);
     vic_sprxy(SPRITE_UP_THRUST, cloudXPos[1], cloudYPos[1]);
-    
-    Sound_tick();
 }
 
-RIRQCode spmux[5];
+RIRQCode spmux[6];
 void setupRasterIrqs(void)
 {
     rirq_stop();
+ 
     rirq_build(spmux, 1);
     rirq_call(spmux, 0, prepScreen);
-    rirq_set(0, 1, spmux);
+    rirq_set(0, TOP_OF_RASTER, spmux);
 
     rirq_build(spmux+1, 1);
-    rirq_call(spmux+1, 0, midCloudAdjustment);
-    rirq_set(1, HIGH_CLOUD_RASTER_LIMIT, spmux+1);
+    rirq_call(spmux+1, 0, soundInterrupt);
+    rirq_set(1, SOUND_RASTER, spmux+1);
 
     rirq_build(spmux+2, 1);
-    rirq_call(spmux+2, 0, lowCloudAdjustment);
-    rirq_set(2, MID_CLOUD_RASTER_LIMIT, spmux+2);
+    rirq_call(spmux+2, 0, midCloudAdjustment);
+    rirq_set(2, HIGH_CLOUD_RASTER_LIMIT, spmux+2);
 
     rirq_build(spmux+3, 1);
-    rirq_call(spmux+3, 0, lowerStatBar);
-    rirq_set(3, LOW_RASTER_LIMIT, spmux+3);
+    rirq_call(spmux+3, 0, lowCloudAdjustment);
+    rirq_set(3, MID_CLOUD_RASTER_LIMIT, spmux+3);
 
     rirq_build(spmux+4, 1);
-    rirq_call(spmux+4, 0, scrollLeft);
-    rirq_set(4, BOTTOM_RASTER_LIMIT, spmux+4);
+    rirq_call(spmux+4, 0, lowerStatBar);
+    rirq_set(4, LOW_RASTER_LIMIT, spmux+4);
+
+    rirq_build(spmux+5, 1);
+    rirq_call(spmux+5, 0, scrollLeft);
+    rirq_set(5, BOTTOM_RASTER_LIMIT, spmux+5);
 
 	// Sort interrupts and start processing
 	rirq_sort();
@@ -576,9 +584,14 @@ void setupRasterIrqs(void)
 void setupRasterIrqsIntro1(void)
 {
     rirq_stop();
+
     rirq_build(spmux, 1);
-    rirq_call(spmux, 0, introScreenInterrupt);
-    rirq_set(0, 250, spmux);
+    rirq_call(spmux, 0, soundInterrupt);
+    rirq_set(0, SOUND_RASTER, spmux);
+
+    rirq_build(spmux+1, 1);
+    rirq_call(spmux+1, 0, introScreenInterrupt);
+    rirq_set(1, BOTTOM_RASTER_LIMIT, spmux+1);
 
 	// Sort interrupts and start processing
 	rirq_sort();
@@ -590,11 +603,15 @@ void setupRasterIrqsWorkScreen(void)
     rirq_stop();
     rirq_build(spmux, 1);
     rirq_call(spmux, 0, prepWorkScreen);
-    rirq_set(0, 1, spmux);
+    rirq_set(0, TOP_OF_RASTER, spmux);
 
     rirq_build(spmux+1, 1);
-    rirq_call(spmux+1, 0, lowerStatBarWorkScreen);
-    rirq_set(1, 210, spmux+1);
+    rirq_call(spmux+1, 0, soundInterrupt);
+    rirq_set(1, SOUND_RASTER, spmux+1);
+
+    rirq_build(spmux+2, 1);
+    rirq_call(spmux+2, 0, lowerStatBarWorkScreen);
+    rirq_set(2, 210, spmux+2);
 
 	// Sort interrupts and start processing
 	rirq_sort();
@@ -609,6 +626,7 @@ void clearRasterIrqs(void)
     rirq_clear(2);
     rirq_clear(3);
     rirq_clear(4);
+    rirq_clear(5);
     rirq_sort();
     rirq_start();
 }

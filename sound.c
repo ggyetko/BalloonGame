@@ -187,7 +187,6 @@ void Sound_startSong(unsigned char songCatalogueIndex)
 
 void Sound_endSong(void)
 {
-    debugChar(9,99);
     playingSong = false;
     for (unsigned char v=0;v<2;v++) {
         sid.voices[v].ctrl = 0; 
