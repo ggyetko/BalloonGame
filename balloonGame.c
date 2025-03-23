@@ -1635,6 +1635,7 @@ void startGame(char *name, unsigned char title)
             char ch = getch();
             if (status & STATUS_SCROLLING) {
                 if (ch == 'A') {
+                    Sound_doSound(SOUND_EFFECT_THRUST_BACK);
                     invokeDecel(64);
                     playerData.fuel -= 600;
                 } else if (ch == 'W') {
@@ -1644,6 +1645,7 @@ void startGame(char *name, unsigned char title)
                         } else {
                             playerData.fuel = 0;
                         }
+                        Sound_doSound(SOUND_EFFECT_THRUST);
                         invokeInternalFlame(25, &playerData);
                     } 
                 } else if (ch == 'X') {

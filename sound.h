@@ -43,7 +43,9 @@ extern void Sound_tick(void);
 
 enum Sound_SoundEffects {
     SOUND_EFFECT_BURN = 0,
-    SOUND_EFFECT_PREPARE = 1,
+    SOUND_EFFECT_PREPARE,
+    SOUND_EFFECT_THRUST,
+    SOUND_EFFECT_THRUST_BACK,
 };
 // use voice 3 to initiate a sound, cancelling any catalogued sound from Sound_SoundEffects
 extern void Sound_doSound(unsigned char soundEffectsIndex);

@@ -213,6 +213,14 @@ Note const soundEffectPrepare[SOUND_EFFECT_PREPARE_LENGTH] = {
     {INSTR_BUZZBRASS, 36, 55}, {0, 0xff, 5},
 };
 
+#define SOUND_EFFECT_THRUST_LENGTH       2
+Note const soundEffectThrust[SOUND_EFFECT_THRUST_LENGTH] = {
+    {INSTR_WARP_WIND, 36, 15}, {0, 0xff, 5}
+};
+Note const soundEffectThrustBack[SOUND_EFFECT_THRUST_LENGTH] = {
+    {INSTR_WARP_WIND, 12, 120}, {0, 0xff, 5}
+};
+
 Note const *currentSoundEffect;
 unsigned char currentSoundEffectLength;
 
@@ -223,6 +231,12 @@ void Sound_doSound(unsigned char soundEffectsIndex)
     if (soundEffectsIndex == SOUND_EFFECT_PREPARE) {
         currentSoundEffect = soundEffectPrepare;
         currentSoundEffectLength = SOUND_EFFECT_PREPARE_LENGTH;
+    } else if (soundEffectsIndex == SOUND_EFFECT_THRUST) {
+        currentSoundEffect = soundEffectThrust;
+        currentSoundEffectLength = SOUND_EFFECT_THRUST_LENGTH;
+    } else if (soundEffectsIndex == SOUND_EFFECT_THRUST_BACK) {
+        currentSoundEffect = soundEffectThrustBack;
+        currentSoundEffectLength = SOUND_EFFECT_THRUST_LENGTH;
     }
     soundEffectIndex = 0;
     soundTickDown = 0;
