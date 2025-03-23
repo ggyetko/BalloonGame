@@ -19,6 +19,16 @@ const unsigned int freqList[106] = {
 // 6 36 38 40 41 43 45 47
 // 7 48 50 52
 
+#define INSTR_FLUTE      0
+#define INSTR_WARP_WIND  1
+#define INSTR_STICK      2
+#define INSTR_BUZZBRASS  3
+#define INSTR_PIANO      4
+#define INSTR_SNARE      5
+#define INSTR_XYLORING   6
+#define INSTR_XYLO       7
+#define INSTR_HARPSICHORD 8
+
 const Instrument instruments[9] =
 {
     {0x8C, 0x9C, WAVE_TRIANGLE }, // flute
@@ -31,6 +41,11 @@ const Instrument instruments[9] =
     {0x08, 0x00, WAVE_TRIANGLE}, // xylo
     {0x08, 0x20, WAVE_TRIANGLE | WAVE_SAW}, //harpsichord
 };
+
+unsigned char soundEffectIndex;    // where we are in the current song
+unsigned char soundTickDown; // clock ticks until next action
+bool playingSound;
+
 
 unsigned char songIndex[2];    // where we are in the current song
 unsigned char songTickDown[2]; // clock ticks until next action
@@ -50,6 +65,8 @@ void Sound_initSid(void)
     sid.fmodevol = 15;    // max volume
     
     playingSong = false;
+    
+    playingSound = false;
 }
 
 
@@ -153,11 +170,6 @@ Note const airborneSongVoice2[SONG_AIRBORNE_V2_LENGTH] = {
     {4, 21, 100}, {0, 0xff, 20},
     {4, 19, 100}, {0, 0xff, 20},
     {4, 12, 100}, {0, 0xff, 20},
-
-};
-
-struct SongVoice {
-    Note *notes[2];
 };
 
 Note const *themeSong[2];
@@ -193,38 +205,79 @@ void Sound_endSong(void)
     }
 }
 
-void Sound_tick(void)
-{
-    if (!playingSong) return;
-    
-    for (unsigned char v=0;v<2;v++) {
-        if (songTickDown[v] == 0) {
-            unsigned char myinstr = themeSong[v][songIndex[v]].instIndex;
-                        
-            if (themeSong[v][songIndex[v]].freqIndex == 255) {
-                sid.voices[v].ctrl = instruments[myinstr].waveform | 0x00; // VOICE OFF
-            } else {
-                sid.voices[v].attdec = instruments[myinstr].attackDecay;
-                sid.voices[v].susrel = instruments[myinstr].sustainRelease;
+#define SOUND_EFFECT_PREPARE_LENGTH      8
+Note const soundEffectPrepare[SOUND_EFFECT_PREPARE_LENGTH] = {
+    {INSTR_WARP_WIND, 24, 25}, {0, 0xff, 5},
+    {INSTR_WARP_WIND, 28, 25}, {0, 0xff, 5},
+    {INSTR_WARP_WIND, 31, 25}, {0, 0xff, 5},
+    {INSTR_BUZZBRASS, 36, 55}, {0, 0xff, 5},
+};
 
-                unsigned char index = (themeSong[v][songIndex[v]].freqIndex)*2;
-                sid.voices[v].freq = (freqList[index]<<8)|(freqList[index+1]);
-                sid.voices[v].ctrl = instruments[myinstr].waveform | 0x01; // VOICE ON
-            }
-            songTickDown[v] = themeSong[v][songIndex[v]].duration-1;
-            songIndex[v]++;
-            if (songIndex[v] == themeSongLength[v]) {
-                songIndex[v] = 0;
-            }
-        } else {
-            songTickDown[v]--;
-        }
-        
-    }
-}
+Note const *currentSoundEffect;
+unsigned char currentSoundEffectLength;
 
-// use voice 3 to initiate a sound, cancelling any previous sound
+// use voice 3 to initiate a sound, (?cancelling any previous sound? tbd)
 void Sound_doSound(unsigned char soundEffectsIndex)
 {
-    
+    if (playingSound) return;
+    if (soundEffectsIndex == SOUND_EFFECT_PREPARE) {
+        currentSoundEffect = soundEffectPrepare;
+        currentSoundEffectLength = SOUND_EFFECT_PREPARE_LENGTH;
+    }
+    soundEffectIndex = 0;
+    soundTickDown = 0;
+    playingSound = true;
+}
+
+void Sound_tick(void)
+{
+    if (playingSong) {
+        for (unsigned char v=0;v<2;v++) {
+            if (songTickDown[v] == 0) {
+                unsigned char myinstr = themeSong[v][songIndex[v]].instIndex;
+                            
+                if (themeSong[v][songIndex[v]].freqIndex == 255) {
+                    sid.voices[v].ctrl = instruments[myinstr].waveform | 0x00; // VOICE OFF
+                } else {
+                    sid.voices[v].attdec = instruments[myinstr].attackDecay;
+                    sid.voices[v].susrel = instruments[myinstr].sustainRelease;
+
+                    unsigned char index = (themeSong[v][songIndex[v]].freqIndex)*2;
+                    sid.voices[v].freq = (freqList[index]<<8)|(freqList[index+1]);
+                    sid.voices[v].ctrl = instruments[myinstr].waveform | 0x01; // VOICE ON
+                }
+                songTickDown[v] = themeSong[v][songIndex[v]].duration-1;
+                songIndex[v]++;
+                if (songIndex[v] == themeSongLength[v]) {
+                    songIndex[v] = 0; // Songs repeat, so go back to beginning
+                }
+            } else {
+                songTickDown[v]--;
+            }   
+        }
+    }
+    if (playingSound) {
+        if (soundTickDown == 0) {
+            unsigned char myinstr = currentSoundEffect[soundEffectIndex].instIndex;
+                        
+            if (currentSoundEffect[soundEffectIndex].freqIndex == 255) {
+                sid.voices[2].ctrl = instruments[myinstr].waveform | 0x00; // VOICE OFF
+            } else {
+                sid.voices[2].attdec = instruments[myinstr].attackDecay;
+                sid.voices[2].susrel = instruments[myinstr].sustainRelease;
+
+                unsigned char index = (currentSoundEffect[soundEffectIndex].freqIndex)*2;
+                sid.voices[2].freq = (freqList[index]<<8)|(freqList[index+1]);
+                sid.voices[2].ctrl = instruments[myinstr].waveform | 0x01; // VOICE ON
+            }
+            soundTickDown = currentSoundEffect[soundEffectIndex].duration-1;
+            soundEffectIndex++;
+            if (soundEffectIndex == currentSoundEffectLength) {
+                soundEffectIndex = 0;
+                playingSound = false; // unlike music, sounds END
+            }
+        } else {
+            soundTickDown --;
+        }
+    }
 }

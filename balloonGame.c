@@ -1609,6 +1609,7 @@ void startGame(char *name, unsigned char title)
             // Collision with Ramp - GOOD
             Sound_endSong();
             landingOccurred(&playerData);
+            Sound_doSound(SOUND_EFFECT_PREPARE);
             Sound_startSong(SOUND_SONG_AIRBORNE);
         } else if ((sprColl & (SPRITE_CITY_OUTLINE_ENABLE | SPRITE_BALLOON_BG_ENABLE)) == (SPRITE_CITY_OUTLINE_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
             // Collision with City - BAD
