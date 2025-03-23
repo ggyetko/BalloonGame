@@ -46,6 +46,7 @@ enum Sound_SoundEffects {
     SOUND_EFFECT_PREPARE,
     SOUND_EFFECT_THRUST,
     SOUND_EFFECT_THRUST_BACK,
+    SOUND_EFFECT_ROLLCAR,
 };
 // use voice 3 to initiate a sound, cancelling any catalogued sound from Sound_SoundEffects
 extern void Sound_doSound(unsigned char soundEffectsIndex);

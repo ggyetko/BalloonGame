@@ -28,8 +28,9 @@ const unsigned int freqList[106] = {
 #define INSTR_XYLORING   6
 #define INSTR_XYLO       7
 #define INSTR_HARPSICHORD 8
+#define INSTR_SLOWROLL 8
 
-const Instrument instruments[9] =
+const Instrument instruments[10] =
 {
     {0x8C, 0x9C, WAVE_TRIANGLE }, // flute
     {0xf0, 0x21, WAVE_NOISE },   // warp wind
@@ -40,6 +41,7 @@ const Instrument instruments[9] =
     {0x08, 0x00, WAVE_TRIANGLE | 0x04}, // ringing xylo 
     {0x08, 0x00, WAVE_TRIANGLE}, // xylo
     {0x08, 0x20, WAVE_TRIANGLE | WAVE_SAW}, //harpsichord
+    {0x11, 0x81, WAVE_NOISE },   // slow roll
 };
 
 unsigned char soundEffectIndex;    // where we are in the current song
@@ -221,6 +223,15 @@ Note const soundEffectThrustBack[SOUND_EFFECT_THRUST_LENGTH] = {
     {INSTR_WARP_WIND, 12, 120}, {0, 0xff, 5}
 };
 
+#define SOUND_EFFECT_ROLLCAR_LENGTH 10
+Note const soundEffectRollCar[SOUND_EFFECT_ROLLCAR_LENGTH] = {
+    {INSTR_STICK, 12, 5}, {0, 0xff, 5},
+    {INSTR_STICK, 12, 5}, {0, 0xff, 5},
+    {INSTR_STICK, 12, 5}, {0, 0xff, 5},
+    {INSTR_STICK, 12, 5}, {0, 0xff, 5},
+    {INSTR_WARP_WIND, 12, 95}, {0, 0xff, 5}
+};
+
 Note const *currentSoundEffect;
 unsigned char currentSoundEffectLength;
 
@@ -237,6 +248,9 @@ void Sound_doSound(unsigned char soundEffectsIndex)
     } else if (soundEffectsIndex == SOUND_EFFECT_THRUST_BACK) {
         currentSoundEffect = soundEffectThrustBack;
         currentSoundEffectLength = SOUND_EFFECT_THRUST_LENGTH;
+    } else if (soundEffectsIndex == SOUND_EFFECT_ROLLCAR) {
+        currentSoundEffect = soundEffectRollCar;
+        currentSoundEffectLength = SOUND_EFFECT_ROLLCAR_LENGTH;
     }
     soundEffectIndex = 0;
     soundTickDown = 0;

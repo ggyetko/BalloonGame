@@ -926,6 +926,7 @@ void cityMenuBuy(PlayerData *data)
             {
                 data->money -= buyMenuCosts[responseBuy];
                 cargoInAnimation();
+                Sound_doSound(SOUND_EFFECT_ROLLCAR);
                 showScoreBoard(data);
             }
             lastChoice = responseBuy;
@@ -955,6 +956,7 @@ void cityMenuSell(PlayerData *data)
             break;
         } else {
             cargoOutAnimation();
+            Sound_doSound(SOUND_EFFECT_ROLLCAR);
             Quest_processDeliverTrigger(goodsIndexList[responseSell-1], CityCode_generateCityCode(currMap, cityNum));
             removeCargo(data, goodsIndexList[responseSell-1]);
             data->money += sellMenuCosts[responseSell];
@@ -1080,6 +1082,7 @@ void cityMenuPassenger(PlayerData *data, Passenger *tmpPsgrData)
         if (responsePassenger == 0) {
             break;
         } else if (addPassenger(data, &tmpPsgrData[responsePassenger-1])) {
+            Sound_doSound(SOUND_EFFECT_ROLLCAR);
             passengerInAnimation();
             removePassengerFromList(tmpPsgrData, responsePassenger-1);
             showScoreBoard(data);
@@ -1311,6 +1314,7 @@ void checkForLandingPassengers(PlayerData *data)
     for (unsigned char p=0; p<MAX_PASSENGERS; p++) {
         CityCode dest = data->cargo.psgr[p].destination;
         if((CityCode_getMapNum(dest) == currMap) && (CityCode_getCityNum(dest) == cityNum)) {
+            Sound_doSound(SOUND_EFFECT_ROLLCAR);
             passengerOutAnimation();
             // take fare
             data->money += data->cargo.psgr[p].fare;

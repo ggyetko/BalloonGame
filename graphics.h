@@ -5,6 +5,7 @@
 #include "city.h"
 #include "playerData.h"
 #include "namedGoods.h"
+#include "sound.h"
 
 #define BALLOON_COLOR          VCOL_WHITE
 #define BALLOON_OUTLINE_COLOR  VCOL_GREEN
@@ -313,7 +314,9 @@ unsigned char getMenuChoice(unsigned char num, unsigned char initChoice, const c
                 char ch = getch();
                 ScreenWork[19] = ch/10 +48;
                 ScreenWork[20] = ch%10 +48;
-                if (ch == 'W') {  
+                if (ch == 'W') {
+                    // debugsound
+                    // Sound_doSound(SOUND_EFFECT_ROLLCAR);
                     if (currSelect) {
                         currSelect --;
                         if (currSelect < currHome) {
