@@ -1261,6 +1261,7 @@ void cityMenuMayor(PlayerData *data, Passenger *tmpPsgrData)
                 // check for quest completion first
                 unsigned int completedQuestIndex = Quest_checkComplete(cityCode);
                 if (completedQuestIndex != INVALID_QUEST_INDEX) {
+                    Sound_doSound(SOUND_EFFECT_QUEST_DONE);
                     finishQuest(data, completedQuestIndex);
                     showScoreBoard(data);
                     updateCityWindow();
@@ -1271,6 +1272,7 @@ void cityMenuMayor(PlayerData *data, Passenger *tmpPsgrData)
                         cityRespectLevel[currMap][cityNum-1],
                         tmpPsgrData);
                     if (questIndex != INVALID_QUEST_INDEX) {
+                        Sound_doSound(SOUND_EFFECT_QUEST_RING);
                         displayQuest(questIndex);
                     }
                 }

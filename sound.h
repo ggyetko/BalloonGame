@@ -41,11 +41,16 @@ extern void Sound_endSong(void);
 // Once a song is started, call this every screen refresh
 extern void Sound_tick(void);
 
+// Sounds that appear earlier in the list will override 
+// any sounds later in the list, even in mid-play
 enum Sound_SoundEffects {
     SOUND_EFFECT_BURN = 0,
     SOUND_EFFECT_PREPARE,
-    SOUND_EFFECT_THRUST,
+    SOUND_EFFECT_QUEST_RING,
+    SOUND_EFFECT_QUEST_FULFILL,
+    SOUND_EFFECT_QUEST_DONE,
     SOUND_EFFECT_THRUST_BACK,
+    SOUND_EFFECT_THRUST,
     SOUND_EFFECT_ROLLCAR,
 };
 // use voice 3 to initiate a sound, cancelling any catalogued sound from Sound_SoundEffects

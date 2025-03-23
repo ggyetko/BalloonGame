@@ -2,6 +2,7 @@
 #include "namedPassenger.h"
 #include "city.h"
 #include "utils.h"
+#include "sound.h"
 
 // if it's 0, this is a new quest, unknown to the user
 // if it's 1, this quest is 
@@ -86,6 +87,9 @@ void Quest_processDeliverTrigger(unsigned char const itemIndex, CityCode const d
                 && (allQuests[questIndex].itemIndex == itemIndex)
                 && (questLog[x].completeness < allQuests[questIndex].numItems)) {
                 questLog[x].completeness ++;
+                if (questLog[x].completeness == allQuests[questIndex].numItems) {
+                    Sound_doSound(SOUND_EFFECT_QUEST_FULFILL);
+                }
             }
             // check for "buy me this stuff" quests
         }
@@ -104,6 +108,7 @@ void Quest_processArrivalTrigger(char const *name, CityCode const destCity)
             && (tenCharCmp(name, namedPassengers[allQuests[questIndex].itemIndex].name) == 0))
         {
                 questLog[questLogIndex].completeness = 1;
+                Sound_doSound(SOUND_EFFECT_QUEST_FULFILL);
                 break;
         }
     }

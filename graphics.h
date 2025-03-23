@@ -316,7 +316,7 @@ unsigned char getMenuChoice(unsigned char num, unsigned char initChoice, const c
                 ScreenWork[20] = ch%10 +48;
                 if (ch == 'W') {
                     // debugsound
-                    // Sound_doSound(SOUND_EFFECT_ROLLCAR);
+                    //Sound_doSound(SOUND_EFFECT_QUEST_RING);
                     if (currSelect) {
                         currSelect --;
                         if (currSelect < currHome) {

@@ -44,9 +44,10 @@ const Instrument instruments[10] =
     {0x11, 0x81, WAVE_NOISE },   // slow roll
 };
 
+#define SOUND_NO_SOUND_EFFECT 0xff
 unsigned char soundEffectIndex;    // where we are in the current song
 unsigned char soundTickDown; // clock ticks until next action
-bool playingSound;
+unsigned playingSound;       // set to 0xff to play nothing
 
 
 unsigned char songIndex[2];    // where we are in the current song
@@ -68,7 +69,7 @@ void Sound_initSid(void)
     
     playingSong = false;
     
-    playingSound = false;
+    playingSound = SOUND_NO_SOUND_EFFECT;
 }
 
 
@@ -229,7 +230,43 @@ Note const soundEffectRollCar[SOUND_EFFECT_ROLLCAR_LENGTH] = {
     {INSTR_STICK, 12, 5}, {0, 0xff, 5},
     {INSTR_STICK, 12, 5}, {0, 0xff, 5},
     {INSTR_STICK, 12, 5}, {0, 0xff, 5},
-    {INSTR_WARP_WIND, 12, 95}, {0, 0xff, 5}
+    {INSTR_WARP_WIND, 24, 95}, {0, 0xff, 5}
+};
+
+#define SOUND_EFFECT_QUEST_RING_LENGTH 16
+Note const soundEffectQuestRing[SOUND_EFFECT_QUEST_RING_LENGTH] = {
+    {INSTR_XYLO, 36, 2}, {0,0xff,3},
+    {INSTR_XYLO, 38, 2}, {0,0xff,3},
+    {INSTR_XYLO, 40, 2}, {0,0xff,3},
+    {INSTR_XYLO, 41, 2}, {0,0xff,3},
+    {INSTR_XYLO, 43, 2}, {0,0xff,3},
+    {INSTR_XYLO, 45, 2}, {0,0xff,3},
+    {INSTR_XYLO, 47, 2}, {0,0xff,3},
+    {INSTR_SNARE,36, 25}, {0,0xff,5},
+};
+
+#define SOUND_EFFECT_QUEST_RING_LENGTH 16
+Note const soundEffectQuestFulfill[SOUND_EFFECT_QUEST_RING_LENGTH] = {
+    {INSTR_XYLO, 36, 2}, {0,0xff,3},
+    {INSTR_XYLO, 38, 2}, {0,0xff,3},
+    {INSTR_XYLO, 40, 2}, {0,0xff,3},
+    {INSTR_XYLO, 41, 2}, {0,0xff,3},
+    {INSTR_XYLO, 43, 2}, {0,0xff,3},
+    {INSTR_XYLO, 45, 2}, {0,0xff,3},
+    {INSTR_XYLO, 47, 2}, {0,0xff,3},
+    {INSTR_XYLO, 48, 2}, {0,0xff,5},
+};
+
+#define SOUND_EFFECT_QUEST_RING_LENGTH 16
+Note const soundEffectQuestDone[SOUND_EFFECT_QUEST_RING_LENGTH] = {
+    {INSTR_XYLO, 36, 2}, {0,0xff,3},
+    {INSTR_XYLO, 38, 2}, {0,0xff,3},
+    {INSTR_XYLO, 40, 2}, {0,0xff,3},
+    {INSTR_XYLO, 41, 2}, {0,0xff,3},
+    {INSTR_XYLO, 43, 2}, {0,0xff,3},
+    {INSTR_XYLO, 45, 2}, {0,0xff,3},
+    {INSTR_XYLO, 47, 2}, {0,0xff,3},
+    {INSTR_FLUTE,48, 25}, {0,0xff,5},
 };
 
 Note const *currentSoundEffect;
@@ -238,7 +275,13 @@ unsigned char currentSoundEffectLength;
 // use voice 3 to initiate a sound, (?cancelling any previous sound? tbd)
 void Sound_doSound(unsigned char soundEffectsIndex)
 {
-    if (playingSound) return;
+    if (soundEffectsIndex >= playingSound) {
+        return;
+    }
+    if (playingSound != SOUND_NO_SOUND_EFFECT) {
+        // clear sound??
+    }
+    
     if (soundEffectsIndex == SOUND_EFFECT_PREPARE) {
         currentSoundEffect = soundEffectPrepare;
         currentSoundEffectLength = SOUND_EFFECT_PREPARE_LENGTH;
@@ -251,10 +294,20 @@ void Sound_doSound(unsigned char soundEffectsIndex)
     } else if (soundEffectsIndex == SOUND_EFFECT_ROLLCAR) {
         currentSoundEffect = soundEffectRollCar;
         currentSoundEffectLength = SOUND_EFFECT_ROLLCAR_LENGTH;
+    } else if (soundEffectsIndex == SOUND_EFFECT_QUEST_RING) {
+        currentSoundEffect = soundEffectQuestRing;
+        currentSoundEffectLength = SOUND_EFFECT_QUEST_RING_LENGTH;
+    } else if (soundEffectsIndex == SOUND_EFFECT_QUEST_FULFILL) {
+        currentSoundEffect = soundEffectQuestFulfill;
+        currentSoundEffectLength = SOUND_EFFECT_QUEST_RING_LENGTH;
+    } else if (soundEffectsIndex == SOUND_EFFECT_QUEST_DONE) {
+        currentSoundEffect = soundEffectQuestDone;
+        currentSoundEffectLength = SOUND_EFFECT_QUEST_RING_LENGTH;
     }
+    
     soundEffectIndex = 0;
     soundTickDown = 0;
-    playingSound = true;
+    playingSound = soundEffectsIndex;
 }
 
 void Sound_tick(void)
@@ -284,7 +337,7 @@ void Sound_tick(void)
             }   
         }
     }
-    if (playingSound) {
+    if (playingSound != SOUND_NO_SOUND_EFFECT) {
         if (soundTickDown == 0) {
             unsigned char myinstr = currentSoundEffect[soundEffectIndex].instIndex;
                         
@@ -302,7 +355,7 @@ void Sound_tick(void)
             soundEffectIndex++;
             if (soundEffectIndex == currentSoundEffectLength) {
                 soundEffectIndex = 0;
-                playingSound = false; // unlike music, sounds END
+                playingSound = SOUND_NO_SOUND_EFFECT; // unlike music, sounds END
             }
         } else {
             soundTickDown --;
