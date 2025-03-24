@@ -1641,9 +1641,15 @@ void startGame(char *name, unsigned char title)
             char ch = getch();
             if (status & STATUS_SCROLLING) {
                 if (ch == 'A') {
-                    Sound_doSound(SOUND_EFFECT_THRUST_BACK);
-                    invokeDecel(64);
-                    playerData.fuel -= 600;
+                    if (playerData.fuel) {
+                        if (playerData.fuel >= 600) {
+                            playerData.fuel -= 600;
+                        } else  {
+                            playerData.fuel = 0;
+                        }
+                        Sound_doSound(SOUND_EFFECT_THRUST_BACK);
+                        invokeDecel(64);
+                    }
                 } else if (ch == 'W') {
                     if (playerData.fuel) {
                         if (playerData.fuel > 200) {
