@@ -1664,6 +1664,7 @@ void startGame(char *name, unsigned char title)
                     break;
                 } else if (ch == 'I') {
                     if ((status & STATUS_CITY_VIS) && (cityXPos > 80)){
+                        Sound_doSound(SOUND_EFFECT_EXTEND);
                         status |= STATUS_CITY_RAMP;
                         vic.spr_enable |= SPRITE_RAMP_ENABLE;
                         showScoreBoard(&playerData);

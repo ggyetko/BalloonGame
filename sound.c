@@ -245,7 +245,6 @@ Note const soundEffectQuestRing[SOUND_EFFECT_QUEST_RING_LENGTH] = {
     {INSTR_SNARE,36, 25}, {0,0xff,5},
 };
 
-#define SOUND_EFFECT_QUEST_RING_LENGTH 16
 Note const soundEffectQuestFulfill[SOUND_EFFECT_QUEST_RING_LENGTH] = {
     {INSTR_XYLO, 36, 2}, {0,0xff,3},
     {INSTR_XYLO, 38, 2}, {0,0xff,3},
@@ -257,7 +256,6 @@ Note const soundEffectQuestFulfill[SOUND_EFFECT_QUEST_RING_LENGTH] = {
     {INSTR_XYLO, 48, 2}, {0,0xff,5},
 };
 
-#define SOUND_EFFECT_QUEST_RING_LENGTH 16
 Note const soundEffectQuestDone[SOUND_EFFECT_QUEST_RING_LENGTH] = {
     {INSTR_XYLO, 36, 2}, {0,0xff,3},
     {INSTR_XYLO, 38, 2}, {0,0xff,3},
@@ -268,6 +266,27 @@ Note const soundEffectQuestDone[SOUND_EFFECT_QUEST_RING_LENGTH] = {
     {INSTR_XYLO, 47, 2}, {0,0xff,3},
     {INSTR_FLUTE,48, 25}, {0,0xff,5},
 };
+
+#define SOUND_EFFECT_EXTEND_LENGTH      12
+Note const soundEffectExtend[SOUND_EFFECT_EXTEND_LENGTH] = {
+    {INSTR_STICK, 12, 2}, {0, 0xff, 2},
+    {INSTR_STICK, 12, 2}, {0, 0xff, 2},
+    {INSTR_STICK, 12, 2}, {0, 0xff, 2},
+    {INSTR_STICK, 12, 2}, {0, 0xff, 2},
+    {INSTR_STICK, 12, 2}, {0, 0xff, 2},
+    {INSTR_STICK, 12, 2}, {0, 0xff, 2},
+};
+
+#define SOUND_EFFECT_PORTAL_ANNOUNCE_LENGTH      12
+Note const soundEffectPortal[SOUND_EFFECT_PORTAL_ANNOUNCE_LENGTH] = {
+    {INSTR_XYLO, 31, 5}, {0, 0xff, 1},
+    {INSTR_XYLO, 33, 5}, {0, 0xff, 1},
+    {INSTR_XYLO, 36, 5}, {0, 0xff, 1},
+    {INSTR_XYLO, 33, 5}, {0, 0xff, 1},
+    {INSTR_XYLO, 31, 5}, {0, 0xff, 1},
+    {INSTR_FLUTE, 24, 5}, {0, 0xff, 1},
+};
+
 
 Note const *currentSoundEffect;
 unsigned char currentSoundEffectLength;
@@ -303,6 +322,12 @@ void Sound_doSound(unsigned char soundEffectsIndex)
     } else if (soundEffectsIndex == SOUND_EFFECT_QUEST_DONE) {
         currentSoundEffect = soundEffectQuestDone;
         currentSoundEffectLength = SOUND_EFFECT_QUEST_RING_LENGTH;
+    } else if (soundEffectsIndex == SOUND_EFFECT_PORTAL_ANNOUNCE) {
+        currentSoundEffect = soundEffectPortal;
+        currentSoundEffectLength = SOUND_EFFECT_PORTAL_ANNOUNCE_LENGTH;
+    } else if (soundEffectsIndex == SOUND_EFFECT_EXTEND) {
+        currentSoundEffect = soundEffectExtend;
+        currentSoundEffectLength = SOUND_EFFECT_EXTEND_LENGTH;
     }
     
     soundEffectIndex = 0;
