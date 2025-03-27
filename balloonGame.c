@@ -13,6 +13,7 @@
 #include "quest.h"
 #include "upgrade.h"
 #include "sound.h"
+#include "terrain.h"
 
 // Screen1 is        0x0400 to 0x7ff
 // Weird stuff from 0x0800 to 0x09ff, don't touch this region or it goes bad
@@ -96,15 +97,19 @@ __export const char spriteset2[256] = { // starts at 0x3400
 // .... ..?. - is there a city in Sprite #3?
 // .... .?.. - is the city ramp out?
 volatile unsigned char status;
-enum {
+enum ScrollingStatuses{
     STATUS_SCROLLING = 0x01,
     STATUS_CITY_VIS  = 0x02,
     STATUS_CITY_RAMP = 0x04,
+    STATUS_SWIRL_READY = 0x08,
+    STATUS_SWIRL_ON  = 0x10,
+};
+
+enum {
     STATUS_CARGO_IN  = 0x08,
     STATUS_CARGO_OUT = 0x10,
     STATUS_PSGR_IN   = 0x20,
     STATUS_PSGR_OUT  = 0x40,
-    STATUS_SWIRL_ON  = 0x80,
 };
 
 // GLOBALS
@@ -127,6 +132,9 @@ volatile int yVel;          // signed int, yPos/50th of a second
 volatile unsigned int  cityXPos;  // While in travelling mode, where is the city sprite?
 volatile unsigned char cityYPos;  // While in travelling mode, where is the city sprite?
 volatile unsigned char cityNum;   // While in travelling mode, what city are we near?
+volatile unsigned int  swirlXPos;  // While in travelling mode, where is the swirl sprite?
+volatile unsigned char swirlYPos;  // While in travelling mode, where is the swirl sprite?
+volatile unsigned char portalNextMap; // if you hit the next Portal, you'll go to this map.
 
 volatile char currMap;   // what world are you in
 volatile char mapXCoord; // where are you in the world (right edge of screen)
@@ -155,46 +163,8 @@ volatile unsigned char soundIndex;
  */
  
 #include "namedGoods.h"
- 
-const char terrain[2][256] ={
-    {
-        013,013,022,022,031,021,021,022, 012,013,023,032,041,031,021,022,
-        012,022,023,032,032,031,021,022, 012,022,023,012,012,021,031,022,
-        013,013,022,022,031,021,021,022, 012,013,023,032,041,031,021,022,
-        012,022,023,032,032,031,021,022, 012,022,0123,013,013,022,032,022, // City #1
-        013,013,022,022,031,021,021,022, 012,013,023,032,041,031,021,022,
-        012,022,023,032,032,031,021,022, 012,022,023,012,012,021,031,022,
-        013,013,022,022,031,021,021,022, 012,013,023,032,041,031,021,022,
-        012,022,023,032,032,031,021,022, 012,022,023,012,012,021,031,022,
-        013,013,022,022,031,021,021,022, 012,013,023,032,041,031,021,022, 
-        012,022,021,031,032,031,022,0223, 013,023,023,014,013,022,032,022, // City #2
-        013,013,022,022,031,021,021,022, 012,013,023,032,041,031,021,022,
-        012,022,023,032,032,031,021,022, 012,022,023,012,012,021,031,022,
-        013,013,022,022,031,021,021,022, 012,013,023,032,041,031,021,022,
-        011,022,022,031,032,031,021,022, 012,022,021,011,011,021,031,021,
-        011,011,021,0324,034,024,024,023, 012,012,023,032,041,031,021,022, // City #3
-        012,022,023,032,032,031,021,022, 012,022,023,012,012,021,031,022,
-    },
-    {
-        011,011,012,023,023,023,014,015,  025,025,025,024,034,043,053,052, 
-        051,051,052,043,043,043,033,033,  024,034,044,043,043,032,022,012, 
-        011,011,012,023,023,023,014,015,  025,025,025,024,034,043,053,052, 
-        051,051,051,041,041,041,0133,033, 033,034,044,043,043,032,022,012, // City #1
-        011,011,012,023,024,025,016,017,  027,027,022,022,033,044,043,052, 
-        051,041,042,043,043,043,043,042,  041,041,052,061,062,062,071,072, 
-        072,063,052,042,023,023,014,015,  025,025,025,024,034,043,053,052, 
-        051,051,052,043,043,043,033,033,  024,034,044,043,043,032,022,012, 
-        011,011,012,023,023,023,014,015,  025,025,025,024,034,043,053,052, 
-        051,051,052,043,043,042,031,031, 021,031,0223,043,043,035,025,014, // City #2
-        013,013,013,023,023,023,014,015,  025,025,025,024,034,043,053,052, 
-        051,051,052,043,043,043,033,033,  024,034,044,043,043,032,022,012, 
-        011,011,012,023,023,023,014,015,  025,025,025,024,034,043,053,052, 
-        051,051,052,043,043,043,033,033,  024,034,044,043,043,032,022,012, 
-        011,011,012,0323,023,023,014,015, 025,025,025,024,034,043,053,052, // City #3
-        051,051,052,043,043,043,033,033,  024,034,044,043,043,032,022,012
-    }
-};
 
+ 
 const char decelPattern[8] =  {2,3,4,5,6,7,8,16};
 const char mountainHeight[8] = {0,1,2,3,4,6,8,10};
 
@@ -207,13 +177,13 @@ const char mountainHeight[8] = {0,1,2,3,4,6,8,10};
 #define BOTTOM_RASTER_LIMIT     250
 // SPRITE LIST
 //         050-85        086-120               121-210
-//      Travelling Hi    Travelling Medium     Travelling Low     Work Screen
-// #0 - Balloon Outline  ----------------------------------->     Cargo In
-// #1 - Balloon Backgrnd ----------------------------------->     Cargo Out
-// #2 - Back thrust      ----------------------------------->     Psgr In
-// #3 - Up Thrust        ----------------------------------->     Psgr Out
+//      Travelling Hi    Travelling Medium     Travelling Low      Work Screen
+// #0 - Balloon Outline  ----------------------------------->      Cargo In
+// #1 - Balloon Backgrnd ----------------------------------->      Cargo Out
+// #2 - Back thrust      ----------------------------------->      Psgr In
+// #3 - Up Thrust        ----------------------------------->      Psgr Out
 // #4 -                                        Ramp/Swirl
-// #5 -                                        City Outline
+// #5 -                                        City Outline/swirl2
 // #6 - Cloud Outline    ----------------->    City Shape
 // #7 - Cloud Background ----------------->    City BackShade
 
@@ -224,12 +194,13 @@ const char mountainHeight[8] = {0,1,2,3,4,6,8,10};
 //#define SPRITE_UNUSED        4
 #define SPRITE_RAMP            5
 #define SPRITE_SWIRL           5
+#define SPRITE_SWIRL2          6
 #define SPRITE_CLOUD_OUTLINE   6
 #define SPRITE_CLOUD_BG        7
 
 #define SPRITE_CITY_OUTLINE    4
 #define SPRITE_CITY_BG         6
-#define SPRITE_CITY_SHADE     7
+#define SPRITE_CITY_SHADE      7
 
 
 #define SPRITE_BALLOON_OUTLINE_ENABLE 0x01
@@ -349,6 +320,14 @@ __interrupt void prepScreen(void)
     vic_sprxy(SPRITE_CLOUD_OUTLINE,cloudXPos[0],cloudYPos[0]);
     vic_sprxy(SPRITE_CLOUD_BG,cloudXPos[0],cloudYPos[0]);
     setScrollAmnt (xScroll);
+    
+    if (status & STATUS_SWIRL_ON) {
+        Screen0[0x03f8+SPRITE_SWIRL] = PortalSwirl1Location + (counter & 0x3); // choose from 4 swirl sprites
+        Screen1[0x03f8+SPRITE_SWIRL] = PortalSwirl1Location + (counter & 0x3); // choose from 4 swirl sprites
+        vic.spr_enable |= SPRITE_SWIRL_ENABLE;
+        vic.spr_color[SPRITE_SWIRL] = PORTAL_COLOR;
+        vic_sprxy(SPRITE_SWIRL, swirlXPos, swirlYPos);
+    }
 }
 
 // Set up the cloud sprite for the middle level
@@ -448,7 +427,7 @@ __interrupt void lowerStatBar(void)
             vic.spr_enable &= ~SPRITE_UP_THRUST_ENABLE;
         }
     }
-    // handle city movement    
+    // handle city ramp status    
     if (cityXPos) {
         if (status & STATUS_CITY_RAMP){
             if (cityXPos < 80) {
@@ -513,6 +492,12 @@ __interrupt void scrollLeft(void)
                 if (cityXPos == 0) {
                     status &= ~(STATUS_CITY_VIS | STATUS_CITY_RAMP); // turn off city and ramp
                 }  
+            }
+            if (status & STATUS_SWIRL_ON) {
+                swirlXPos --;
+                if (swirlXPos == 0) {
+                    status &= ~(STATUS_SWIRL_ON | STATUS_SWIRL_READY);
+                }
             }
         } 
     }
@@ -1340,10 +1325,34 @@ void clearCollisions(void)
     dummy = vic.spr_sprcol;       // clear sprite^2 collisions
 }
 
+void portalEntered(void)
+{
+    // Three seconds of no-scrolling on new map
+    setScrollActive(false, 150);
+    clearBalloonScreens();
+    
+    clearRasterIrqs();
+    clearMovement();
+    // turn off ALL sprites
+    vic.spr_enable = 0x00;
+    
+    currMap = portalNextMap;
+    yPos = 20480;   // internal Y position of balloon, middle of field
+    mapXCoord = 0;
+
+    status = 0;
+    cityNum = 0;
+    vic.spr_enable = 0;
+
+    setupRasterIrqs();
+    setupTravellingSprites();
+    vic.spr_enable = SPRITE_BALLOON_OUTLINE_ENABLE | SPRITE_BALLOON_BG_ENABLE;
+    clearCollisions();
+}
+
 void landingOccurred(PlayerData *data)
 {
     clearRasterIrqs();
-    // turn off sidescrolling
     clearMovement();
     // turn off ALL sprites
     vic.spr_enable = 0x00;
@@ -1368,7 +1377,9 @@ void landingOccurred(PlayerData *data)
     setupRasterIrqsWorkScreen();
     clearKeyboardCache();
     checkForLandingPassengers(data);
+    status = 0;
     cityMenu(data, tmpPsgrData);
+    status = STATUS_CITY_VIS;
     
     // return to travelling state
     if (currScreen == 0) {
@@ -1611,12 +1622,22 @@ void startGame(char *name, unsigned char title)
             }
         }
         unsigned char sprColl = vic.spr_sprcol;
-        if ((sprColl & (SPRITE_RAMP_ENABLE | SPRITE_BALLOON_BG_ENABLE)) == (SPRITE_RAMP_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
-            // Collision with Ramp - GOOD
-            Sound_endSong();
-            landingOccurred(&playerData);
-            Sound_doSound(SOUND_EFFECT_PREPARE);
-            Sound_startSong(SOUND_SONG_AIRBORNE);
+        if (status & STATUS_CITY_RAMP) {
+            if ((sprColl & (SPRITE_RAMP_ENABLE | SPRITE_BALLOON_BG_ENABLE)) == (SPRITE_RAMP_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
+                // Collision with Ramp - GOOD
+                Sound_endSong();
+                landingOccurred(&playerData);
+                Sound_doSound(SOUND_EFFECT_PREPARE);
+                Sound_startSong(SOUND_SONG_AIRBORNE);
+            }
+        } else if (status & STATUS_SWIRL_ON) {
+            if ((sprColl & (SPRITE_SWIRL_ENABLE | SPRITE_BALLOON_BG_ENABLE)) == (SPRITE_SWIRL_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
+                // Collision with Ramp - GOOD
+                Sound_endSong();
+                // maybe a special sound here, special song?
+                portalEntered();
+                Sound_startSong(SOUND_SONG_AIRBORNE);
+            }
         } else if ((sprColl & (SPRITE_CITY_OUTLINE_ENABLE | SPRITE_BALLOON_BG_ENABLE)) == (SPRITE_CITY_OUTLINE_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
             // Collision with City - BAD
             if (playerData.fuel == 0) {
@@ -1669,6 +1690,11 @@ void startGame(char *name, unsigned char title)
                         vic.spr_enable |= SPRITE_RAMP_ENABLE;
                         showScoreBoard(&playerData);
                     }
+                } else if (ch == 'P') {
+                    if (isPortalNear(currMap, mapXCoord)) {
+                        // This will trigger the swirl when it's swirl time
+                        status |= STATUS_SWIRL_READY;
+                    }
                 }
             } // throw away key presses while game is frozen
         }
@@ -1676,6 +1702,9 @@ void startGame(char *name, unsigned char title)
             showScoreBoard(&playerData);
             char oldCoord = mapXCoord;
             mapXCoord += 1;
+            if (isPortalSignallable (currMap, mapXCoord)) {
+                Sound_doSound(SOUND_EFFECT_PORTAL_ANNOUNCE);
+            }
             char currCoord = mapXCoord;
             char nextCoord = mapXCoord + 1;
             char roof[3] = { mountainHeight[(terrain[currMap][oldCoord]>>3) & 0x7],
@@ -1695,6 +1724,14 @@ void startGame(char *name, unsigned char title)
                 cityNum = city;
                 cityXPos = (unsigned int)(256+92);
                 cityYPos = 202 - (8*mountainHeight[(terrain[currMap][currCoord] & 0x7)]) - 16;
+            }
+            if ((status & STATUS_SWIRL_READY) && ((status & STATUS_SWIRL_ON) == 0))  {
+                portalNextMap = isPortalHere(currMap, mapXCoord);
+                if (portalNextMap != TERRAIN_NO_PORTAL) {
+                    status |= STATUS_SWIRL_ON;
+                    swirlXPos = (unsigned int)(256+92);
+                    swirlYPos = 120;
+                }
             }
             flip = 0;
         }

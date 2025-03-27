@@ -279,12 +279,12 @@ Note const soundEffectExtend[SOUND_EFFECT_EXTEND_LENGTH] = {
 
 #define SOUND_EFFECT_PORTAL_ANNOUNCE_LENGTH      12
 Note const soundEffectPortal[SOUND_EFFECT_PORTAL_ANNOUNCE_LENGTH] = {
-    {INSTR_XYLO, 31, 5}, {0, 0xff, 1},
-    {INSTR_XYLO, 33, 5}, {0, 0xff, 1},
-    {INSTR_XYLO, 36, 5}, {0, 0xff, 1},
-    {INSTR_XYLO, 33, 5}, {0, 0xff, 1},
-    {INSTR_XYLO, 31, 5}, {0, 0xff, 1},
-    {INSTR_FLUTE, 24, 5}, {0, 0xff, 1},
+    {INSTR_XYLO, 43, 5}, {0, 0xff, 1},
+    {INSTR_XYLO, 45, 5}, {0, 0xff, 1},
+    {INSTR_XYLO, 48, 5}, {0, 0xff, 1},
+    {INSTR_XYLO, 45, 5}, {0, 0xff, 1},
+    {INSTR_XYLO, 43, 5}, {0, 0xff, 1},
+    {INSTR_FLUTE, 36, 5}, {0, 0xff, 1},
 };
 
 

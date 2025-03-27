@@ -18,7 +18,7 @@
 #define RAMP_COLOR             VCOL_BROWN
 #define CLOUD_COLOR            VCOL_WHITE
 #define CLOUD_OUTLINE_COLOR    VCOL_BLUE
-
+#define PORTAL_COLOR           VCOL_WHITE
 
 #define Screen0 ((char *)0x0400)
 #define Screen1 ((char *)0x2c00)
@@ -40,6 +40,16 @@ void clearFullWorkScreen(void)
     for (unsigned char x = 0;x<40;x++) {
         for (unsigned char y = 0;y<25;y++) {
             ScreenWork[x+y*40] = 32;
+        }
+    }    
+}
+
+void clearBalloonScreens(void)
+{
+    for (unsigned char x = 0;x<40;x++) {
+        for (unsigned char y = 0;y<20;y++) {
+            Screen0[x+y*40] = 32;
+            Screen1[x+y*40] = 32;
         }
     }    
 }
