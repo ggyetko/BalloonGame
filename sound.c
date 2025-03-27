@@ -28,9 +28,10 @@ const unsigned int freqList[106] = {
 #define INSTR_XYLORING   6
 #define INSTR_XYLO       7
 #define INSTR_HARPSICHORD 8
-#define INSTR_SLOWROLL 8
+#define INSTR_SLOWROLL   9
+#define INSTR_WIND       10
 
-const Instrument instruments[10] =
+const Instrument instruments[11] =
 {
     {0x8C, 0x9C, WAVE_TRIANGLE }, // flute
     {0xf0, 0x21, WAVE_NOISE },   // warp wind
@@ -42,6 +43,7 @@ const Instrument instruments[10] =
     {0x08, 0x00, WAVE_TRIANGLE}, // xylo
     {0x08, 0x20, WAVE_TRIANGLE | WAVE_SAW}, //harpsichord
     {0x11, 0x81, WAVE_NOISE },   // slow roll
+    {0x00, 0xf1, WAVE_NOISE },
 };
 
 #define SOUND_NO_SOUND_EFFECT 0xff
@@ -287,6 +289,28 @@ Note const soundEffectPortal[SOUND_EFFECT_PORTAL_ANNOUNCE_LENGTH] = {
     {INSTR_FLUTE, 36, 5}, {0, 0xff, 1},
 };
 
+#define SOUND_EFFECT_PORTAL_SIGNAL_LENGTH      10
+Note const soundEffectPortalSignal[SOUND_EFFECT_PORTAL_SIGNAL_LENGTH] = {
+    {INSTR_XYLO, 48, 5}, {0, 0xff, 1},
+    {INSTR_XYLO, 45, 5}, {0, 0xff, 1},
+    {INSTR_XYLO, 43, 5}, {0, 0xff, 1},
+    {INSTR_XYLO, 45, 5}, {0, 0xff, 1},
+    {INSTR_XYLO, 48, 5}, {0, 0xff, 1},
+};
+
+#define SOUND_EFFECT_PORTAL_ENTRY_LENGTH      20
+Note const soundEffectPortalEntry[SOUND_EFFECT_PORTAL_ENTRY_LENGTH] = {
+    {INSTR_WIND, 24, 5}, {0, 0xff, 1},
+    {INSTR_WIND, 27, 5}, {0, 0xff, 1},
+    {INSTR_WIND, 30, 5}, {0, 0xff, 1},
+    {INSTR_WIND, 33, 5}, {0, 0xff, 1},
+    {INSTR_WIND, 36, 5}, {0, 0xff, 1},
+    {INSTR_WIND, 39, 5}, {0, 0xff, 1},
+    {INSTR_WIND, 42, 5}, {0, 0xff, 1},
+    {INSTR_WIND, 45, 5}, {0, 0xff, 1},
+    {INSTR_WIND, 48, 5}, {0, 0xff, 1},
+    {INSTR_WARP_WIND, 48, 50}, {0, 0xff, 1},
+};
 
 Note const *currentSoundEffect;
 unsigned char currentSoundEffectLength;
@@ -328,6 +352,12 @@ void Sound_doSound(unsigned char soundEffectsIndex)
     } else if (soundEffectsIndex == SOUND_EFFECT_EXTEND) {
         currentSoundEffect = soundEffectExtend;
         currentSoundEffectLength = SOUND_EFFECT_EXTEND_LENGTH;
+    } else if (soundEffectsIndex == SOUND_EFFECT_PORTAL_ENTRY) {
+        currentSoundEffect = soundEffectPortalEntry;
+        currentSoundEffectLength = SOUND_EFFECT_PORTAL_ENTRY_LENGTH;
+    } else if (soundEffectsIndex == SOUND_EFFECT_PORTAL_SIGNAL) {
+        currentSoundEffect = soundEffectPortalSignal;
+        currentSoundEffectLength == SOUND_EFFECT_PORTAL_SIGNAL_LENGTH;
     }
     
     soundEffectIndex = 0;

@@ -1635,6 +1635,7 @@ void startGame(char *name, unsigned char title)
                 // Collision with Ramp - GOOD
                 Sound_endSong();
                 // maybe a special sound here, special song?
+                Sound_doSound(SOUND_EFFECT_PORTAL_ENTRY);
                 portalEntered();
                 Sound_startSong(SOUND_SONG_AIRBORNE);
             }
@@ -1694,6 +1695,7 @@ void startGame(char *name, unsigned char title)
                     if (isPortalNear(currMap, mapXCoord)) {
                         // This will trigger the swirl when it's swirl time
                         status |= STATUS_SWIRL_READY;
+                        Sound_doSound(SOUND_EFFECT_PORTAL_SIGNAL);
                     }
                 }
             } // throw away key presses while game is frozen
