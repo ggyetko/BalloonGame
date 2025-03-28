@@ -34,11 +34,14 @@ extern const unsigned int REPAIR_COST_FACILITY_REDUCTION = 150;
 #define MAX_BUY_GOODS 4
 #define MAX_SELL_GOODS 4
 
+#define CITY_GAMEINFO_SIZE 120
+
 struct CityData {
-    unsigned char name[10];
+    char name[10];
     unsigned int facility;
     DemandedGoods buyGoods[MAX_BUY_GOODS];
     AvailableGoods sellGoods[MAX_SELL_GOODS];
+    char gameInfo[CITY_GAMEINFO_SIZE];
 };
 
 struct CityCode {

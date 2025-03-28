@@ -640,6 +640,10 @@ void setupUpIntroSprites(void) {
 }
 
 void setupUpCargoSprites(void) {
+    cargoInXPos = 0;
+    cargoInYPos = 0;
+    cargoOutXPos = 0;
+    cargoOutYPos = 0;
     vic.spr_expand_x = 0x00;
     vic.spr_expand_y = 0x00;
 	ScreenWork[0x03f8+SPRITE_CARGO_IN] = BalloonCartLocation;
@@ -1200,12 +1204,14 @@ void cityMenuUpgrade(PlayerData *data)
         unsigned char upgradeList[4][10] = {s"return    "};
         unsigned int costList[4] = {0,0};
         unsigned char upgradeIndexList[4] = {0};
-        for (unsigned char x=0; x<UPGRADE_NUM_UPGRADES ;x++) {
-            if (cities[currMap][cityNum-1].facility & upgrades[x].facilityMask) {
-                tenCharCopy(upgradeList[listLength], upgrades[x].name);
-                costList[listLength] = upgrades[x].cost;
-                upgradeIndexList[listLength] = x;
-                listLength++;
+        if (cityRespectLevel[currMap][cityNum-1] == CITY_RESPECT_HIGH) {
+            for (unsigned char x=0; x<UPGRADE_NUM_UPGRADES ;x++) {
+                if (cities[currMap][cityNum-1].facility & upgrades[x].facilityMask) {
+                    tenCharCopy(upgradeList[listLength], upgrades[x].name);
+                    costList[listLength] = upgrades[x].cost;
+                    upgradeIndexList[listLength] = x;
+                    listLength++;
+                }
             }
         }
         unsigned char respUpgrade = getMenuChoice(listLength,0,upgradeList,true,costList);
@@ -1227,8 +1233,8 @@ void cityMenuMayor(PlayerData *data, Passenger *tmpPsgrData)
 {
     showMayor(data);
     for (;;) {
-        unsigned char mayorList[4][10] = {s"return    ",s"town      ",s"chat      ",s"gift      "};
-        unsigned char responseMayor = getMenuChoice(4, 0, mayorList, false, nullptr);
+        unsigned char mayorList[5][10] = {s"return    ",s"town      ",s"quest     ",s"chat      ", s"gift      "};
+        unsigned char responseMayor = getMenuChoice(5, 0, mayorList, false, nullptr);
 
         if (responseMayor == 0) { break; }
         else {
@@ -1260,6 +1266,11 @@ void cityMenuMayor(PlayerData *data, Passenger *tmpPsgrData)
                         Sound_doSound(SOUND_EFFECT_QUEST_RING);
                         displayQuest(questIndex);
                     }
+                }
+            } else if (responseMayor == 3) {
+                // list of city's gameinfo text
+                for (unsigned char y=0; y<CITY_GAMEINFO_SIZE/20; y++) {
+                    putText (&(cities[currMap][cityNum-1].gameInfo[y*20]), 2, 5+y, 20, VCOL_WHITE);
                 }
             } else {
                 // gift
@@ -1358,6 +1369,7 @@ void landingOccurred(PlayerData *data)
     // turn off ALL sprites
     vic.spr_enable = 0x00;
     setupUpCargoSprites();
+    status = 0;
     // go to Screen Work
     vic.memptr = 0xc0 | (vic.memptr & 0x0f);
     vic.ctrl2 = 0xc8; // 40 columns, no scroll
@@ -1378,7 +1390,6 @@ void landingOccurred(PlayerData *data)
     setupRasterIrqsWorkScreen();
     clearKeyboardCache();
     checkForLandingPassengers(data);
-    status = 0;
     cityMenu(data, tmpPsgrData);
     status = STATUS_CITY_VIS;
     
@@ -1705,7 +1716,7 @@ void startGame(char *name, unsigned char title)
             showScoreBoard(&playerData);
             char oldCoord = mapXCoord;
             mapXCoord += 1;
-            if (isPortalSignallable (currMap, mapXCoord)) {
+            if ((playerData.balloonUpgrades & BALLOON_PORTAL) && (isPortalSignallable (currMap, mapXCoord))) {
                 Sound_doSound(SOUND_EFFECT_PORTAL_ANNOUNCE);
             }
             char currCoord = mapXCoord;

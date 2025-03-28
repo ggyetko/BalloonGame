@@ -56,7 +56,14 @@ const CityData cities[CITY_NUM_MAPS][CITY_NUM_CITIES_PER_MAP] = {
              {9,  2, CITY_RESPECT_LOW, 1},  // Bronze
              {11, 2, CITY_RESPECT_MED, 1}, // Iron
              {14, 2, CITY_RESPECT_HIGH,1} // Smithore
-            }
+            },
+          //01234567890123456789
+            s"you are lost and are"
+            s"looking for a way to"
+            s"your home? my friend"
+            s"in sirenia might be "
+            s"able to help. talk  "
+            s"to the mayor there. "
         },
         {s"floria    ", 0,
             {{1,1}, {7,1},{0xff,0},{0xff,0}},
@@ -64,7 +71,14 @@ const CityData cities[CITY_NUM_MAPS][CITY_NUM_CITIES_PER_MAP] = {
              {3, 2, CITY_RESPECT_LOW, 2},  // spinach
              {19,2, CITY_RESPECT_MED, 2},  // eggs
              {20,2, CITY_RESPECT_HIGH,2}   // quail eggs
-            } 
+            },
+          //01234567890123456789
+            s"there are ways to   "
+            s"reach other cities. "
+            s"but you will need a "
+            s"special device to go"
+            s"beyond the mountains"
+            s"that you see here.  "
         },
         {s"sirenia   ", CITY_FACILITY_PORTAL_UPGRADE,
             {{2,1},{9,1},{0xff,0},{0xff,0}},
@@ -72,7 +86,15 @@ const CityData cities[CITY_NUM_MAPS][CITY_NUM_CITIES_PER_MAP] = {
              {7,2,CITY_RESPECT_LOW,2}, // soy beans
              {21,2,CITY_RESPECT_MED,2}, // bok choy
              {22,2,CITY_RESPECT_HIGH,2} // black beans
-            } 
+            },
+          //01234567890123456789
+            s"we make a device to "
+            s"allow special travel"
+            s"it may not take you "
+            s"home right away and "
+            s"we do not sell it to"
+            s"just anyone.        "
+
         }
     },
     // MAP #1
