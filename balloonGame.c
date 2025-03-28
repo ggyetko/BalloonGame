@@ -251,7 +251,7 @@ __interrupt void prepWorkScreen(void)
 {
     // work screen is 0xc0
     vic.memptr = 0xc0 | (vic.memptr & 0x0f);
-    vic.color_back = SKY_COLOR;
+    vic.color_back = palette[currMap].skyColor;
     
     if (status & STATUS_CARGO_IN) {
         cargoInXPos --;
@@ -355,7 +355,7 @@ __interrupt void lowCloudAdjustment(void)
         
         Screen0[0x03f8+SPRITE_CITY_BG ] = BalloonCityBgLocation;
         Screen1[0x03f8+SPRITE_CITY_BG ] = BalloonCityBgLocation;
-        vic.spr_color[SPRITE_CITY_BG] = CITY_COLOR;
+        vic.spr_color[SPRITE_CITY_BG] = palette[currMap].cityColor;
         
         Screen0[0x03f8+SPRITE_CITY_SHADE] = BalloonCityShadeLocation;
         Screen1[0x03f8+SPRITE_CITY_SHADE] = BalloonCityShadeLocation;
@@ -441,7 +441,7 @@ __interrupt void lowerStatBar(void)
 
 __interrupt void scrollLeft(void)
 {
-    vic.color_back = SKY_COLOR;
+    vic.color_back = palette[currMap].skyColor;
     unsigned char doScroll = status & STATUS_SCROLLING;
     if (!doScroll) {
         if (noActionDelay) {
@@ -698,7 +698,7 @@ void setupTravellingSprites(void) {
     vic.spr_color[SPRITE_BACK_THRUST] = VCOL_BLACK;
     vic.spr_color[SPRITE_UP_THRUST] = VCOL_RED;
     vic.spr_color[SPRITE_CITY_OUTLINE] = CITY_OUTLINE_COLOR;
-    vic.spr_color[SPRITE_RAMP] = RAMP_COLOR;
+    vic.spr_color[SPRITE_RAMP] = palette[currMap].rampColor;
     vic.spr_color[SPRITE_CLOUD_OUTLINE] = CLOUD_OUTLINE_COLOR;
     vic.spr_color[SPRITE_CLOUD_BG] = CLOUD_COLOR;
 
@@ -753,14 +753,14 @@ const unsigned char colorMapScoreBoard[SIZEOFSCOREBOARDMAP] = {
         1, upgrades[0].screenColor, 1, upgrades[1].screenColor, 1, upgrades[2].screenColor, 1, upgrades[3].screenColor,
         1, upgrades[4].screenColor, 1, upgrades[5].screenColor,
         7, VCOL_WHITE, 13, VCOL_GREEN,
-    5,  VCOL_ORANGE, 17, VCOL_WHITE, 5, CITY_COLOR, 13, CITY_COLOR
+    5,  VCOL_ORANGE, 17, VCOL_WHITE, 5, VCOL_WHITE, 13, VCOL_WHITE
 };
 void initScreenWithDefaultColors(bool clearScreen) {
     vic.color_border = VCOL_BLACK;
-    vic.color_back = SKY_COLOR;
+    vic.color_back = palette[currMap].skyColor;
     unsigned int x = 0;
     while (x<20*40) {
-        ScreenColor[x] = MOUNTAIN_COLOR;
+        ScreenColor[x] = palette[currMap].mountainColor;
         if (clearScreen) {
             Screen0[x] = 32;
             Screen1[x] = 32;
@@ -1144,7 +1144,7 @@ void cityMenuInventory(PlayerData *data, Passenger *tmpPsgrData)
         }
         lastChoice = responseInv;
     }
-    drawBalloonDockScreen();
+    drawBalloonDockScreen(palette[currMap].cityColor);
 }
 
 void finishQuest(PlayerData *data, unsigned char questIndex)
@@ -1266,7 +1266,7 @@ void cityMenuMayor(PlayerData *data, Passenger *tmpPsgrData)
             }
         }
     }
-    drawBalloonDockScreen();
+    drawBalloonDockScreen(palette[currMap].cityColor);
 }
     
 void cityMenu(PlayerData *data, Passenger *tmpPsgrData) 
@@ -1337,6 +1337,7 @@ void portalEntered(void)
     vic.spr_enable = 0x00;
     
     currMap = portalNextMap;
+    initScreenWithDefaultColors(false);
     yPos = 20480;   // internal Y position of balloon, middle of field
     mapXCoord = 0;
 
@@ -1360,13 +1361,13 @@ void landingOccurred(PlayerData *data)
     // go to Screen Work
     vic.memptr = 0xc0 | (vic.memptr & 0x0f);
     vic.ctrl2 = 0xc8; // 40 columns, no scroll
-    vic.color_back = SKY_COLOR;
+    vic.color_back = palette[currMap].skyColor; // TBD, is this a good idea? May harm text visibility
     
     drawBox(0,0,24,19,VCOL_YELLOW);
     drawBox(0,20,39,24,VCOL_YELLOW);
     drawBox(25,0,39,4,VCOL_BLACK);
     drawBox(25,5,39,19,VCOL_BLACK);
-    drawBalloonDockScreen();
+    drawBalloonDockScreen(palette[currMap].cityColor);
     
     Passenger tmpPsgrData[10];
     CityCode cityCode = CityCode_generateCityCode(currMap, cityNum);
@@ -1685,14 +1686,14 @@ void startGame(char *name, unsigned char title)
                 } else if (ch == 'X') {
                     break;
                 } else if (ch == 'I') {
-                    if ((status & STATUS_CITY_VIS) && (cityXPos > 80)){
+                    if ((status & STATUS_CITY_VIS) && (cityXPos > 80) && ((status & STATUS_SWIRL_READY) == 0) ){
                         Sound_doSound(SOUND_EFFECT_EXTEND);
                         status |= STATUS_CITY_RAMP;
                         vic.spr_enable |= SPRITE_RAMP_ENABLE;
                         showScoreBoard(&playerData);
                     }
                 } else if (ch == 'P') {
-                    if (isPortalNear(currMap, mapXCoord)) {
+                    if (((status & STATUS_CITY_RAMP) == 0) && isPortalNear(currMap, mapXCoord)) {
                         // This will trigger the swirl when it's swirl time
                         status |= STATUS_SWIRL_READY;
                         Sound_doSound(SOUND_EFFECT_PORTAL_SIGNAL);

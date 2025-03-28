@@ -3,7 +3,18 @@
 
 #define TERRAIN_NO_PORTAL 0xff
 
-extern const char terrain[2][256];
+#define NUM_TERRAINS 2
+
+struct Palette {
+    unsigned char skyColor;
+    unsigned char mountainColor;
+    unsigned char cityColor;
+    unsigned char rampColor;
+};
+
+extern const Palette palette[NUM_TERRAINS];
+
+extern const char terrain[NUM_TERRAINS][256];
 
 extern bool isPortalSignallable(unsigned char mapNum, unsigned char scrollPos);
 extern bool isPortalNear(unsigned char mapNum, unsigned char scrollPos);

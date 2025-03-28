@@ -10,12 +10,8 @@
 #define BALLOON_COLOR          VCOL_WHITE
 #define BALLOON_OUTLINE_COLOR  VCOL_GREEN
 #define CARRIAGE_COLOR         VCOL_BROWN
-#define SKY_COLOR              VCOL_LT_BLUE
-#define MOUNTAIN_COLOR         VCOL_DARK_GREY
-#define CITY_COLOR             VCOL_WHITE
 #define CITY_OUTLINE_COLOR     VCOL_BLUE
 #define CITY_SHADE_COLOR       VCOL_PURPLE
-#define RAMP_COLOR             VCOL_BROWN
 #define CLOUD_COLOR            VCOL_WHITE
 #define CLOUD_OUTLINE_COLOR    VCOL_BLUE
 #define PORTAL_COLOR           VCOL_WHITE
@@ -95,7 +91,7 @@ void putText(char const* text, unsigned char x, unsigned char y, unsigned char n
     }
 }
 
-void drawBalloonDockScreen(void)
+void drawBalloonDockScreen(unsigned char currentCityColor)
 {
     unsigned char ramptop[4] = {104,106,106,105};
     unsigned char rampbottom[4] = {110,109,108,110};
@@ -173,7 +169,7 @@ void drawBalloonDockScreen(void)
         117,32,32,79,79,79
     };
     #define CS CITY_SHADE_COLOR
-    #define CC CITY_COLOR
+    #define CC currentCityColor
     char cityArtColor[49] = {
         0,0,0,0,CS,CS,
         0,0,0,CC,CS,CS,

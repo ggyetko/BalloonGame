@@ -1,6 +1,13 @@
+#include <c64/vic.h>
+
 #include "terrain.h"
 
-const char terrain[2][256] ={
+const Palette palette[NUM_TERRAINS] = {
+    {VCOL_LT_BLUE, VCOL_DARK_GREY, VCOL_WHITE, VCOL_BROWN},
+    {VCOL_BLUE, VCOL_WHITE, VCOL_LT_GREY, VCOL_ORANGE},
+};
+
+const char terrain[NUM_TERRAINS][256] ={
     {
         013,013,022,022,031,021,021,022, 012,013,023,032,041,031,021,022,
         012,022,023,032,032,031,021,022, 012,022,023,012,012,021,031,022,
@@ -46,7 +53,7 @@ struct PortalCoord {
 };
 
 // Not allowed to have a portal at 255
-PortalCoord portalCoord[8][3] = {
+PortalCoord portalCoord[NUM_TERRAINS][3] = {
     {{50,1},{TERRAIN_NO_PORTAL,0},{TERRAIN_NO_PORTAL,0}},
     {{200,0},{TERRAIN_NO_PORTAL,0},{TERRAIN_NO_PORTAL,0}},
 };
