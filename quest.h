@@ -93,5 +93,4 @@ unsigned char Quest_getMayorDesire(char const CityCode);
 // INVALID_QUEST_INDEX if no quest available
 unsigned char Quest_getCityQuest(CityCode const city, unsigned char currCityRespect, Passenger *tmpPsgrData);
 
-
 #endif

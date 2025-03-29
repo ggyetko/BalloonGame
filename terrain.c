@@ -1,6 +1,8 @@
 #include <c64/vic.h>
 
 #include "terrain.h"
+#include "quest.h"
+#include "playerData.h"
 
 const Palette palette[NUM_TERRAINS] = {
     {VCOL_LT_BLUE, VCOL_DARK_GREY, VCOL_WHITE, VCOL_BROWN},
@@ -58,12 +60,15 @@ PortalCoord portalCoord[NUM_TERRAINS][3] = {
     {{200,0},{TERRAIN_NO_PORTAL,0},{TERRAIN_NO_PORTAL,0}},
 };
 
-bool isPortalSignallable(unsigned char mapNum, unsigned char scrollPos)
+bool isPortalSignallable(unsigned char mapNum, unsigned char scrollPos, PlayerData *data)
 {
     for (unsigned char co = 0; co < 3; co++) {
         if (portalCoord[mapNum][co].scrollPos == TERRAIN_NO_PORTAL) { 
             return false;
         }
+        if (isMapAccessible(data, portalCoord[mapNum][co].mapDest) == false) {
+            continue;
+        } 
         if (portalCoord[mapNum][co].scrollPos - scrollPos == SCROLL_PORTAL_WARNING_DISTANCE) {
             return true;
         }
@@ -71,12 +76,15 @@ bool isPortalSignallable(unsigned char mapNum, unsigned char scrollPos)
     return false;
 }
 
-bool isPortalNear(unsigned char mapNum, unsigned char scrollPos)
+bool isPortalNear(unsigned char mapNum, unsigned char scrollPos, PlayerData *data)
 {
     for (unsigned char co = 0; co < 3; co++) {
         if (portalCoord[mapNum][co].scrollPos == TERRAIN_NO_PORTAL) { 
             return false;
         }
+        if (isMapAccessible(data, portalCoord[mapNum][co].mapDest) == false) {
+            continue;
+        } 
         if (portalCoord[mapNum][co].scrollPos - scrollPos <= SCROLL_PORTAL_WARNING_DISTANCE) {
             return true;
         }

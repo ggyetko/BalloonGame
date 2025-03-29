@@ -9,7 +9,7 @@
 enum {
     Passenger_Id_Ms_Cloud = 0,
     Passenger_Id_Princess = 1,
-    Passenger_Id_Sir_Floria = 1,
+    Passenger_Id_Sir_Floria = 2,
 };
 
 enum {

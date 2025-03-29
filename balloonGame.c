@@ -1704,7 +1704,7 @@ void startGame(char *name, unsigned char title)
                         showScoreBoard(&playerData);
                     }
                 } else if (ch == 'P') {
-                    if (((status & STATUS_CITY_RAMP) == 0) && isPortalNear(currMap, mapXCoord)) {
+                    if (((status & STATUS_CITY_RAMP) == 0) && isPortalNear(currMap, mapXCoord, &playerData)) {
                         // This will trigger the swirl when it's swirl time
                         status |= STATUS_SWIRL_READY;
                         Sound_doSound(SOUND_EFFECT_PORTAL_SIGNAL);
@@ -1716,7 +1716,7 @@ void startGame(char *name, unsigned char title)
             showScoreBoard(&playerData);
             char oldCoord = mapXCoord;
             mapXCoord += 1;
-            if ((playerData.balloonUpgrades & BALLOON_PORTAL) && (isPortalSignallable (currMap, mapXCoord))) {
+            if ((playerData.balloonUpgrades & BALLOON_PORTAL) && (isPortalSignallable (currMap, mapXCoord, &playerData))) {
                 Sound_doSound(SOUND_EFFECT_PORTAL_ANNOUNCE);
             }
             char currCoord = mapXCoord;

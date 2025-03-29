@@ -1,6 +1,8 @@
 #ifndef TERRAIN_H
 #define TERRAIN_H
 
+#include "playerData.h"
+
 #define TERRAIN_NO_PORTAL 0xff
 
 #define NUM_TERRAINS 2
@@ -16,8 +18,8 @@ extern const Palette palette[NUM_TERRAINS];
 
 extern const char terrain[NUM_TERRAINS][256];
 
-extern bool isPortalSignallable(unsigned char mapNum, unsigned char scrollPos);
-extern bool isPortalNear(unsigned char mapNum, unsigned char scrollPos);
+extern bool isPortalSignallable(unsigned char mapNum, unsigned char scrollPos, PlayerData *data);
+extern bool isPortalNear(unsigned char mapNum, unsigned char scrollPos, PlayerData *data);
 // returns a map number
 // returns TERRAIN_NO_PORTAL for nothing here
 extern unsigned char isPortalHere(unsigned char mapNum, unsigned char scrollPos);
