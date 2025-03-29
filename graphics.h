@@ -7,6 +7,8 @@
 #include "namedGoods.h"
 #include "sound.h"
 
+#include "namedPassenger.h"
+
 #define BALLOON_COLOR          VCOL_WHITE
 #define BALLOON_OUTLINE_COLOR  VCOL_GREEN
 #define CARRIAGE_COLOR         VCOL_BROWN
@@ -351,6 +353,8 @@ unsigned char getMenuChoice(unsigned char num, unsigned char initChoice, const c
                     return currSelect;
                 } else if (ch == '-') {
                     debugWipe();
+                } else if (ch == '=') {
+                    // debug possibility
                 }
             }
         }

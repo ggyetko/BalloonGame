@@ -26,7 +26,6 @@ struct NamedPassengerStatus {
     unsigned char status;
 };
 struct NamedPassenger {
-    unsigned char status;
     CityCode sourceCity;
     CityCode destinationCity;
     char name[10];
