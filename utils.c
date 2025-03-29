@@ -58,3 +58,10 @@ void debugChar(unsigned char index, unsigned displayNumber)
     Screen0[4*index+24*40+2] = out[2];
     ScreenWork[4*index+24*40+2] = out[2];
 }
+
+void debugWipe(void) 
+{
+    for (unsigned char x = 0; x<40; x++) {
+        Screen0[x+24*40] = s' ';
+    }
+}

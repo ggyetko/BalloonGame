@@ -349,6 +349,8 @@ unsigned char getMenuChoice(unsigned char num, unsigned char initChoice, const c
                     break;
                 } else if (ch == 10) {
                     return currSelect;
+                } else if (ch == '-') {
+                    debugWipe();
                 }
             }
         }

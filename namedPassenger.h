@@ -3,12 +3,13 @@
 
 #include "city.h"
 
-#define NAMED_PASSENGER_TOTAL 2
+#define NAMED_PASSENGER_TOTAL 3
 #define INVALID_NAMED_PASSENGER_INDEX 0xff
 
 enum {
     Passenger_Id_Ms_Cloud = 0,
-    Passenger_Id_Princess = 1
+    Passenger_Id_Princess = 1,
+    Passenger_Id_Sir_Floria = 1,
 };
 
 enum {

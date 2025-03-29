@@ -3,6 +3,7 @@
 NamedPassengerStatus namedPassengerStatus[NAMED_PASSENGER_TOTAL] = {
     Passenger_Status_Inactive,
     Passenger_Status_Inactive_First_Class,
+    Passenger_Status_Inactive,
 };
 
 NamedPassenger const namedPassengers[NAMED_PASSENGER_TOTAL] = {
@@ -15,7 +16,12 @@ NamedPassenger const namedPassengers[NAMED_PASSENGER_TOTAL] = {
      0b00000011, // Serenia
      0b00001101, // Map #3, City #1
      s"princess  "
-    }
+    },
+    {Passenger_Status_Inactive,
+     0b00000010, // Floria
+     0b00000111, // Map #1, City #3, Hoth
+     s"sir floria"
+    },
 };
 
 void NamedPassenger_activatePassenger(unsigned char passengerIndex)

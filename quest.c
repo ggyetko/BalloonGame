@@ -34,6 +34,63 @@ const Quest allQuests[QUEST_COUNT] = {
      s"my daughter needs a ride in your balloonto visit our family in floria. she is   waiting at the dock.",
      s"thank you for safelytransporting my     daugther            "
     },
+    {s"iron rails",
+    QUEST_TYPE_BUY | 0b00000010, // floria
+    CITY_RESPECT_LOW,
+    {0b00000010},        // floria
+    11,                  // iron
+    5,
+    {REWARD_RESPECT_MED,0,0},
+    //0---------0---------2---------0---------4---------0---------6---------0---------8---------0---------
+    s"our city needs five crates of iron to   fortify our bridges and railroads.pleasefind it for us.     ",
+    s"our city is gratefulfor your efforts.                       "
+    },
+    {s"cryophile ",
+    QUEST_TYPE_TPORT | 0b00000010, // floria, source
+    CITY_RESPECT_MED,
+    {0b00000111}, // hoth dest
+    Passenger_Id_Sir_Floria,
+    1,
+    {REWARD_RESPECT_HIGH,0,0},
+    //0---------0---------2---------0---------4---------0---------6---------0---------8---------0---------
+    s"my son wishes to paya visit to the cold lands city of hoth. he is waiting by ourdockside for you.   ",
+    s"thank you for safelytransporting my     son                 "
+    },
+    {s"rice      ",
+     QUEST_TYPE_SELL | 0b00000011,        // sirenia
+     CITY_RESPECT_LOW,
+     {0b00000010},        // floria
+     0,                   // Rice
+     10, 
+     {REWARD_RESPECT_MED,0,0},
+     //0---------0---------2---------0---------4---------0---------6---------0---------8---------0---------
+     s"please deliver 10   crates of rice to   our neighbours in   floria                                  ",
+     s"you have earned my  trust. thank you fordelivering our goods"
+    },
+    {s"eggfest   ",
+    QUEST_TYPE_BUY | 0b00000011, // sirenia
+    CITY_RESPECT_MED,
+    {0b00000011},        // sirenia
+    19,                  // eggs
+    10,
+    {REWARD_RESPECT_HIGH,0,0},
+    //0---------0---------2---------0---------4---------0---------6---------0---------8---------0---------
+    s"our city needs ten  crates of eggs to   celebrate the summerfestival. please    find them for us.   ",
+    s"our city is gratefulfor your efforts.                       "
+    },   
+    
+    {s"ice map   ",
+    QUEST_TYPE_BUY | 0b00000011, // sirenia
+    CITY_RESPECT_HIGH,
+    {0b00000001},        // cloud city
+    22,                  // eggs
+    20,
+    {REWARD_MAP_ACCESS,0,0},
+    //0---------0---------2---------0---------4---------0---------6---------0---------8---------0---------
+    s"we will grant you a map of the icelands if you bring twenty black bean crates tocloud city markets. ",
+    s"our city is gratefulfor your efforts.   here is our map.    "
+    },    
+    
 };
 
 QuestLog questLog[MAX_QUESTS_IN_PROGRESS];
@@ -82,7 +139,11 @@ void Quest_processDeliverTrigger(unsigned char const itemIndex, CityCode const d
             debugChar(7,questLog[x].completeness);
             debugChar(8,allQuests[questIndex].numItems);*/
             
-            if (((allQuests[questIndex].cityNumber.code & QUEST_TYPE_MASK) == QUEST_TYPE_SELL)
+            // check for "sell my stuff to somebody else" quests and "bring me stuff" buy quests
+            if ((
+                ((allQuests[questIndex].cityNumber.code & QUEST_TYPE_MASK) == QUEST_TYPE_SELL)
+                || ((allQuests[questIndex].cityNumber.code & QUEST_TYPE_MASK) == QUEST_TYPE_BUY) 
+                )
                 && (allQuests[questIndex].destinationCity.code == destCity.code)
                 && (allQuests[questIndex].itemIndex == itemIndex)
                 && (questLog[x].completeness < allQuests[questIndex].numItems)) {
@@ -91,7 +152,6 @@ void Quest_processDeliverTrigger(unsigned char const itemIndex, CityCode const d
                     Sound_doSound(SOUND_EFFECT_QUEST_FULFILL);
                 }
             }
-            // check for "buy me this stuff" quests
         }
     }
 }
@@ -123,8 +183,8 @@ unsigned char Quest_getMayorDesire(char const CityCode)
 bool isQuestLogged(unsigned char questIndex)
 {
     unsigned char index = questIndex >> 3;
-    unsigned char column = questIndex & 3;
-    return questBitmap[index] >> column;
+    unsigned char column = questIndex & 0b00000111;
+    return (questBitmap[index] >> column) & 1;
 }
 
 bool logQuest(unsigned char questIndex)
@@ -141,7 +201,7 @@ bool logQuest(unsigned char questIndex)
     }
     if (logged) {
         unsigned char index = questIndex >> 3;
-        unsigned char column = questIndex & 3;
+        unsigned char column = questIndex & 0b00000111;
         questBitmap[index] |= 1 << column;
     }
     return logged;
@@ -165,10 +225,13 @@ void unLogQuest(unsigned char questIndex)
 unsigned char Quest_getCityQuest(CityCode const city, unsigned char currCityRespect, Passenger *tmpPsgrData)
 {
     unsigned char q;
-    for (unsigned char q=0; q<QUEST_COUNT; q++) {
-        if (isQuestLogged(q)) continue;
+    for (q=0; q<QUEST_COUNT; q++) {
+        if (isQuestLogged(q)) { debugChar(q, 99); continue; }
+        debugChar(q,0);
         if (((allQuests[q].cityNumber.code & QUEST_TYPE_CITY_MASK) == city.code) && (allQuests[q].respectLevel <= currCityRespect)) {
+            debugChar(q,88);
             if (logQuest(q)) {
+                debugChar(q,77);
                 if ((allQuests[q].cityNumber.code & QUEST_TYPE_MASK) == QUEST_TYPE_TPORT) {
                     NamedPassenger_activatePassenger(allQuests[q].itemIndex);
                     addRecentQuestToCityTmpData(tmpPsgrData, allQuests[q].itemIndex);
