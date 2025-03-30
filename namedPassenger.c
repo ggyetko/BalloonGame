@@ -25,6 +25,34 @@ NamedPassenger const namedPassengers[NAMED_PASSENGER_TOTAL] = {
     },
 };
 
+void NamedPassenger_deboardPassenger(char const *name)
+{
+    unsigned char namedPsgrIndex;
+    for (namedPsgrIndex=0;namedPsgrIndex<NAMED_PASSENGER_TOTAL;namedPsgrIndex++) {
+        if ((namedPassengerStatus[namedPsgrIndex].status == Passenger_Status_Aboard_First_Class) 
+            || (namedPassengerStatus[namedPsgrIndex].status == Passenger_Status_Aboard)) {
+            if (tenCharCmp(namedPassengers[namedPsgrIndex].name,name) == 0) {
+                namedPassengerStatus[namedPsgrIndex].status = Passenger_Status_Complete;
+                break;
+            }
+        }
+    }
+}
+
+void NamedPassenger_boardPassenger(char const *name)
+{
+    unsigned char namedPsgrIndex;
+    for (namedPsgrIndex=0;namedPsgrIndex<NAMED_PASSENGER_TOTAL;namedPsgrIndex++) {
+        if ((namedPassengerStatus[namedPsgrIndex].status == Passenger_Status_Waiting_First_Class) 
+            || (namedPassengerStatus[namedPsgrIndex].status == Passenger_Status_Waiting)) {
+            if (tenCharCmp(namedPassengers[namedPsgrIndex].name, name) == 0) {
+                namedPassengerStatus[namedPsgrIndex].status += 2; // waiting -> aboard for either status
+                break;
+            }
+        }
+    }
+}
+
 void NamedPassenger_activatePassenger(unsigned char passengerIndex)
 {
     if (passengerIndex < NAMED_PASSENGER_TOTAL) {
@@ -36,13 +64,21 @@ void NamedPassenger_activatePassenger(unsigned char passengerIndex)
     }
 }
 
-unsigned char NamedPassenger_getQuestPassenger(CityCode sourceCityCode)
+void NamedPassenger_debug()
 {
-    debugWipe();
-    debugChar(0, sourceCityCode.code);
     for (unsigned char p=0; p<NAMED_PASSENGER_TOTAL; p++){
         debugChar(p*2+2, namedPassengerStatus[p].status);
         debugChar(p*2+3, namedPassengers[p].sourceCity.code);
+    }
+}
+
+unsigned char NamedPassenger_getQuestPassenger(CityCode sourceCityCode)
+{
+    //debugWipe();
+    //debugChar(0, sourceCityCode.code);
+    for (unsigned char p=0; p<NAMED_PASSENGER_TOTAL; p++){
+        //debugChar(p*2+2, namedPassengerStatus[p].status);
+        //debugChar(p*2+3, namedPassengers[p].sourceCity.code);
 
         if (
             ((namedPassengerStatus[p].status == Passenger_Status_Waiting) 

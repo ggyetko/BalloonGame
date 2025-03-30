@@ -374,6 +374,7 @@ unsigned char getMenuChoice(unsigned char num, unsigned char initChoice, unsigne
                     debugWipe();
                 } else if (ch == '=') {
                     // debug possibility
+                    //NamedPassenger_debug();
                 }
             }
         }

@@ -1073,6 +1073,7 @@ void cityMenuPassenger(PlayerData *data, Passenger *tmpPsgrData)
         } else if (addPassenger(data, &tmpPsgrData[responsePassenger-1])) {
             Sound_doSound(SOUND_EFFECT_ROLLCAR);
             passengerInAnimation();
+            Quest_processBoardingTrigger(tmpPsgrData[responsePassenger-1].name);
             removePassengerFromList(tmpPsgrData, responsePassenger-1);
             showScoreBoard(data);
         }
@@ -1143,7 +1144,7 @@ void cityMenuInventory(PlayerData *data, Passenger *tmpPsgrData)
             showWorkPassengers(data->cargo.psgr, palette[currMap].inactiveTextColor);
         } else if (responseInv == 2) {
             showWorkCargo(data, palette[currMap].inactiveTextColor);
-        } else if (responseInv == 2) {
+        } else if (responseInv == 3) {
             cityMenuQuest(data);
         } else {
             showWorkMaps(data);

@@ -160,19 +160,26 @@ void Quest_processDeliverTrigger(unsigned char const itemIndex, CityCode const d
 void Quest_processArrivalTrigger(char const *name, CityCode const destCity)
 {
     unsigned char questLogIndex;
-    //for (questLogIndex=0;questLogIndex<MAX_QUESTS_IN_PROGRESS;questLogIndex++) {
-    for (questLogIndex=0;questLogIndex<1;questLogIndex++) {
+    for (questLogIndex=0;questLogIndex<MAX_QUESTS_IN_PROGRESS;questLogIndex++) {
         unsigned char questIndex = questLog[questLogIndex].questIndex;
         if ((allQuests[questIndex].destinationCity.code == destCity.code)
             && ((allQuests[questIndex].cityNumber.code & QUEST_TYPE_MASK) == QUEST_TYPE_TPORT)
             && (tenCharCmp(name, namedPassengers[allQuests[questIndex].itemIndex].name) == 0))
         {
                 questLog[questLogIndex].completeness = 1;
+                NamedPassenger_deboardPassenger(name);
                 Sound_doSound(SOUND_EFFECT_QUEST_FULFILL);
                 break;
         }
     }
 }
+
+// call this whenever a passenger boards the balloon
+void Quest_processBoardingTrigger(char const *name)
+{
+    NamedPassenger_boardPassenger(name);
+}
+
 
 // this will tell the caller if the mayor wants an item, 0xff if nothing
 unsigned char Quest_getMayorDesire(char const CityCode)
@@ -226,12 +233,9 @@ unsigned char Quest_getCityQuest(CityCode const city, unsigned char currCityResp
 {
     unsigned char q;
     for (q=0; q<QUEST_COUNT; q++) {
-        if (isQuestLogged(q)) { debugChar(q, 99); continue; }
-        debugChar(q,0);
+        if (isQuestLogged(q)) { continue; }
         if (((allQuests[q].cityNumber.code & QUEST_TYPE_CITY_MASK) == city.code) && (allQuests[q].respectLevel <= currCityRespect)) {
-            debugChar(q,88);
             if (logQuest(q)) {
-                debugChar(q,77);
                 if ((allQuests[q].cityNumber.code & QUEST_TYPE_MASK) == QUEST_TYPE_TPORT) {
                     NamedPassenger_activatePassenger(allQuests[q].itemIndex);
                     addRecentQuestToCityTmpData(tmpPsgrData, allQuests[q].itemIndex);

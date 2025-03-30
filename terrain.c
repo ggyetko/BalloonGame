@@ -78,10 +78,10 @@ bool isPortalSignallable(unsigned char mapNum, unsigned char scrollPos, PlayerDa
         if (portalCoord[mapNum][co].scrollPos == TERRAIN_NO_PORTAL) { 
             return false;
         }
-        if ((scrollPos == 50) && (mapNum == 0)) {
-            debugChar(0, portalCoord[mapNum][co].mapDest);
-            debugChar(1, data->knownMaps);
-        }
+        //if ((scrollPos == 50) && (mapNum == 0)) {
+        //    debugChar(0, portalCoord[mapNum][co].mapDest);
+        //    debugChar(1, data->knownMaps);
+        //}
         if (isMapAccessible(data, portalCoord[mapNum][co].mapDest) == false) {
             continue;
         } 

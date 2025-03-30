@@ -34,8 +34,14 @@ struct NamedPassenger {
 extern NamedPassengerStatus namedPassengerStatus[NAMED_PASSENGER_TOTAL];
 extern NamedPassenger const namedPassengers[NAMED_PASSENGER_TOTAL];
 
+void NamedPassenger_deboardPassenger(char const *name);
+
+void NamedPassenger_boardPassenger(char const *name);
+
 void NamedPassenger_activatePassenger(unsigned char passengerIndex);
 
 unsigned char NamedPassenger_getQuestPassenger(CityCode sourceCityCode);
+
+void NamedPassenger_debug();
 
 #endif

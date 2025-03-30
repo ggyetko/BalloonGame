@@ -86,6 +86,9 @@ void Quest_processDeliverTrigger(unsigned char const itemIndex, CityCode const d
 // call this whenever a passenger arrives anywhere
 void Quest_processArrivalTrigger(char const *name, CityCode const destCity);
 
+// call this whenever a passenger boards the balloon
+void Quest_processBoardingTrigger(char const *name);
+
 // this will tell the caller if the mayor wants an item, 0xff if nothing
 unsigned char Quest_getMayorDesire(char const CityCode);
 
