@@ -5,8 +5,20 @@
 #include "playerData.h"
 
 const Palette palette[NUM_TERRAINS] = {
-    {VCOL_LT_BLUE, VCOL_DARK_GREY, VCOL_WHITE, VCOL_BROWN},
-    {VCOL_BLUE, VCOL_WHITE, VCOL_LT_GREY, VCOL_ORANGE},
+    {VCOL_LT_BLUE, VCOL_DARK_GREY, VCOL_WHITE, VCOL_BROWN, VCOL_DARK_GREY},
+    {VCOL_BLUE, VCOL_WHITE, VCOL_LT_GREY, VCOL_ORANGE, VCOL_LT_GREY},
+};
+
+// TBD - 8 should be num terrains later
+const char terrainMapNames[8][10] = {   
+    s"cave world",
+    s"icelands  ",
+    s"arid plain",
+    s"jungle    ",
+    s"frigidia  ",
+    s"vulcania  ",
+    s"darks end ",
+    s"lands end ",
 };
 
 const char terrain[NUM_TERRAINS][256] ={
@@ -65,6 +77,10 @@ bool isPortalSignallable(unsigned char mapNum, unsigned char scrollPos, PlayerDa
     for (unsigned char co = 0; co < 3; co++) {
         if (portalCoord[mapNum][co].scrollPos == TERRAIN_NO_PORTAL) { 
             return false;
+        }
+        if ((scrollPos == 50) && (mapNum == 0)) {
+            debugChar(0, portalCoord[mapNum][co].mapDest);
+            debugChar(1, data->knownMaps);
         }
         if (isMapAccessible(data, portalCoord[mapNum][co].mapDest) == false) {
             continue;

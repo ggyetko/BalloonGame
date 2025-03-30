@@ -906,7 +906,7 @@ void cityMenuBuy(PlayerData *data)
                 break;
             }
         }
-        unsigned char responseBuy = getMenuChoice(x, lastChoice, buyMenuOptions, true, buyMenuCosts);
+        unsigned char responseBuy = getMenuChoice(x, lastChoice, palette[currMap].inactiveTextColor, buyMenuOptions, true, buyMenuCosts);
         if (responseBuy == 0) {
             break;
         } else {
@@ -940,7 +940,7 @@ void cityMenuSell(PlayerData *data)
             tenCharCopy( sellMenuOptions[x], goods[goodsIndexList[x-1]].name);
             sellMenuCosts[x] = getGoodsPurchasePrice(&cities[currMap][cityNum-1], goodsIndexList[x-1], goods[goodsIndexList[x-1]].normalCost);
         }
-        unsigned char responseSell = getMenuChoice(x, lastChoice, sellMenuOptions, true, sellMenuCosts);
+        unsigned char responseSell = getMenuChoice(x, lastChoice, palette[currMap].inactiveTextColor, sellMenuOptions, true, sellMenuCosts);
         if (responseSell == 0) {
             break;
         } else {
@@ -977,7 +977,7 @@ void cityMenuRepair(PlayerData *data)
             repairListCosts[3] -= REPAIR_COST_FACILITY_REDUCTION;
         }
             
-        unsigned char responseRepair = getMenuChoice(4, 0, repairList, true, repairListCosts);
+        unsigned char responseRepair = getMenuChoice(4, 0, palette[currMap].inactiveTextColor, repairList, true, repairListCosts);
         if (responseRepair == 0) {
             break;
         } else if (responseRepair == 1) {
@@ -1031,7 +1031,7 @@ void cityMenuRefuel(PlayerData *data)
         } else {
             fuelListCosts[2] = fullCost;
         }
-        unsigned char responseRefuel = getMenuChoice(3, 0, fuelList, true, fuelListCosts);
+        unsigned char responseRefuel = getMenuChoice(3, 0, palette[currMap].inactiveTextColor, fuelList, true, fuelListCosts);
         if (responseRefuel == 0) {
             break;
         } else if (responseRefuel == 1) {
@@ -1066,7 +1066,7 @@ void cityMenuPassenger(PlayerData *data, Passenger *tmpPsgrData)
                 break;
             }
         }
-        unsigned char responsePassenger = getMenuChoice(listSize, 0, psgrList, false, nullptr);
+        unsigned char responsePassenger = getMenuChoice(listSize, 0, palette[currMap].inactiveTextColor, psgrList, false, nullptr);
             
         if (responsePassenger == 0) {
             break;
@@ -1105,7 +1105,7 @@ void cityMenuQuest(PlayerData *data)
                 invListLength++;
             }
         }
-        unsigned char responseQuest = getMenuChoice(invListLength, lastChoice, invList, false, nullptr);
+        unsigned char responseQuest = getMenuChoice(invListLength, lastChoice, palette[currMap].inactiveTextColor, invList, false, nullptr);
         
         if (responseQuest == 0) {
             break;
@@ -1135,16 +1135,18 @@ void cityMenuInventory(PlayerData *data, Passenger *tmpPsgrData)
 {
     unsigned char lastChoice = 0;
     for (;;) {
-        unsigned char invList[4][10] = {s"return    ",s"passengers",s"cargo     ",s"quest     "};
-        unsigned char responseInv = getMenuChoice(4, lastChoice, invList, false, nullptr);
+        unsigned char invList[5][10] = {s"return    ",s"passengers",s"cargo     ",s"quest     ",s"maps      "};
+        unsigned char responseInv = getMenuChoice(5, lastChoice, palette[currMap].inactiveTextColor, invList, false, nullptr);
         if (responseInv == 0) {
             break;
         } else if (responseInv == 1) {
-            showWorkPassengers(data->cargo.psgr);
+            showWorkPassengers(data->cargo.psgr, palette[currMap].inactiveTextColor);
         } else if (responseInv == 2) {
-            showWorkCargo(data);
-        } else {
+            showWorkCargo(data, palette[currMap].inactiveTextColor);
+        } else if (responseInv == 2) {
             cityMenuQuest(data);
+        } else {
+            showWorkMaps(data);
         }
         lastChoice = responseInv;
     }
@@ -1214,7 +1216,7 @@ void cityMenuUpgrade(PlayerData *data)
                 }
             }
         }
-        unsigned char respUpgrade = getMenuChoice(listLength,0,upgradeList,true,costList);
+        unsigned char respUpgrade = getMenuChoice(listLength,0, palette[currMap].inactiveTextColor,upgradeList,true,costList);
         if (respUpgrade == 0) {
             return;
         } else {
@@ -1234,7 +1236,7 @@ void cityMenuMayor(PlayerData *data, Passenger *tmpPsgrData)
     showMayor(data);
     for (;;) {
         unsigned char mayorList[5][10] = {s"return    ",s"town      ",s"quest     ",s"chat      ", s"gift      "};
-        unsigned char responseMayor = getMenuChoice(5, 0, mayorList, false, nullptr);
+        unsigned char responseMayor = getMenuChoice(5, 0, palette[currMap].inactiveTextColor, mayorList, false, nullptr);
 
         if (responseMayor == 0) { break; }
         else {
@@ -1283,7 +1285,7 @@ void cityMenuMayor(PlayerData *data, Passenger *tmpPsgrData)
 void cityMenu(PlayerData *data, Passenger *tmpPsgrData) 
 {
     for (;;) {
-        unsigned char response = getMenuChoice(MAIN_MENU_SIZE, 0, main_menu_options, false, nullptr);
+        unsigned char response = getMenuChoice(MAIN_MENU_SIZE, 0, palette[currMap].inactiveTextColor, main_menu_options, false, nullptr);
         if (response == MENU_OPTION_BUY) {
             cityMenuBuy(data);            
         } else if (response == MENU_OPTION_SELL) {
@@ -1519,6 +1521,7 @@ void showScoreBoard(struct PlayerData* data) {
             ScreenColor[894+x] = VCOL_DARK_GREY;
         }
     }
+    
     // Cargo Space
     for (x=0;x<MAX_CARGO_SPACE;x++) {
         Screen0[921+5+x] = 78;
@@ -1593,7 +1596,7 @@ void startGame(char *name, unsigned char title)
 
     struct PlayerData playerData;
     playerDataInit(&playerData, name, title);
- 
+          
     // set up scoreboard
     showScoreBoard(&playerData);
     
@@ -1796,7 +1799,7 @@ unsigned char introScreen(char *name, unsigned char* title)
     
     unsigned char returnValue = 0;
     for (;;) {
-        unsigned char result = getMenuChoice(4, 0, menuOptions, false, nullptr);
+        unsigned char result = getMenuChoice(4, 0, VCOL_DARK_GREY, menuOptions, false, nullptr);
         
         if (result == 0) {
             getInputText(28, 12, 10, s"your name ", name);
@@ -1805,7 +1808,7 @@ unsigned char introScreen(char *name, unsigned char* title)
                 s"mrs       ",
                 s"ms        ",
                 s"mx        "};
-            *title = getMenuChoice(4,0,titleOptions,false,nullptr);
+            *title = getMenuChoice(4,0, VCOL_DARK_GREY,titleOptions,false,nullptr);
             returnValue = 1;
             break;
         } else if (result == 1) {

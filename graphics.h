@@ -6,6 +6,7 @@
 #include "playerData.h"
 #include "namedGoods.h"
 #include "sound.h"
+#include "terrain.h"
 
 #include "namedPassenger.h"
 
@@ -192,7 +193,7 @@ void drawBalloonDockScreen(unsigned char currentCityColor)
 
 }
 
-void showWorkPassengers(Passenger *psgData) 
+void showWorkPassengers(Passenger *psgData, unsigned char inactiveTextColor) 
 {
     clearWorkScreen();
     ScreenWork[1+40*1] = s'c';
@@ -225,16 +226,34 @@ void showWorkPassengers(Passenger *psgData)
     }
 }
 
-void showWorkCargo(PlayerData *data)
+void showWorkMaps(PlayerData *data) 
 {
     clearWorkScreen();
-    putText(s"cargo",3,1,5,VCOL_DARK_GREY);
-    putText(s"count",14,1,5,VCOL_DARK_GREY);
+    putText(s"map name",3,1,8,VCOL_WHITE);
     for (unsigned char x = 0; x<10; x++) {
         ScreenWork[3+x+40*2] = 106;
-        ScreenColor[3+x+40*2] = VCOL_DARK_GREY;
+        ScreenColor[3+x+40*2] = VCOL_WHITE;
+    }
+    
+    for (unsigned char x = 0; x<NUM_TERRAINS; x++) {
+        if (isMapAccessible(data, x)) {
+            putText(terrainMapNames[x], 3, x+3, 10, VCOL_WHITE);
+        } else {
+            putText(s"-unknown--", 3, x+3, 10, VCOL_BLACK);
+        }
+    }
+}
+
+void showWorkCargo(PlayerData *data, unsigned char inactiveTextColor)
+{
+    clearWorkScreen();
+    putText(s"cargo",3,1,5,inactiveTextColor);
+    putText(s"count",14,1,5,inactiveTextColor);
+    for (unsigned char x = 0; x<10; x++) {
+        ScreenWork[3+x+40*2] = 106;
+        ScreenColor[3+x+40*2] = inactiveTextColor;
         ScreenWork[14+x+40*2] = 106;
-        ScreenColor[14+x+40*2] = VCOL_DARK_GREY;
+        ScreenColor[14+x+40*2] = inactiveTextColor;
     }
     unsigned char goodsIndexList[MAX_CARGO_SPACE];
     unsigned char goodsCountList[MAX_CARGO_SPACE];
@@ -288,7 +307,7 @@ void getInputText(unsigned char x, unsigned char y, unsigned char maxLength, cha
 // return 0-based player's choice
 // navigates with w-up, s-down, ENTER-select
 const unsigned char maxDisplayedChoices = 10;
-unsigned char getMenuChoice(unsigned char num, unsigned char initChoice, const char text[][10], bool doCosts, const unsigned int costs[])
+unsigned char getMenuChoice(unsigned char num, unsigned char initChoice, unsigned char inactiveTextColor, const char text[][10], bool doCosts, const unsigned int costs[])
 {
     unsigned char currHome = 0;
     unsigned char currSelect = (initChoice < num) ? initChoice : initChoice-1;
@@ -302,7 +321,7 @@ unsigned char getMenuChoice(unsigned char num, unsigned char initChoice, const c
     for (;;) {
         for (unsigned char y=currHome; y<currHome+maxDisplayedChoices; y++) {
             if (y < num) {
-                putText(text[y], 27, 6+y-currHome, 10, currSelect == y ? VCOL_WHITE : VCOL_DARK_GREY);
+                putText(text[y], 27, 6+y-currHome, 10, currSelect == y ? VCOL_WHITE : inactiveTextColor);
                 if (doCosts && (y==currSelect)) {
                     if (costs[y]) {
                         char output[5];
@@ -314,7 +333,7 @@ unsigned char getMenuChoice(unsigned char num, unsigned char initChoice, const c
                     }
                 }
             } else {
-                putText("          ", 27, 6+y-currHome, 10, VCOL_DARK_GREY);
+                putText("          ", 27, 6+y-currHome, 10, inactiveTextColor);
             }
         }
         for (;;) {

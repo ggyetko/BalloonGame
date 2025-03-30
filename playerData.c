@@ -36,6 +36,8 @@ bool isMapAccessible(PlayerData const *data, unsigned char mapIndex)
 void addMapAccessible(PlayerData *data, unsigned char mapIndex)
 {
     data->knownMaps |= 1 << mapIndex;
+    debugChar(8,mapIndex);
+    debugChar(9,data->knownMaps);
 }
 
 void balloonDamage(PlayerData *data){

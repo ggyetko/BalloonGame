@@ -12,7 +12,10 @@ struct Palette {
     unsigned char mountainColor;
     unsigned char cityColor;
     unsigned char rampColor;
+    unsigned char inactiveTextColor;
 };
+
+extern const char terrainMapNames[8][10];
 
 extern const Palette palette[NUM_TERRAINS];
 

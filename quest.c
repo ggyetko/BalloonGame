@@ -85,7 +85,7 @@ const Quest allQuests[QUEST_COUNT] = {
     {0b00000001},        // cloud city
     22,                  // eggs
     20,
-    {REWARD_MAP_ACCESS,0,0},
+    {REWARD_MAP_ACCESS,1,0},
     //0---------0---------2---------0---------4---------0---------6---------0---------8---------0---------
     s"we will grant you a map of the icelands if you bring twenty black bean crates tocloud city markets. ",
     s"our city is gratefulfor your efforts.   here is our map.    "
