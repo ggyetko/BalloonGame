@@ -141,7 +141,16 @@ void City_initCityVariables(void)
     cityRespectLevel[1][2] = CITY_RESPECT_LOW;
 }
 
-void generateCurrentCityTmpData(Passenger *tempPsgData, CityCode currentCity) // Assume size 10 array
+void City_returnUnusedPassengers(Passenger *tempPsgData)
+{
+    for (unsigned char index=0;index<10;index++) {
+        if (tempPsgData[index].destination.code != 0) {
+            City_returnName(tempPsgData[index].name);
+        }
+    }
+}
+
+void City_generateCurrentCityTmpData(Passenger *tempPsgData, CityCode currentCity) // Assume size 10 array
 {
     unsigned char psgDataIndex = 0;
     unsigned char currMapNum = CityCode_getMapNum(currentCity);
@@ -251,7 +260,7 @@ unsigned char takeRandomName(void)
     return 0;
 }
 
-void returnName(char *name)
+void City_returnName(char *name)
 {
     for (unsigned char p=0; p<NUM_PASSENGER_NAMES; p++) {
         if (tenCharCmp(psgrNames[p].name, name) == 0) {

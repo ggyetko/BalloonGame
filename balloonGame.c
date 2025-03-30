@@ -1322,7 +1322,7 @@ void checkForLandingPassengers(PlayerData *data)
             // inform quest code
             Quest_processArrivalTrigger(data->cargo.psgr[p].name, CityCode_generateCityCode(currMap, cityNum));
             // add passenger name back to list
-            returnName(data->cargo.psgr[p].name);
+            City_returnName(data->cargo.psgr[p].name);
             // remove passenger
             removePassenger(data, p);
             oneLanded = true;
@@ -1386,7 +1386,7 @@ void landingOccurred(PlayerData *data)
     
     Passenger tmpPsgrData[10];
     CityCode cityCode = CityCode_generateCityCode(currMap, cityNum);
-    generateCurrentCityTmpData(tmpPsgrData, cityCode);
+    City_generateCurrentCityTmpData(tmpPsgrData, cityCode);
 
     updateCityWindow();
 
@@ -1394,6 +1394,7 @@ void landingOccurred(PlayerData *data)
     clearKeyboardCache();
     checkForLandingPassengers(data);
     cityMenu(data, tmpPsgrData);
+    City_returnUnusedPassengers(tmpPsgrData);
     status = STATUS_CITY_VIS;
     
     // return to travelling state

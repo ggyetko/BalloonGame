@@ -77,8 +77,11 @@ extern unsigned char cityRespectLevel[CITY_NUM_MAPS][CITY_NUM_CITIES_PER_MAP];
 
 void City_initCityVariables(void);
 
+// call this when leaving a city to return the unused psgr names to the list
+void City_returnUnusedPassengers(Passenger *tempPsgData);
+
 // call this upon landing to make up a newly generated passenger list
-void generateCurrentCityTmpData(Passenger *tempPsgData, CityCode currentCity); // Assume size 10 array
+void City_generateCurrentCityTmpData(Passenger *tempPsgData, CityCode currentCity); // Assume size 10 array
 
 void addRecentQuestToCityTmpData(Passenger *tempPsgData, unsigned char namedPassengerIndex);
 
@@ -87,7 +90,7 @@ void removePassengerFromList(Passenger *tempPsgData, unsigned char index);
 unsigned int getGoodsPurchasePrice(CityData const *cityData, unsigned char goodsIndex, unsigned int normalPrice);
 
 unsigned char takeRandomName(void);
-void returnName(char *name);
+void City_returnName(char *name);
 
 char const* getCityNameFromCityCode(CityCode cityCode);
 #endif

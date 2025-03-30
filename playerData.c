@@ -84,7 +84,7 @@ void carriageDamage(PlayerData *data) {
                 if (data->cargo.psgr[x].destination.code != DESTINATION_CODE_DAMAGED_CABIN) {
                     if (rnd == 0) {
                         if (data->cargo.psgr[x].destination.code != DESTINATION_CODE_NO_PASSENGER) {
-                            returnName(data->cargo.psgr[x].name);
+                            City_returnName(data->cargo.psgr[x].name);
                         }
                         data->cargo.psgr[x].destination.code = DESTINATION_CODE_DAMAGED_CABIN;
                         break;
