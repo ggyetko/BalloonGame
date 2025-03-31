@@ -1598,6 +1598,10 @@ void startGame(char *name, unsigned char title)
 
     struct PlayerData playerData;
     playerDataInit(&playerData, name, title);
+    
+    // DEBUG TBD
+    //playerData.knownMaps = 3;
+    //playerData.balloonUpgrades = BALLOON_PORTAL;
           
     // set up scoreboard
     showScoreBoard(&playerData);
