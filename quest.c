@@ -53,7 +53,7 @@ const Quest allQuests[QUEST_COUNT] = {
     1,
     {REWARD_RESPECT_HIGH,0,0},
     //0---------0---------2---------0---------4---------0---------6---------0---------8---------0---------
-    s"my son wishes to paya visit to the cold lands city of hoth. he is waiting by ourdockside for you.   ",
+    s"my son wishes to paya visit to the city of hoth in icelands.he is waiting by ourdockside for you.   ",
     s"thank you for safelytransporting my     son                 "
     },
     {s"rice      ",
