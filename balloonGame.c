@@ -892,21 +892,29 @@ void cityMenuBuy(PlayerData *data)
         unsigned char x;
         char buyMenuOptions[MAX_SELL_GOODS+1][10];
         unsigned int buyMenuCosts[MAX_SELL_GOODS+1];
+        char buyMenuCostsText[MAX_SELL_GOODS+1][10];
+
+        memset(buyMenuCostsText, 32, 10*(MAX_SELL_GOODS+1));
+
         tenCharCopy(buyMenuOptions[0], s"return    ");
         buyMenuCosts[0] = 0;
+        tenCharCopy(buyMenuCostsText[0], s"          ");
         for (x = 1; x < MAX_SELL_GOODS+1; x++){
             if (cityRespectLevel[currMap][cityNum-1] >= cities[currMap][cityNum-1].sellGoods[x-1].reqRespectRate) {
                 tenCharCopy(
                     buyMenuOptions[x], 
                     goods[cities[currMap][cityNum-1].sellGoods[x-1].goodsIndex].name);
-                buyMenuCosts[x] = goods[cities[currMap][cityNum-1].sellGoods[x-1].goodsIndex].normalCost;
-                buyMenuCosts[x] /= cities[currMap][cityNum-1].sellGoods[x-1].priceAdjustment;
+                buyMenuCosts[x] =
+                    goods[cities[currMap][cityNum-1].sellGoods[x-1].goodsIndex].normalCost
+                    / cities[currMap][cityNum-1].sellGoods[x-1].priceAdjustment;
+                uint16ToString(buyMenuCosts[x], buyMenuCostsText[x]);
             } else {
                 // The city's goods list is sorted from lowest to highest respect
                 break;
             }
         }
-        unsigned char responseBuy = getMenuChoice(x, lastChoice, palette[currMap].inactiveTextColor, buyMenuOptions, true, buyMenuCosts);
+        unsigned char responseBuy = getMenuChoice(
+            x, lastChoice, palette[currMap].inactiveTextColor, buyMenuOptions, true, s"cost      ", buyMenuCostsText);
         if (responseBuy == 0) {
             break;
         } else {
@@ -932,15 +940,19 @@ void cityMenuSell(PlayerData *data)
         unsigned char listLength = makeShortCargoList(data, goodsIndexList, goodsCountList);
         char sellMenuOptions[MAX_CARGO_SPACE+1][10];
         unsigned int sellMenuCosts[MAX_CARGO_SPACE+1];
+        char sellMenuCostsText[MAX_CARGO_SPACE+1][10];
         unsigned char x;
 
+        memset(sellMenuCostsText, 32, 10*(MAX_CARGO_SPACE+1));
         tenCharCopy(sellMenuOptions[0], s"return    ");
         sellMenuCosts[0] = 0;
         for (x = 1; x < listLength+1; x++) {
             tenCharCopy( sellMenuOptions[x], goods[goodsIndexList[x-1]].name);
             sellMenuCosts[x] = getGoodsPurchasePrice(&cities[currMap][cityNum-1], goodsIndexList[x-1], goods[goodsIndexList[x-1]].normalCost);
+            uint16ToString(sellMenuCosts[x], sellMenuCostsText[x]);
         }
-        unsigned char responseSell = getMenuChoice(x, lastChoice, palette[currMap].inactiveTextColor, sellMenuOptions, true, sellMenuCosts);
+        unsigned char responseSell = getMenuChoice(
+            x, lastChoice, palette[currMap].inactiveTextColor, sellMenuOptions, true, s"cost      ", sellMenuCostsText);
         if (responseSell == 0) {
             break;
         } else {
@@ -962,7 +974,7 @@ void cityMenuRepair(PlayerData *data)
 {
     unsigned char lastChoice = 0;
     for (;;) {
-        unsigned char repairList[4][10] = 
+        char repairList[4][10] = 
             {s"return    ", s"blln fabrc", s"psgr cabin", s"cargo bay "};
         unsigned int repairListCosts[4] = 
             {0, REPAIR_COST_BALLOON_FABRIC, REPAIR_COST_PSGR_CABIN, REPAIR_COST_CARGO};
@@ -976,8 +988,14 @@ void cityMenuRepair(PlayerData *data)
         if (cities[currMap][cityNum-1].facility & CITY_FACILITY_CARGO) {
             repairListCosts[3] -= REPAIR_COST_FACILITY_REDUCTION;
         }
+        char repairCostText[4][10];
+        memset(repairCostText, 32, 40);
+        for (unsigned char x = 1;x<4;x++) {
+            uint16ToString(repairListCosts[x], repairCostText[x]);
+        }
             
-        unsigned char responseRepair = getMenuChoice(4, 0, palette[currMap].inactiveTextColor, repairList, true, repairListCosts);
+        unsigned char responseRepair = getMenuChoice(
+            4, 0, palette[currMap].inactiveTextColor, repairList, true, s"cost      ", repairCostText);
         if (responseRepair == 0) {
             break;
         } else if (responseRepair == 1) {
@@ -1018,6 +1036,7 @@ void cityMenuRefuel(PlayerData *data)
     for (;;) {
         unsigned char fuelList[3][10] = {s"return    ",s"quarter   ",s"full/max  "};
         unsigned int fuelListCosts[3] = {0};
+        char fuelListCostText[3][10] =  {s"          ",s"          ",s"          "};
         unsigned int fullCost = (65535 - data->fuel) / FUEL_COST_DIVISOR;
         bool fullMeansMax = false;
         if ((fullCost < FUEL_COST_QUARTER_TANK) || (data->money < FUEL_COST_QUARTER_TANK)) {
@@ -1031,7 +1050,13 @@ void cityMenuRefuel(PlayerData *data)
         } else {
             fuelListCosts[2] = fullCost;
         }
-        unsigned char responseRefuel = getMenuChoice(3, 0, palette[currMap].inactiveTextColor, fuelList, true, fuelListCosts);
+        for (unsigned char x = 1;x<3;x++) {
+            if (fuelListCosts[x]) {
+                uint16ToString(fuelListCosts[x], fuelListCostText[x]);
+            }
+        }
+        unsigned char responseRefuel = getMenuChoice(
+            3, 0, palette[currMap].inactiveTextColor, fuelList, true, s"cost      ", fuelListCostText);
         if (responseRefuel == 0) {
             break;
         } else if (responseRefuel == 1) {
@@ -1058,15 +1083,18 @@ void cityMenuPassenger(PlayerData *data, Passenger *tmpPsgrData)
 {
     for (;;) {
         unsigned char psgrList[MAX_PASSENGERS_AVAILABLE+1][10] = {s"return    "};
+        unsigned char destList[MAX_PASSENGERS_AVAILABLE+1][10] = {s"          "};
         unsigned char listSize;
         for (listSize=1; listSize<MAX_PASSENGERS_AVAILABLE+1; listSize++) {
             if (tmpPsgrData[listSize-1].destination.code) {
                 tenCharCopy(psgrList[listSize], tmpPsgrData[listSize-1].name);
+                tenCharCopy(destList[listSize], getCityNameFromCityCode(tmpPsgrData[listSize-1].destination));
             } else {
                 break;
             }
         }
-        unsigned char responsePassenger = getMenuChoice(listSize, 0, palette[currMap].inactiveTextColor, psgrList, false, nullptr);
+        unsigned char responsePassenger = getMenuChoice(
+            listSize, 0, palette[currMap].inactiveTextColor, psgrList, true, s"dest      ", destList);
             
         if (responsePassenger == 0) {
             break;
@@ -1095,7 +1123,7 @@ void cityMenuQuest(PlayerData *data)
 {
     unsigned char lastChoice = 0;
     for (;;) {
-        unsigned char invList[MAX_QUESTS_IN_PROGRESS+1][10] = {s"return    "};
+        char invList[MAX_QUESTS_IN_PROGRESS+1][10] = {s"return    "};
         unsigned char invQuestIndexList[MAX_QUESTS_IN_PROGRESS+1] = {0}; // this list will contain the QUEST index (not the QUEST LOG index)
         unsigned char invListLength = 1;
         unsigned char questLogIndex;
@@ -1106,7 +1134,8 @@ void cityMenuQuest(PlayerData *data)
                 invListLength++;
             }
         }
-        unsigned char responseQuest = getMenuChoice(invListLength, lastChoice, palette[currMap].inactiveTextColor, invList, false, nullptr);
+        unsigned char responseQuest = getMenuChoice(
+            invListLength, lastChoice, palette[currMap].inactiveTextColor, invList, false, nullptr, nullptr);
         
         if (responseQuest == 0) {
             break;
@@ -1137,7 +1166,8 @@ void cityMenuInventory(PlayerData *data, Passenger *tmpPsgrData)
     unsigned char lastChoice = 0;
     for (;;) {
         unsigned char invList[5][10] = {s"return    ",s"passengers",s"cargo     ",s"quest     ",s"maps      "};
-        unsigned char responseInv = getMenuChoice(5, lastChoice, palette[currMap].inactiveTextColor, invList, false, nullptr);
+        unsigned char responseInv = getMenuChoice(
+            5, lastChoice, palette[currMap].inactiveTextColor, invList, false, nullptr, nullptr);
         if (responseInv == 0) {
             break;
         } else if (responseInv == 1) {
@@ -1204,20 +1234,24 @@ void cityMenuUpgrade(PlayerData *data)
 {
     for (;;) {
         unsigned char listLength = 1;
-        unsigned char upgradeList[4][10] = {s"return    "};
-        unsigned int costList[4] = {0,0};
+        char upgradeList[4][10] = {s"return    "};
+        int costList[4];
+        char costListText[4][10];
+        memset (costListText,32,40);
         unsigned char upgradeIndexList[4] = {0};
         if (cityRespectLevel[currMap][cityNum-1] == CITY_RESPECT_HIGH) {
             for (unsigned char x=0; x<UPGRADE_NUM_UPGRADES ;x++) {
                 if (cities[currMap][cityNum-1].facility & upgrades[x].facilityMask) {
                     tenCharCopy(upgradeList[listLength], upgrades[x].name);
                     costList[listLength] = upgrades[x].cost;
+                    uint16ToString(costList[listLength], costListText[listLength]);
                     upgradeIndexList[listLength] = x;
                     listLength++;
                 }
             }
         }
-        unsigned char respUpgrade = getMenuChoice(listLength,0, palette[currMap].inactiveTextColor,upgradeList,true,costList);
+        unsigned char respUpgrade = getMenuChoice(
+            listLength,0, palette[currMap].inactiveTextColor,upgradeList,true,s"cost      ",costListText);
         if (respUpgrade == 0) {
             return;
         } else {
@@ -1237,7 +1271,8 @@ void cityMenuMayor(PlayerData *data, Passenger *tmpPsgrData)
     showMayor(data);
     for (;;) {
         unsigned char mayorList[5][10] = {s"return    ",s"town      ",s"quest     ",s"chat      ", s"gift      "};
-        unsigned char responseMayor = getMenuChoice(5, 0, palette[currMap].inactiveTextColor, mayorList, false, nullptr);
+        unsigned char responseMayor = getMenuChoice(
+            5, 0, palette[currMap].inactiveTextColor, mayorList, false, nullptr, nullptr);
 
         if (responseMayor == 0) { break; }
         else {
@@ -1286,7 +1321,8 @@ void cityMenuMayor(PlayerData *data, Passenger *tmpPsgrData)
 void cityMenu(PlayerData *data, Passenger *tmpPsgrData) 
 {
     for (;;) {
-        unsigned char response = getMenuChoice(MAIN_MENU_SIZE, 0, palette[currMap].inactiveTextColor, main_menu_options, false, nullptr);
+        unsigned char response = getMenuChoice(
+            MAIN_MENU_SIZE, 0, palette[currMap].inactiveTextColor, main_menu_options, false, nullptr, nullptr);
         if (response == MENU_OPTION_BUY) {
             cityMenuBuy(data);            
         } else if (response == MENU_OPTION_SELL) {
@@ -1805,7 +1841,7 @@ unsigned char introScreen(char *name, unsigned char* title)
     
     unsigned char returnValue = 0;
     for (;;) {
-        unsigned char result = getMenuChoice(4, 0, VCOL_DARK_GREY, menuOptions, false, nullptr);
+        unsigned char result = getMenuChoice(4, 0, VCOL_DARK_GREY, menuOptions, false, nullptr, nullptr);
         
         if (result == 0) {
             getInputText(28, 12, 10, s"your name ", name);
@@ -1814,7 +1850,7 @@ unsigned char introScreen(char *name, unsigned char* title)
                 s"mrs       ",
                 s"ms        ",
                 s"mx        "};
-            *title = getMenuChoice(4,0, VCOL_DARK_GREY,titleOptions,false,nullptr);
+            *title = getMenuChoice(4,0, VCOL_DARK_GREY,titleOptions,false,nullptr, nullptr);
             returnValue = 1;
             break;
         } else if (result == 1) {

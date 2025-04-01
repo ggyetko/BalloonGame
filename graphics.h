@@ -307,7 +307,14 @@ void getInputText(unsigned char x, unsigned char y, unsigned char maxLength, cha
 // return 0-based player's choice
 // navigates with w-up, s-down, ENTER-select
 const unsigned char maxDisplayedChoices = 10;
-unsigned char getMenuChoice(unsigned char num, unsigned char initChoice, unsigned char inactiveTextColor, const char text[][10], bool doCosts, const unsigned int costs[])
+unsigned char getMenuChoice(
+    unsigned char num, 
+    unsigned char initChoice,
+    unsigned char inactiveTextColor, 
+    const char text[][10], 
+    bool doInfo,
+    const char infoTitle[10],
+    const char info[][10])
 {
     unsigned char currHome = 0;
     unsigned char currSelect = (initChoice < num) ? initChoice : initChoice-1;
@@ -322,15 +329,9 @@ unsigned char getMenuChoice(unsigned char num, unsigned char initChoice, unsigne
         for (unsigned char y=currHome; y<currHome+maxDisplayedChoices; y++) {
             if (y < num) {
                 putText(text[y], 27, 6+y-currHome, 10, currSelect == y ? VCOL_WHITE : inactiveTextColor);
-                if (doCosts && (y==currSelect)) {
-                    if (costs[y]) {
-                        char output[5];
-                        uint16ToString(costs[y], output);
-                        putText(s"cost ",27,18,5,VCOL_BLACK);
-                        putText(output,32,18,5,VCOL_WHITE);
-                    } else {
-                        putText(s"           ",27,18,11,VCOL_BLACK);
-                    }
+                if (doInfo && (y==currSelect)) {
+                    putText(infoTitle,27,17,10,VCOL_BLACK);
+                    putText(info[y],27,18,10,VCOL_WHITE);
                 }
             } else {
                 putText("          ", 27, 6+y-currHome, 10, inactiveTextColor);
