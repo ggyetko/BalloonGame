@@ -14,6 +14,12 @@ struct Palette {
     unsigned char rampColor;
     unsigned char inactiveTextColor;
 };
+struct WorldType {
+    unsigned char coldDamage;
+    unsigned char heatDamage;
+};
+
+extern const WorldType[5];
 
 extern const char terrainMapNames[8][10];
 

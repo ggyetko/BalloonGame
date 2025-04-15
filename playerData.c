@@ -17,6 +17,7 @@ void playerDataInit(PlayerData *data, char* tempName, unsigned char tempTitle){
     // Cargo
     data->cargo.cargoSpace = MAX_CARGO_SPACE;
     data->cargo.currCargoCount = 0;
+    data->cargo.airDropCargoIndex = CARGO_SLOT_NOT_SELECTED;
     for (unsigned char x=0; x<MAX_CARGO_SPACE; x++) {
         data->cargo.cargo[x] = NO_GOODS;
     }

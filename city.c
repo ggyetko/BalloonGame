@@ -129,16 +129,18 @@ const CityData cities[CITY_NUM_MAPS][CITY_NUM_CITIES_PER_MAP] = {
     }
 };
 // variable city data - MUST BE SAVED with SAVE GAME
-unsigned char cityRespectLevel[CITY_NUM_MAPS][CITY_NUM_CITIES_PER_MAP];
+extern CityDataVar citiesVar[CITY_NUM_MAPS][CITY_NUM_CITIES_PER_MAP];
 
 void City_initCityVariables(void)
 {
-    cityRespectLevel[0][0] = CITY_RESPECT_LOW;
-    cityRespectLevel[0][1] = CITY_RESPECT_LOW;
-    cityRespectLevel[0][2] = CITY_RESPECT_LOW;
-    cityRespectLevel[1][0] = CITY_RESPECT_LOW;
-    cityRespectLevel[1][1] = CITY_RESPECT_LOW;
-    cityRespectLevel[1][2] = CITY_RESPECT_LOW;
+    for (unsigned char map=0; map<CITY_NUM_MAPS; map++) {
+        for (unsigned char city=0; city<CITY_NUM_MAPS; city++) {
+            citiesVar[map][city].respectLevel = CITY_RESPECT_LOW;
+            citiesVar[map][city].status = CITY_STATUS_CITY;
+        }
+    }
+    // set up MULE city and other special statuses here
+    //citiesVar[0][2].status = CITY_STATUS_MULE;
 }
 
 void City_returnUnusedPassengers(Passenger *tempPsgData)

@@ -315,6 +315,25 @@ Note const soundEffectPortalEntry[SOUND_EFFECT_PORTAL_ENTRY_LENGTH] = {
 Note const *currentSoundEffect;
 unsigned char currentSoundEffectLength;
 
+struct SoundEffect {
+    Note const *pointer;
+    unsigned char length;
+};
+
+SoundEffect soundEffects[SOUND_EFFECT_ARRAY_SIZE] = {
+  {soundEffectPrepare,     SOUND_EFFECT_PREPARE_LENGTH},
+  {soundEffectPortalEntry, SOUND_EFFECT_PORTAL_ENTRY_LENGTH},
+  {soundEffectPortalSignal,SOUND_EFFECT_PORTAL_SIGNAL_LENGTH},
+  {soundEffectPortal,      SOUND_EFFECT_PORTAL_ANNOUNCE_LENGTH},
+  {soundEffectQuestRing,   SOUND_EFFECT_QUEST_RING_LENGTH},
+  {soundEffectQuestFulfill,SOUND_EFFECT_QUEST_RING_LENGTH},
+  {soundEffectQuestDone,   SOUND_EFFECT_QUEST_RING_LENGTH},
+  {soundEffectExtend,      SOUND_EFFECT_EXTEND_LENGTH},
+  {soundEffectThrustBack,  SOUND_EFFECT_THRUST_LENGTH},
+  {soundEffectThrust,      SOUND_EFFECT_THRUST_LENGTH},
+  {soundEffectRollCar,     SOUND_EFFECT_ROLLCAR_LENGTH},
+};
+
 // use voice 3 to initiate a sound, (?cancelling any previous sound? tbd)
 void Sound_doSound(unsigned char soundEffectsIndex)
 {
@@ -324,41 +343,8 @@ void Sound_doSound(unsigned char soundEffectsIndex)
     if (playingSound != SOUND_NO_SOUND_EFFECT) {
         // clear sound??
     }
-    
-    if (soundEffectsIndex == SOUND_EFFECT_PREPARE) {
-        currentSoundEffect = soundEffectPrepare;
-        currentSoundEffectLength = SOUND_EFFECT_PREPARE_LENGTH;
-    } else if (soundEffectsIndex == SOUND_EFFECT_THRUST) {
-        currentSoundEffect = soundEffectThrust;
-        currentSoundEffectLength = SOUND_EFFECT_THRUST_LENGTH;
-    } else if (soundEffectsIndex == SOUND_EFFECT_THRUST_BACK) {
-        currentSoundEffect = soundEffectThrustBack;
-        currentSoundEffectLength = SOUND_EFFECT_THRUST_LENGTH;
-    } else if (soundEffectsIndex == SOUND_EFFECT_ROLLCAR) {
-        currentSoundEffect = soundEffectRollCar;
-        currentSoundEffectLength = SOUND_EFFECT_ROLLCAR_LENGTH;
-    } else if (soundEffectsIndex == SOUND_EFFECT_QUEST_RING) {
-        currentSoundEffect = soundEffectQuestRing;
-        currentSoundEffectLength = SOUND_EFFECT_QUEST_RING_LENGTH;
-    } else if (soundEffectsIndex == SOUND_EFFECT_QUEST_FULFILL) {
-        currentSoundEffect = soundEffectQuestFulfill;
-        currentSoundEffectLength = SOUND_EFFECT_QUEST_RING_LENGTH;
-    } else if (soundEffectsIndex == SOUND_EFFECT_QUEST_DONE) {
-        currentSoundEffect = soundEffectQuestDone;
-        currentSoundEffectLength = SOUND_EFFECT_QUEST_RING_LENGTH;
-    } else if (soundEffectsIndex == SOUND_EFFECT_PORTAL_ANNOUNCE) {
-        currentSoundEffect = soundEffectPortal;
-        currentSoundEffectLength = SOUND_EFFECT_PORTAL_ANNOUNCE_LENGTH;
-    } else if (soundEffectsIndex == SOUND_EFFECT_EXTEND) {
-        currentSoundEffect = soundEffectExtend;
-        currentSoundEffectLength = SOUND_EFFECT_EXTEND_LENGTH;
-    } else if (soundEffectsIndex == SOUND_EFFECT_PORTAL_ENTRY) {
-        currentSoundEffect = soundEffectPortalEntry;
-        currentSoundEffectLength = SOUND_EFFECT_PORTAL_ENTRY_LENGTH;
-    } else if (soundEffectsIndex == SOUND_EFFECT_PORTAL_SIGNAL) {
-        currentSoundEffect = soundEffectPortalSignal;
-        currentSoundEffectLength == SOUND_EFFECT_PORTAL_SIGNAL_LENGTH;
-    }
+    currentSoundEffect = soundEffects[soundEffectsIndex].pointer;
+    currentSoundEffectLength = soundEffects[soundEffectsIndex].length;
     
     soundEffectIndex = 0;
     soundTickDown = 0;

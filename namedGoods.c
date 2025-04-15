@@ -18,9 +18,9 @@ const struct Goods goods[40] =
     {s"silver    ", 300, 10, 0, 0}, // 10
     {s"iron      ", 500,  3,  0, 0}, // 11
     {s"aluminum  ", 500,  3,  0, 0}, // 12
-    {s"tin       ", 500,  3,  0, 0}, // 13
+    {s"gold      ", 500,  3,  0, 0}, // 13
     {s"smithore  ", 500,  3,  0, 0}, // 14
-    {s"gold      ", 500,  3,  0, 0}, // 15
+    {s"rfnd smthr",1500,  3,  0, 0}, // 15
     // Animal products
     {s"milk      ", 75,  3,  0, 0}, // 16
     {s"beef      ", 75,  3,  0, 0}, // 17

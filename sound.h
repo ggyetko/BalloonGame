@@ -44,8 +44,7 @@ extern void Sound_tick(void);
 // Sounds that appear earlier in the list will override 
 // any sounds later in the list, even in mid-play
 enum Sound_SoundEffects {
-    SOUND_EFFECT_BURN = 0,
-    SOUND_EFFECT_PREPARE,
+    SOUND_EFFECT_PREPARE = 0,
     SOUND_EFFECT_PORTAL_ENTRY,
     SOUND_EFFECT_PORTAL_SIGNAL,
     SOUND_EFFECT_PORTAL_ANNOUNCE,
@@ -56,6 +55,7 @@ enum Sound_SoundEffects {
     SOUND_EFFECT_THRUST_BACK,
     SOUND_EFFECT_THRUST,
     SOUND_EFFECT_ROLLCAR,
+    SOUND_EFFECT_ARRAY_SIZE
 };
 // use voice 3 to initiate a sound, cancelling any catalogued sound from Sound_SoundEffects
 extern void Sound_doSound(unsigned char soundEffectsIndex);

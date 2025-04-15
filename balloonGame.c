@@ -63,8 +63,12 @@ __export const char spriteset[1024] = { // starts at 0x2800
 };
 
 #pragma data(spriteset2)
-__export const char spriteset2[256] = { // starts at 0x3400
+__export const char spriteset2[1216] = { // starts at 0x3400
     #embed "swirlSpritesFour.bin" // 0xd0 0xd1 0xd2 0xd3
+    #embed "swirlSpritesFour.bin" // save a spot for faces
+    #embed "swirlSpritesFour.bin" // ...
+    #embed "swirlSpritesFour.bin" // ...            0xdf
+    #embed "airdrop.bin"          // 0xe0 0xe1 0xe2        (air drop, mule lt gry, mule dk gry)
 };
 
 #define BalloonSpriteLocation      0xa0
@@ -81,13 +85,17 @@ __export const char spriteset2[256] = { // starts at 0x3400
 #define BalloonDecelOutlLocation   0xab  // needs higher priority than BalloonDecelLocation
 #define BalloonPsgrCartLocationLft 0xac
 #define BalloonPsgrCartLocationRgt 0xad
-#define BalloonBridgeLocation      0xae
+#define BalloonRampLocation        0xae
 #define BalloonCartLocation        0xaf
 
 #define PortalSwirl1Location       0xd0
 #define PortalSwirl2Location       0xd1
 #define PortalSwirl3Location       0xd2
 #define PortalSwirl4Location       0xd3
+
+#define AirDropLocation            0xe0
+#define MuleMainLocation           0xe1
+#define MuleBackgroundLocation     0xe2
 
 #pragma data(data)
 
@@ -103,7 +111,10 @@ enum ScrollingStatuses{
     STATUS_CITY_RAMP = 0x04,
     STATUS_SWIRL_READY = 0x08,
     STATUS_SWIRL_ON  = 0x10,
+    STATUS_AIRDROP_ON = 0x20,
 };
+
+#define STATUS_UTILITY_SPRITES (STATUS_AIRDROP_ON|STATUS_SWIRL_ON|STATUS_CITY_RAMP)
 
 enum {
     STATUS_CARGO_IN  = 0x08,
@@ -135,6 +146,8 @@ volatile unsigned char cityNum;   // While in travelling mode, what city are we 
 volatile unsigned int  swirlXPos;  // While in travelling mode, where is the swirl sprite?
 volatile unsigned char swirlYPos;  // While in travelling mode, where is the swirl sprite?
 volatile unsigned char portalNextMap; // if you hit the next Portal, you'll go to this map.
+volatile unsigned char airDropXPos;
+volatile unsigned char airDropYPos;
 
 volatile char currMap;   // what world are you in
 volatile char mapXCoord; // where are you in the world (right edge of screen)
@@ -194,7 +207,8 @@ const char mountainHeight[8] = {0,1,2,3,4,6,8,10};
 //#define SPRITE_UNUSED        4
 #define SPRITE_RAMP            5
 #define SPRITE_SWIRL           5
-#define SPRITE_SWIRL2          6
+#define SPRITE_AIRDROP         5
+#define SPRITE_SWIRL2          6  // not in use yet
 #define SPRITE_CLOUD_OUTLINE   6
 #define SPRITE_CLOUD_BG        7
 
@@ -208,7 +222,8 @@ const char mountainHeight[8] = {0,1,2,3,4,6,8,10};
 #define SPRITE_BACK_THRUST_ENABLE     0x04
 #define SPRITE_UP_THRUST_ENABLE       0x08
 #define SPRITE_RAMP_ENABLE            0x20
-#define SPRITE_SWIRL_ENABLE            0x20
+#define SPRITE_SWIRL_ENABLE           0x20
+#define SPRITE_AIRDROP_ENABLE         0x20
 #define SPRITE_CLOUD_OUTLINE_ENABLE   0x40
 #define SPRITE_CLOUD_BG_ENABLE        0x80
 
@@ -349,30 +364,49 @@ __interrupt void midCloudAdjustment(void)
 __interrupt void lowCloudAdjustment(void) 
 {
     if (status & STATUS_CITY_VIS) {
-        Screen0[0x03f8+SPRITE_CITY_OUTLINE ] = BalloonCityOutlLocation; 
-        Screen1[0x03f8+SPRITE_CITY_OUTLINE ] = BalloonCityOutlLocation;
-        vic.spr_color[SPRITE_CITY_OUTLINE] = CITY_OUTLINE_COLOR;
-        
-        Screen0[0x03f8+SPRITE_CITY_BG ] = BalloonCityBgLocation;
-        Screen1[0x03f8+SPRITE_CITY_BG ] = BalloonCityBgLocation;
-        vic.spr_color[SPRITE_CITY_BG] = palette[currMap].cityColor;
-        
-        Screen0[0x03f8+SPRITE_CITY_SHADE] = BalloonCityShadeLocation;
-        Screen1[0x03f8+SPRITE_CITY_SHADE] = BalloonCityShadeLocation;
-        vic.spr_color[SPRITE_CITY_SHADE] = CITY_SHADE_COLOR;
+        unsigned char cityStatus = citiesVar[currMap][cityNum-1].status;
+        if (cityStatus == CITY_STATUS_CITY) {
+            Screen0[0x03f8+SPRITE_CITY_OUTLINE ] = BalloonCityOutlLocation; 
+            Screen1[0x03f8+SPRITE_CITY_OUTLINE ] = BalloonCityOutlLocation;
+            vic.spr_color[SPRITE_CITY_OUTLINE] = CITY_OUTLINE_COLOR;
+            
+            Screen0[0x03f8+SPRITE_CITY_BG ] = BalloonCityBgLocation;
+            Screen1[0x03f8+SPRITE_CITY_BG ] = BalloonCityBgLocation;
+            vic.spr_color[SPRITE_CITY_BG] = palette[currMap].cityColor;
+            
+            Screen0[0x03f8+SPRITE_CITY_SHADE] = BalloonCityShadeLocation;
+            Screen1[0x03f8+SPRITE_CITY_SHADE] = BalloonCityShadeLocation;
+            vic.spr_color[SPRITE_CITY_SHADE] = CITY_SHADE_COLOR;
 
-        vic.spr_enable |= SPRITE_CITY_BG_ENABLE | SPRITE_CITY_OUTLINE_ENABLE | SPRITE_CITY_SHADE_ENABLE;
+            vic.spr_enable |= SPRITE_CITY_BG_ENABLE | SPRITE_CITY_OUTLINE_ENABLE | SPRITE_CITY_SHADE_ENABLE;
 
-        vic_sprxy(SPRITE_CITY_OUTLINE, cityXPos, cityYPos);
-        vic_sprxy(SPRITE_CITY_BG, cityXPos, cityYPos);
-        vic_sprxy(SPRITE_CITY_SHADE, cityXPos, cityYPos);
-        
-        if (status & STATUS_CITY_RAMP) {
-            vic_sprxy(SPRITE_RAMP, cityXPos-23, cityYPos+8);
+            vic_sprxy(SPRITE_CITY_OUTLINE, cityXPos, cityYPos);
+            vic_sprxy(SPRITE_CITY_BG, cityXPos, cityYPos);
+            vic_sprxy(SPRITE_CITY_SHADE, cityXPos, cityYPos);
+            
+            if (status & STATUS_CITY_RAMP) {
+                vic_sprxy(SPRITE_RAMP, cityXPos-23, cityYPos+8);
+            }
+        } else {
+            Screen0[0x03f8+SPRITE_CITY_OUTLINE ] = MuleMainLocation;
+            Screen1[0x03f8+SPRITE_CITY_OUTLINE ] = MuleMainLocation;
+            vic.spr_color[SPRITE_CITY_OUTLINE] = VCOL_LT_GREY;
+
+            Screen0[0x03f8+SPRITE_CITY_BG ] = MuleBackgroundLocation;
+            Screen1[0x03f8+SPRITE_CITY_BG ] = MuleBackgroundLocation;
+            vic.spr_color[SPRITE_CITY_BG] = VCOL_DARK_GREY;
+
+            vic.spr_enable |= SPRITE_CITY_BG_ENABLE | SPRITE_CITY_OUTLINE_ENABLE;            
+
+            vic_sprxy(SPRITE_CITY_OUTLINE, cityXPos, cityYPos);
+            vic_sprxy(SPRITE_CITY_BG, cityXPos, cityYPos);
         }
         
     } else {
         vic.spr_enable &= ~(SPRITE_CITY_BG_ENABLE | SPRITE_CITY_OUTLINE_ENABLE | SPRITE_CITY_SHADE_ENABLE);
+    }
+    if (status & STATUS_AIRDROP_ON) {
+        vic_sprxy(SPRITE_AIRDROP, airDropXPos, airDropYPos);
     }
 
 }
@@ -498,8 +532,19 @@ __interrupt void scrollLeft(void)
                 if (swirlXPos == 0) {
                     status &= ~(STATUS_SWIRL_ON | STATUS_SWIRL_READY);
                 }
+            } else if (status & STATUS_AIRDROP_ON) {
+                airDropYPos++;
             }
-        } 
+        } else {
+            if (status & STATUS_AIRDROP_ON) {
+                airDropXPos++;
+                if (airDropXPos > 250) {
+                    status &= ~STATUS_AIRDROP_ON;
+                    vic.spr_enable &= ~SPRITE_AIRDROP_ENABLE;
+                }
+                airDropYPos++;
+            }
+        }
     }
 }
 
@@ -681,8 +726,8 @@ void setupTravellingSprites(void) {
 	Screen0[0x03f8+SPRITE_CITY_OUTLINE    ] = BalloonCityOutlLocation; // 0xa5 * 0x40 = 0x2940 (city sprite)
 	Screen1[0x03f8+SPRITE_CITY_OUTLINE    ] = BalloonCityOutlLocation;
 
-	Screen0[0x03f8+SPRITE_RAMP            ] = BalloonBridgeLocation; // 0xa6 * 0x40 = 0x2980 (city bridge sprite)
-	Screen1[0x03f8+SPRITE_RAMP            ] = BalloonBridgeLocation;
+	Screen0[0x03f8+SPRITE_RAMP            ] = BalloonRampLocation; // 0xa6 * 0x40 = 0x2980 (city bridge sprite)
+	Screen1[0x03f8+SPRITE_RAMP            ] = BalloonRampLocation;
 
 	Screen0[0x03f8+SPRITE_CLOUD_OUTLINE   ] = BalloonCloudOutlLocation; // 0xa8 * 0x40 = 0x---- (cloud outline)
 	Screen1[0x03f8+SPRITE_CLOUD_OUTLINE   ] = BalloonCloudOutlLocation;
@@ -747,6 +792,26 @@ void invokeInternalFlame(char cycles, PlayerData *data)
     } else {
         yVel -= 5 * data->balloonHealth + 10;
     }
+}
+
+void invokeAirDrop(void)
+{
+    // The 16 should make it look like it falls out of the bottom of the balloon
+    airDropXPos = 80;
+    airDropYPos = (yPos>>8) + 24 + 16;
+    vic_sprxy(SPRITE_AIRDROP, airDropXPos, airDropYPos); 
+    Screen0[0x03f8+SPRITE_AIRDROP] = AirDropLocation;
+	Screen1[0x03f8+SPRITE_AIRDROP] = AirDropLocation;
+    vic.spr_enable |= SPRITE_AIRDROP_ENABLE;
+    status |= STATUS_AIRDROP_ON;
+}
+
+void invokeRamp(void)
+{
+    Screen0[0x03f8+SPRITE_RAMP] = BalloonRampLocation;
+	Screen1[0x03f8+SPRITE_RAMP] = BalloonRampLocation;
+    status |= STATUS_CITY_RAMP;
+    vic.spr_enable |= SPRITE_RAMP_ENABLE;    
 }
 
 const char SIZEOFSCOREBOARDMAP = 40;
@@ -900,7 +965,7 @@ void cityMenuBuy(PlayerData *data)
         buyMenuCosts[0] = 0;
         tenCharCopy(buyMenuCostsText[0], s"          ");
         for (x = 1; x < MAX_SELL_GOODS+1; x++){
-            if (cityRespectLevel[currMap][cityNum-1] >= cities[currMap][cityNum-1].sellGoods[x-1].reqRespectRate) {
+            if (citiesVar[currMap][cityNum-1].respectLevel >= cities[currMap][cityNum-1].sellGoods[x-1].reqRespectRate) {
                 tenCharCopy(
                     buyMenuOptions[x], 
                     goods[cities[currMap][cityNum-1].sellGoods[x-1].goodsIndex].name);
@@ -1197,10 +1262,10 @@ void finishQuest(PlayerData *data, unsigned char questIndex)
     }
     unsigned char rw = allQuests[questIndex].reward.rewardType;
     if (rw == REWARD_RESPECT_MED) {
-        cityRespectLevel[currMap][cityNum-1] = CITY_RESPECT_MED;
+        citiesVar[currMap][cityNum-1].respectLevel = CITY_RESPECT_MED;
         success = true;
     } else if (rw == REWARD_RESPECT_HIGH) {
-        cityRespectLevel[currMap][cityNum-1] = CITY_RESPECT_HIGH;
+        citiesVar[currMap][cityNum-1].respectLevel = CITY_RESPECT_HIGH;
         success = true;
     } else if (rw == REWARD_SPECIAL_ITEM) {
         // in case there's no room, we will leave the quest "complete but unclaimed"
@@ -1219,11 +1284,11 @@ void updateCityWindow(void)
     // City Name
     putText(cities[currMap][cityNum-1].name, 27, 1, 10, VCOL_WHITE);
     putText(respect, 26, 3, 7, VCOL_DARK_GREY);
-    if (cityRespectLevel[currMap][cityNum-1] == CITY_RESPECT_NONE) {
+    if (citiesVar[currMap][cityNum-1].respectLevel == CITY_RESPECT_NONE) {
         putText(s"n/a ", 34, 3, 4, VCOL_BLACK);
-    } else if (cityRespectLevel[currMap][cityNum-1] == CITY_RESPECT_LOW){
+    } else if (citiesVar[currMap][cityNum-1].respectLevel == CITY_RESPECT_LOW){
         putText(s"low ", 34, 3, 4, VCOL_DARK_GREY);
-    } else if (cityRespectLevel[currMap][cityNum-1] == CITY_RESPECT_MED){
+    } else if (citiesVar[currMap][cityNum-1].respectLevel == CITY_RESPECT_MED){
         putText(s"med ", 34, 3, 4, VCOL_DARK_GREY);
     } else {
         putText(s"high", 34, 3, 4, VCOL_YELLOW);
@@ -1239,7 +1304,7 @@ void cityMenuUpgrade(PlayerData *data)
         char costListText[4][10];
         memset (costListText,32,40);
         unsigned char upgradeIndexList[4] = {0};
-        if (cityRespectLevel[currMap][cityNum-1] == CITY_RESPECT_HIGH) {
+        if (citiesVar[currMap][cityNum-1].respectLevel == CITY_RESPECT_HIGH) {
             for (unsigned char x=0; x<UPGRADE_NUM_UPGRADES ;x++) {
                 if (cities[currMap][cityNum-1].facility & upgrades[x].facilityMask) {
                     tenCharCopy(upgradeList[listLength], upgrades[x].name);
@@ -1298,7 +1363,7 @@ void cityMenuMayor(PlayerData *data, Passenger *tmpPsgrData)
                     // check if the mayor has a new quest
                     unsigned char questIndex = Quest_getCityQuest(
                         cityCode,
-                        cityRespectLevel[currMap][cityNum-1],
+                        citiesVar[currMap][cityNum-1].respectLevel,
                         tmpPsgrData);
                     if (questIndex != INVALID_QUEST_INDEX) {
                         Sound_doSound(SOUND_EFFECT_QUEST_RING);
@@ -1663,7 +1728,9 @@ void startGame(char *name, unsigned char title)
     status |= STATUS_SCROLLING;
 
     for (;;) {
-        if (vic.spr_backcol & (SPRITE_BALLOON_OUTLINE_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
+        unsigned char backCol = vic.spr_backcol;
+        debugChar(3, backCol);
+        if (backCol & (SPRITE_BALLOON_OUTLINE_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
             // Check the status. This loop can go around twice and count a collision each time.
             if (status & STATUS_SCROLLING) {
                 if (playerData.fuel == 0) {
@@ -1677,8 +1744,14 @@ void startGame(char *name, unsigned char title)
                 }
                 showScoreBoard(&playerData);
             }
+        } 
+        if ((status & STATUS_AIRDROP_ON) && (backCol & SPRITE_AIRDROP_ENABLE)) {
+            vic.spr_enable &= ~SPRITE_AIRDROP_ENABLE;
+            status &= ~STATUS_AIRDROP_ON;
         }
         unsigned char sprColl = vic.spr_sprcol;
+        debugChar(0, status);
+        debugChar(1, sprColl);
         if (status & STATUS_CITY_RAMP) {
             if ((sprColl & (SPRITE_RAMP_ENABLE | SPRITE_BALLOON_BG_ENABLE)) == (SPRITE_RAMP_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
                 // Collision with Ramp - GOOD
@@ -1696,7 +1769,11 @@ void startGame(char *name, unsigned char title)
                 portalEntered();
                 Sound_startSong(SOUND_SONG_AIRBORNE);
             }
-        } else if ((sprColl & (SPRITE_CITY_OUTLINE_ENABLE | SPRITE_BALLOON_BG_ENABLE)) == (SPRITE_CITY_OUTLINE_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
+        } else if (status & STATUS_AIRDROP_ON) {
+            
+        }
+        if ((sprColl & (SPRITE_CITY_OUTLINE_ENABLE | SPRITE_BALLOON_BG_ENABLE)) == 
+            (SPRITE_CITY_OUTLINE_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
             // Collision with City - BAD
             if (playerData.fuel == 0) {
                 // GAME OVER screen
@@ -1741,18 +1818,23 @@ void startGame(char *name, unsigned char title)
                     } 
                 } else if (ch == 'X') {
                     break;
-                } else if (ch == 'I') {
-                    if ((status & STATUS_CITY_VIS) && (cityXPos > 80) && ((status & STATUS_SWIRL_READY) == 0) ){
-                        Sound_doSound(SOUND_EFFECT_EXTEND);
-                        status |= STATUS_CITY_RAMP;
-                        vic.spr_enable |= SPRITE_RAMP_ENABLE;
-                        showScoreBoard(&playerData);
-                    }
-                } else if (ch == 'P') {
-                    if (((status & STATUS_CITY_RAMP) == 0) && isPortalNear(currMap, mapXCoord, &playerData)) {
-                        // This will trigger the swirl when it's swirl time
-                        status |= STATUS_SWIRL_READY;
-                        Sound_doSound(SOUND_EFFECT_PORTAL_SIGNAL);
+                } else if ((status & STATUS_UTILITY_SPRITES) == 0) {
+                    if  (ch == 'I') {
+                        if ((status & STATUS_CITY_VIS) && (cityXPos > 80)){
+                            Sound_doSound(SOUND_EFFECT_EXTEND);
+                            invokeRamp();
+                            showScoreBoard(&playerData);
+                        }
+                    } else if (ch == 'P') {
+                        if (isPortalNear(currMap, mapXCoord, &playerData)) {
+                            // This will trigger the swirl when it's swirl time
+                            status |= STATUS_SWIRL_READY;
+                            Sound_doSound(SOUND_EFFECT_PORTAL_SIGNAL);
+                        }
+                    } else if (ch == 'M') {
+                        if ((status & STATUS_UTILITY_SPRITES) == 0) {
+                            invokeAirDrop();
+                        }
                     }
                 }
             } // throw away key presses while game is frozen

@@ -6,6 +6,7 @@
 #define MAX_PASSENGERS          8
 #define MAX_BALLOON_HEALTH      8
 #define MAX_CARGO_SPACE         16
+#define CARGO_SLOT_NOT_SELECTED 0xff
 
 #define FUEL_COST_QUARTER_TANK  512
 #define FUEL_COST_DIVISOR       32
@@ -16,6 +17,7 @@ struct Cargo {
     Passenger psgr[MAX_PASSENGERS];
     unsigned char cargoSpace; // reduced by damage, max 16
     unsigned char currCargoCount; 
+    unsigned char airDropCargoIndex;
     int cargo[MAX_CARGO_SPACE];
 };
 

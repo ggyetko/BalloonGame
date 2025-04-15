@@ -44,6 +44,15 @@ struct CityData {
     char gameInfo[CITY_GAMEINFO_SIZE];
 };
 
+struct CityDataVar {
+    unsigned char respectLevel;
+    unsigned char status;
+};
+enum CityDataVarStatus {
+    CITY_STATUS_CITY = 0,
+    CITY_STATUS_MULE = 1,
+};
+
 struct CityCode {
     unsigned char code; // ...MMM##, MMM map number, ## city within map (1,2,3) 0 is illegal
 };
@@ -73,7 +82,7 @@ struct Passenger {
 extern PassengerName psgrNames[20];
 extern unsigned char psgrNameCount;
 extern const CityData cities[CITY_NUM_MAPS][CITY_NUM_CITIES_PER_MAP];
-extern unsigned char cityRespectLevel[CITY_NUM_MAPS][CITY_NUM_CITIES_PER_MAP];
+extern CityDataVar citiesVar[CITY_NUM_MAPS][CITY_NUM_CITIES_PER_MAP];
 
 void City_initCityVariables(void);
 

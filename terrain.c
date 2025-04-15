@@ -9,6 +9,14 @@ const Palette palette[NUM_TERRAINS] = {
     {VCOL_BLUE, VCOL_WHITE, VCOL_LT_GREY, VCOL_ORANGE, VCOL_LT_GREY},
 };
 
+extern const WorldType[5] = {
+    {0,0},  // Normal World
+    {16,0}, // cool world
+    {64,0}, // ice world
+    {0,16}, // desert world
+    {0,64}, // volcanic world
+};
+
 // TBD - 8 should be num terrains later
 const char terrainMapNames[8][10] = {   
     s"cave world",
