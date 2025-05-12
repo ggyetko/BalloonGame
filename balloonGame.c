@@ -390,7 +390,7 @@ __interrupt void lowCloudAdjustment(void)
         } else {
             Screen0[0x03f8+SPRITE_CITY_OUTLINE ] = MuleMainLocation;
             Screen1[0x03f8+SPRITE_CITY_OUTLINE ] = MuleMainLocation;
-            vic.spr_color[SPRITE_CITY_OUTLINE] = VCOL_LT_GREY;
+            vic.spr_color[SPRITE_CITY_OUTLINE] = VCOL_MED_GREY;
 
             Screen0[0x03f8+SPRITE_CITY_BG ] = MuleBackgroundLocation;
             Screen1[0x03f8+SPRITE_CITY_BG ] = MuleBackgroundLocation;

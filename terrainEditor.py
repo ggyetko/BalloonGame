@@ -21,7 +21,7 @@ def showTerrain(leftEdge, rightEdge, editor):
     sys.stdout.write("^")
     sys.stdout.flush()
 
-    for x in range(leftEdge, rightEdge):
+    for x in range(leftEdge, rightEdge+1):
         stalactite = mountainHeight[(terrain[x] & 0b00111000) >> 3]
         stalacmite = mountainHeight[(terrain[x] & 0b00000111)]
         for y in range(0,stalactite):
@@ -34,10 +34,20 @@ def showTerrain(leftEdge, rightEdge, editor):
             sys.stdout.write("\033[K")
             sys.stdout.write("X")
             sys.stdout.flush()
+        if terrain[x] & 0b11000000:
+            cityNumber = (terrain[x] & 0b11000000) >> 6
+            for cityy in range(25-stalacmite-2,25-stalacmite+1):
+                sys.stdout.write("\033[{};{}H".format(cityy+2, x-leftEdge+1))
+                sys.stdout.write("\033[K")
+                sys.stdout.write("CCC")
+                sys.stdout.flush()
+                    
     sys.stdout.write("\033[{};{}H".format(29,1))
     sys.stdout.write("\033[K")
     sys.stdout.write(str(editor))
     sys.stdout.flush()
+    
+    
 
 def getH(column):
     return terrain[column] & 0b00000111
@@ -141,28 +151,83 @@ def dropCliff(x):
         if getD(x1) < level:
             setD(x1,level)
 
-def dumpTerrain(filename):
-    file = open(filename, "w")
-    file.write("{\n")
-    for line in range (0,16):
-        outText = ""
-        for value in range (0,16):
-            conversion = oct(terrain[line*16+value])
-            conversion = conversion[0] + conversion[2:]
-            outText += conversion + ", "
-        file.write(outText+"\n")
-    file.write("}\n")
-    
-def readTerrain(filename):
+def dumpTerrain(filename, terNum):
+    allLines = []
     file = open(filename, "r")
+    for line in file:
+        allLines.append(line)
+    file.close()
+
+    terIndex = 0
+    ignore = False
+    file = open(filename, "w")
+    for line in allLines:
+        if ignore:
+            if "}" in line:
+                ignore = False
+        else:
+            file.write(line)
+            if "{" in line:
+                terIndex +=1
+                if terIndex == terNum:
+                    ignore = True
+                    for line in range (0,16):
+                        outText = ""
+                        cityNum = 0
+                        for value in range (0,16):
+                            # get value
+                            conversion = oct(terrain[line*16+value])
+                            if terrain[line*16+value] >> 6:
+                                cityNum = terrain[line*16+value] >> 6
+                            # convert to C-style octal
+                            conversion = conversion[0] + conversion[2:]
+                            outText += conversion + ", "
+                        if cityNum:
+                            file.write(outText + "// City " + str(cityNum) + "\n")
+                        else:
+                            file.write(outText + "\n")
+                    file.write("},\n")
+            
+            
+def readTerrain(filename, terNum):
+    file = open(filename, "r")
+    terIndex = 0
+    for line in file:
+        if "{" in line:
+            terIndex += 1
+        if terIndex == terNum:
+            break
+
     index = 0
     for line in file:
+        if "}" in line:
+            break
         splitter = line.split(",")
         for value in splitter:
             stripped = value.strip()
             if len(stripped) and stripped[0] == "0":
                 terrain[index] = int(value,8)
                 index += 1
+
+def countTerrains(filename):
+    file = open(filename, "r")
+    index = 0
+    for line in file:
+        if "{" in line:
+            index += 1
+    return index
+
+terCount = countTerrains("terrainFile.c")
+
+terNum = 0
+while terNum == 0 or terNum > terCount:
+    print ("Select Terrain 1 - {}:".format(terCount))
+    choice = input()
+    print("Choice",choice)
+    terNum = int(choice)
+    
+
+readTerrain("terrainFile.c", terNum)
 
 currEnd = 200
 
@@ -173,13 +238,11 @@ stdscr = curses.initscr()
 curses.noecho()  # Disable echoing of characters
 curses.cbreak()  # React to keys instantly, without waiting for Enter
 
-readTerrain("myTerrain.txt")
-
 while 1:
-    if editPoint + 10 > currEnd and currEnd < 255:
+    while editPoint + 10 > currEnd and currEnd < 255:
         currStart += 1
         currEnd += 1
-    if currStart + 10 > editPoint and currStart > 0:
+    while currStart + 10 > editPoint and currStart > 0:
         currStart -= 1
         currEnd -= 1
         
@@ -218,8 +281,9 @@ while 1:
         dropCliff(editPoint)
         
     elif key == 120:
-        dumpTerrain("myTerrain.txt")
+        dumpTerrain("terrainFile.c", terNum)
         break
 
 curses.nocbreak()
 curses.echo()
+curses.endwin()

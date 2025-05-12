@@ -17,8 +17,7 @@ extern const WorldType[5] = {
     {0,64}, // volcanic world
 };
 
-// TBD - 8 should be num terrains later
-const char terrainMapNames[8][10] = {   
+const char terrainMapNames[NUM_TERRAINS][10] = {   
     s"cave world",
     s"icelands  ",
     s"arid plain",
@@ -30,6 +29,8 @@ const char terrainMapNames[8][10] = {
 };
 
 const char terrain[NUM_TERRAINS][256] ={
+    #include "terrainFile.c"
+    /*
     {
         013,013,022,022,031,021,021,022, 012,013,023,032,041,031,021,022,
         012,022,023,032,032,031,021,022, 012,022,023,012,012,021,031,022,
@@ -66,6 +67,7 @@ const char terrain[NUM_TERRAINS][256] ={
         011,011,012,0323,023,023,014,015, 025,025,025,024,034,043,053,052, // City #3
         051,051,052,043,043,043,033,033,  024,034,044,043,043,032,022,012
     }
+    */
 };
 
 #define SCROLL_PORTAL_WARNING_DISTANCE 20

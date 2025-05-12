@@ -5,7 +5,7 @@
 
 #define TERRAIN_NO_PORTAL 0xff
 
-#define NUM_TERRAINS 2
+#define NUM_TERRAINS 8
 
 struct Palette {
     unsigned char skyColor;
@@ -21,7 +21,7 @@ struct WorldType {
 
 extern const WorldType[5];
 
-extern const char terrainMapNames[8][10];
+extern const char terrainMapNames[NUM_TERRAINS][10];
 
 extern const Palette palette[NUM_TERRAINS];
 
