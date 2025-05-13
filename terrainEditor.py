@@ -36,10 +36,11 @@ def showTerrain(leftEdge, rightEdge, editor):
             sys.stdout.flush()
         if terrain[x] & 0b11000000:
             cityNumber = (terrain[x] & 0b11000000) >> 6
+            text = str(cityNumber)*3
             for cityy in range(25-stalacmite-2,25-stalacmite+1):
                 sys.stdout.write("\033[{};{}H".format(cityy+2, x-leftEdge+1))
                 sys.stdout.write("\033[K")
-                sys.stdout.write("CCC")
+                sys.stdout.write(text)
                 sys.stdout.flush()
                     
     sys.stdout.write("\033[{};{}H".format(29,1))
@@ -217,6 +218,17 @@ def countTerrains(filename):
             index += 1
     return index
 
+def moveCity(editPoint, cityNumber):
+    # look for the city first, remove it if you find iter
+    for x in range(0,256):
+        cityTemp = (terrain[x] & 0b11000000) >> 6
+        if cityTemp == cityNumber:
+            terrain[x] &= 0b00111111
+            break
+    # now put it in the right spot
+    terrain[editPoint] = (terrain[editPoint] & 0b00111111) | (cityNumber << 6)
+
+
 terCount = countTerrains("terrainFile.c")
 
 terNum = 0
@@ -279,6 +291,9 @@ while 1:
         raiseCliff(editPoint)
     elif key == 105: #i
         dropCliff(editPoint)
+    
+    elif key > 48 and key < 52:
+        moveCity(editPoint, key-48)
         
     elif key == 120:
         dumpTerrain("terrainFile.c", terNum)
