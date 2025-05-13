@@ -3,6 +3,9 @@ import os
 import curses
 import sys
 
+RED = '\033[31m'
+RESET = '\033[0m'
+
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
@@ -27,12 +30,18 @@ def showTerrain(leftEdge, rightEdge, editor):
         for y in range(0,stalactite):
             sys.stdout.write("\033[{};{}H".format(y+2, x-leftEdge+1))
             sys.stdout.write("\033[K")
-            sys.stdout.write("X")
+            if (x==editor):
+                sys.stdout.write(f"{RED}X")
+            else:
+                sys.stdout.write(f"{RESET}X")
             sys.stdout.flush()
         for y in range(25,25-stalacmite,-1):
             sys.stdout.write("\033[{};{}H".format(y+2, x-leftEdge+1))
             sys.stdout.write("\033[K")
-            sys.stdout.write("X")
+            if (x==editor):
+                sys.stdout.write(f"{RED}X")
+            else:
+                sys.stdout.write(f"{RESET}X")
             sys.stdout.flush()
         if terrain[x] & 0b11000000:
             cityNumber = (terrain[x] & 0b11000000) >> 6
@@ -98,12 +107,12 @@ def liftMountain(x):
     while left and right:
         if left:
             left = False
-            if getH(x-offset) < newHeight:
+            if x-offset >= 0 and getH(x-offset) < newHeight:
                 left = True
                 setH(x-offset, newHeight)
         if right:
             right = False
-            if getH(x+offset) < newHeight:
+            if x+offset < 256 and getH(x+offset) < newHeight:
                 right = True
                 setH(x+offset, newHeight)
         offset += 1
@@ -122,12 +131,12 @@ def dropMountain(x):
     while left and right:
         if left:
             left = False
-            if getD(x-offset) < newDrop:
+            if x-offset >= 0 and getD(x-offset) < newDrop:
                 left = True
                 setD(x-offset, newDrop)
         if right:
             right = False
-            if getD(x+offset) < newDrop:
+            if x+offset < 256 and getD(x+offset) < newDrop:
                 right = True
                 setD(x+offset, newDrop)
         offset += 1
