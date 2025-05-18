@@ -268,10 +268,9 @@ void showWorkCargo(PlayerData *data, unsigned char inactiveTextColor)
 
 void showMayor(PlayerData *data)
 {
-    clearWorkScreen();
-    putText (s"hello ",2,2,6,VCOL_WHITE);
-    putText (PlayerDataTitles[data->title],8,2,3,VCOL_WHITE);
-    putText (data->name,(data->title==1)?12:11,2,10,VCOL_WHITE);
+    putText (s"greetings",8,2,9,VCOL_WHITE);
+    putText (PlayerDataTitles[data->title],8,3,3,VCOL_WHITE);
+    putText (data->name,(data->title==1)?12:11,3,10,VCOL_WHITE);
 }
 
 void getInputText(unsigned char x, unsigned char y, unsigned char maxLength, char const* prompt10, char* input)

@@ -1,5 +1,6 @@
 #include "city.h"
 #include "namedPassenger.h"
+#include "namedGoods.h"
 
 unsigned char CityCode_getCityNum(CityCode cityCode){
     return cityCode.code & 0x03;
@@ -50,12 +51,12 @@ const CityData cities[CITY_NUM_MAPS][CITY_NUM_CITIES_PER_MAP] = {
         // NAME         FACILITY
         {s"cloud city", CITY_FACILITY_BALLOON_FABRIC, 
             // Demands
-            {{0,1},{3,1},{0xff,0},{0xff,0}},
+            {{GOODS_RICE,1},{GOODS_SPINACH,1},{0xff,0},{0xff,0}},
             // For sale
-            {{1,  2, CITY_RESPECT_LOW, 2},  // wheat
-             {9,  2, CITY_RESPECT_LOW, 1},  // Bronze
-             {11, 2, CITY_RESPECT_MED, 1}, // Iron
-             {14, 2, CITY_RESPECT_HIGH,1} // Smithore
+            {{GOODS_WHEAT,  2, CITY_RESPECT_LOW, 2},  // wheat
+             {GOODS_BRONZE,  2, CITY_RESPECT_LOW, 1},  // Bronze
+             {GOODS_IRON, 2, CITY_RESPECT_MED, 1}, // Iron
+             {GOODS_SMITHORE, 2, CITY_RESPECT_HIGH,1} // Smithore
             },
           //01234567890123456789
             s"you are lost and are"
@@ -66,11 +67,11 @@ const CityData cities[CITY_NUM_MAPS][CITY_NUM_CITIES_PER_MAP] = {
             s"to the mayor there. "
         },
         {s"floria    ", 0,
-            {{1,1}, {7,1},{0xff,0},{0xff,0}},
-            {{2, 2, CITY_RESPECT_LOW, 2},  // corn
-             {3, 2, CITY_RESPECT_LOW, 2},  // spinach
-             {19,2, CITY_RESPECT_MED, 2},  // eggs
-             {20,2, CITY_RESPECT_HIGH,2}   // quail eggs
+            {{GOODS_WHEAT,1}, {GOODS_SOYBEANS,1},{0xff,0},{0xff,0}},
+            {{GOODS_CORN, 2, CITY_RESPECT_LOW, 2},  // corn
+             {GOODS_SPINACH, 2, CITY_RESPECT_LOW, 2},  // spinach
+             {GOODS_EGGS,2, CITY_RESPECT_MED, 2},  // eggs
+             {GOODS_QUAIL_EGGS,2, CITY_RESPECT_HIGH,2}   // quail eggs
             },
           //01234567890123456789
             s"there are ways to   "
@@ -81,11 +82,11 @@ const CityData cities[CITY_NUM_MAPS][CITY_NUM_CITIES_PER_MAP] = {
             s"that you see here.  "
         },
         {s"sirenia   ", CITY_FACILITY_PORTAL_UPGRADE,
-            {{2,1},{9,1},{0xff,0},{0xff,0}},
-            {{0,2,CITY_RESPECT_LOW,2}, // rice
-             {7,2,CITY_RESPECT_LOW,2}, // soy beans
-             {21,2,CITY_RESPECT_MED,2}, // bok choy
-             {22,2,CITY_RESPECT_HIGH,2} // black beans
+            {{GOODS_CORN,1},{GOODS_BRONZE,1},{0xff,0},{0xff,0}},
+            {{GOODS_RICE,2,CITY_RESPECT_LOW,2}, // rice
+             {GOODS_SOYBEANS,2,CITY_RESPECT_LOW,2}, // soy beans
+             {GOODS_BOK_CHOY,2,CITY_RESPECT_MED,2}, // bok choy
+             {GOODS_BLACK_BEANS,2,CITY_RESPECT_HIGH,2} // black beans
             },
           //01234567890123456789
             s"we make a device to "
@@ -134,13 +135,13 @@ extern CityDataVar citiesVar[CITY_NUM_MAPS][CITY_NUM_CITIES_PER_MAP];
 void City_initCityVariables(void)
 {
     for (unsigned char map=0; map<CITY_NUM_MAPS; map++) {
-        for (unsigned char city=0; city<CITY_NUM_MAPS; city++) {
+        for (unsigned char city=0; city<CITY_NUM_CITIES_PER_MAP; city++) {
             citiesVar[map][city].respectLevel = CITY_RESPECT_LOW;
             citiesVar[map][city].status = CITY_STATUS_CITY;
         }
     }
     // set up MULE city and other special statuses here
-    //citiesVar[0][2].status = CITY_STATUS_MULE;
+    //citiesVar[0][1].status = CITY_STATUS_MULE;
 }
 
 void City_returnUnusedPassengers(Passenger *tempPsgData)

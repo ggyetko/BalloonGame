@@ -29,7 +29,7 @@ const struct Goods goods[40] =
     {s"quail eggs", 300,  3,  0, 0}, // 20
     {s"bok choy  ", 300,  3,  0, 0}, // 21
     {s"blackbeans", 400,  3,  0, 0}, // 22 
-    {s"          ", 75,  3,  0, 0}, // 
+    {s"          ", 75,  3,  0, 0}, // 23
     // MANUFACTURED GOODS
     {s"          ", 75,  3,  0, 0}, // 
     {s"          ", 75,  3,  0, 0}, // 
@@ -38,7 +38,7 @@ const struct Goods goods[40] =
     {s"          ", 75,  3,  0, 0}, // 
     {s"          ", 75,  3,  0, 0}, // 
     {s"          ", 75,  3,  0, 0}, // 
-    {s"crystite  ", 75,  3,  0, 0}, // 
+    {s"crystite  ", 75,  3,  0, 0}, // 31
     // MILITARY
     {s"          ", 75,  3,  0, 0}, // 
     {s"          ", 75,  3,  0, 0}, // 

@@ -63,12 +63,12 @@ __export const char spriteset[1024] = { // starts at 0x2800
 };
 
 #pragma data(spriteset2)
-__export const char spriteset2[1216] = { // starts at 0x3400
+__export const char spriteset2[1984] = { // starts at 0x3400
     #embed "swirlSpritesFour.bin" // 0xd0 0xd1 0xd2 0xd3
-    #embed "swirlSpritesFour.bin" // save a spot for faces
-    #embed "swirlSpritesFour.bin" // ...
-    #embed "swirlSpritesFour.bin" // ...            0xdf
-    #embed "airdrop.bin"          // 0xe0 0xe1 0xe2        (air drop, mule lt gry, mule dk gry)
+    #embed "faceMayor.bin"        // 0xd4 ... 0xdb
+    #embed "faceChef.bin"         // 0xdc ... 0xe3
+    #embed "faceEngineer.bin"     // 0xe4 ... 0xeb
+    #embed "airdrop.bin"          // 0xec 0xed 0xee        (air drop, mule lt gry, mule dk gry)
 };
 
 #define BalloonSpriteLocation      0xa0
@@ -93,9 +93,14 @@ __export const char spriteset2[1216] = { // starts at 0x3400
 #define PortalSwirl3Location       0xd2
 #define PortalSwirl4Location       0xd3
 
-#define AirDropLocation            0xe0
-#define MuleMainLocation           0xe1
-#define MuleBackgroundLocation     0xe2
+#define MayorFace1Location         0xd4
+#define MayorFace2Location         0xd5
+#define MayorFace3Location         0xd6
+#define MayorFace4Location         0xd7
+
+#define AirDropLocation            0xec
+#define MuleMainLocation           0xed
+#define MuleBackgroundLocation     0xee
 
 #pragma data(data)
 
@@ -181,6 +186,9 @@ volatile unsigned char soundIndex;
 const char decelPattern[8] =  {2,3,4,5,6,7,8,16};
 const char mountainHeight[8] = {0,1,2,3,4,6,8,10};
 
+// 
+// PIXEL and SPRITE mappings
+//
 #define TOP_OF_RASTER             1
 #define SOUND_RASTER             25
 #define TOP_OF_SCREEN_RASTER     50
@@ -195,10 +203,10 @@ const char mountainHeight[8] = {0,1,2,3,4,6,8,10};
 // #1 - Balloon Backgrnd ----------------------------------->      Cargo Out
 // #2 - Back thrust      ----------------------------------->      Psgr In
 // #3 - Up Thrust        ----------------------------------->      Psgr Out
-// #4 -                                        Ramp/Swirl
-// #5 -                                        City Outline/swirl2
-// #6 - Cloud Outline    ----------------->    City Shape
-// #7 - Cloud Background ----------------->    City BackShade
+// #4 -                                        Ramp/Swirl          Face 1
+// #5 -                                        City Outline/swirl2 Face 2
+// #6 - Cloud Outline    ----------------->    City Shape          Face 3
+// #7 - Cloud Background ----------------->    City BackShade      Face 4
 
 #define SPRITE_BALLOON_OUTLINE 0
 #define SPRITE_BALLOON_BG      1
@@ -236,11 +244,20 @@ const char mountainHeight[8] = {0,1,2,3,4,6,8,10};
 #define SPRITE_CARGO_OUT       1
 #define SPRITE_PSGR_IN         2
 #define SPRITE_PSGR_OUT        3
+#define SPRITE_FACE1           4
+#define SPRITE_FACE2           5
+#define SPRITE_FACE3           6
+#define SPRITE_FACE4           7
 
 #define SPRITE_CARGO_IN_ENABLE        0x01
 #define SPRITE_CARGO_OUT_ENABLE       0x02
 #define SPRITE_PSGR_IN_ENABLE         0x04
 #define SPRITE_PSGR_OUT_ENABLE        0x08
+
+// 
+// Character map location
+// 
+#define LOWEST_SCROLLING_CHAR_ROW   19
 
 void setScrollActive(unsigned char active, unsigned char delay)
 {
@@ -342,6 +359,24 @@ __interrupt void prepScreen(void)
         vic.spr_enable |= SPRITE_SWIRL_ENABLE;
         vic.spr_color[SPRITE_SWIRL] = PORTAL_COLOR;
         vic_sprxy(SPRITE_SWIRL, swirlXPos, swirlYPos);
+    }
+    
+    if ((counter & 3) == 0) {
+        for (byte x=1; x<39; x++) {
+            byte ch = currScreen ? Screen1[40*LOWEST_SCROLLING_CHAR_ROW+x] : Screen0[40*LOWEST_SCROLLING_CHAR_ROW+x];
+            if ((ch > 36) && (ch < 40)) {
+                ch ++;
+            } else if (ch == 40) {
+                ch = 37;
+            } else {
+                continue;
+            }
+            if (currScreen) {
+                Screen1[40*LOWEST_SCROLLING_CHAR_ROW+x] = ch;
+            } else {
+                Screen0[40*LOWEST_SCROLLING_CHAR_ROW+x] = ch;
+            }
+        }
     }
 }
 
@@ -850,7 +885,7 @@ void setAveragePosition(void)
 {
     unsigned char borders =  mapXCoord - 33;
     unsigned char stalactite = mountainHeight[(terrain[currMap][borders] >> 3) & 0x07] * 8;
-    unsigned char stalacmite = (19 - mountainHeight[(terrain[currMap][borders]) & 0x07]) * 8;
+    unsigned char stalacmite = (LOWEST_SCROLLING_CHAR_ROW - mountainHeight[(terrain[currMap][borders]) & 0x07]) * 8;
     yPos = (stalactite + stalacmite + 24) << 7;    
 }
 
@@ -1331,8 +1366,33 @@ void cityMenuUpgrade(PlayerData *data)
     }
 }
 
+void displayMayorFace(void)
+{
+    drawBox(0,0,6,7,VCOL_LT_GREEN);
+    ScreenWork[0x03f8+SPRITE_FACE1] = MayorFace1Location;
+    ScreenWork[0x03f8+SPRITE_FACE2] = MayorFace2Location;
+    ScreenWork[0x03f8+SPRITE_FACE3] = MayorFace3Location;
+    ScreenWork[0x03f8+SPRITE_FACE4] = MayorFace4Location;
+    vic_sprxy(SPRITE_FACE1, 28, 60);
+    vic_sprxy(SPRITE_FACE2, 52, 60);
+    vic_sprxy(SPRITE_FACE3, 28, 81);
+    vic_sprxy(SPRITE_FACE4, 52, 81);
+    vic.spr_color[SPRITE_FACE1] = VCOL_BLACK;
+    vic.spr_color[SPRITE_FACE2] = VCOL_BLACK;
+    vic.spr_color[SPRITE_FACE3] = VCOL_BLACK;
+    vic.spr_color[SPRITE_FACE4] = VCOL_BLACK;
+    vic.spr_enable |= 0xF0;
+}
+
+void removeMayorFace(void)
+{
+    vic.spr_enable &= ~0xF0;
+}
+
 void cityMenuMayor(PlayerData *data, Passenger *tmpPsgrData)
 {
+    clearWorkScreen();
+    displayMayorFace();
     showMayor(data);
     for (;;) {
         unsigned char mayorList[5][10] = {s"return    ",s"town      ",s"quest     ",s"chat      ", s"gift      "};
@@ -1380,6 +1440,7 @@ void cityMenuMayor(PlayerData *data, Passenger *tmpPsgrData)
             }
         }
     }
+    removeMayorFace();
     drawBalloonDockScreen(palette[currMap].cityColor);
 }
     
@@ -1515,6 +1576,8 @@ void landingOccurred(PlayerData *data)
     clearCollisions();
 }
 
+// Pass in an array of 3 roof (left, current, right) and 3 ground (same)
+// Returns the character code for the top of the stalacmite and the bottom of the stalactite
 void getFinalChars(char const* roof, char const* ground, unsigned char *finalRoofChar, unsigned char *finalGroundChar ){
     *finalRoofChar = 65; // peak
     if ((roof[0] <= roof[1]) && (roof[1] < roof[2])) {
@@ -1524,7 +1587,10 @@ void getFinalChars(char const* roof, char const* ground, unsigned char *finalRoo
     }
     
     *finalGroundChar = 69; // peak
-    if ((ground[0] < ground[1]) && (ground[1] <= ground[2])) {
+    if (ground[1] == LOWEST_SCROLLING_CHAR_ROW) {
+        *finalGroundChar = 37; // water character
+    }
+    else if ((ground[0] < ground[1]) && (ground[1] <= ground[2])) {
         *finalGroundChar = 70;
     } else if ((ground[0] >= ground[1]) && (ground[1] > ground[2])) {
         *finalGroundChar = 71;
@@ -1851,9 +1917,9 @@ void startGame(char *name, unsigned char title)
             char roof[3] = { mountainHeight[(terrain[currMap][oldCoord]>>3) & 0x7],
                              mountainHeight[(terrain[currMap][currCoord]>>3) & 0x7], 
                              mountainHeight[(terrain[currMap][nextCoord]>>3) & 0x7]};
-            char ground[3] = {19 - mountainHeight[(terrain[currMap][oldCoord] & 0x7)],
-                              19 - mountainHeight[(terrain[currMap][currCoord] & 0x7)], 
-                              19 - mountainHeight[(terrain[currMap][nextCoord] & 0x7)]};
+            char ground[3] = {LOWEST_SCROLLING_CHAR_ROW - mountainHeight[(terrain[currMap][oldCoord] & 0x7)],
+                              LOWEST_SCROLLING_CHAR_ROW - mountainHeight[(terrain[currMap][currCoord] & 0x7)], 
+                              LOWEST_SCROLLING_CHAR_ROW - mountainHeight[(terrain[currMap][nextCoord] & 0x7)]};
             if (currScreen == 0) {
                 copyS0toS1(roof,ground);
             } else {
