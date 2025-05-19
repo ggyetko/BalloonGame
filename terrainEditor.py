@@ -12,6 +12,7 @@ def clear_screen():
 terrain = [0o011] * 256
 
 mountainHeight = [0,1,2,3,4,6,8,10]
+mountainHeight = [1,2,3,4,5,7,9,11]
 
 def showTerrain(leftEdge, rightEdge, editor):
     clear_screen()
@@ -35,7 +36,7 @@ def showTerrain(leftEdge, rightEdge, editor):
             else:
                 sys.stdout.write(f"{RESET}X")
             sys.stdout.flush()
-        for y in range(25,25-stalacmite,-1):
+        for y in range(21,21-stalacmite,-1):
             sys.stdout.write("\033[{};{}H".format(y+2, x-leftEdge+1))
             sys.stdout.write("\033[K")
             if (x==editor):
@@ -46,7 +47,7 @@ def showTerrain(leftEdge, rightEdge, editor):
         if terrain[x] & 0b11000000:
             cityNumber = (terrain[x] & 0b11000000) >> 6
             text = str(cityNumber)*3
-            for cityy in range(25-stalacmite-2,25-stalacmite+1):
+            for cityy in range(21-stalacmite-2,21-stalacmite+1):
                 sys.stdout.write("\033[{};{}H".format(cityy+2, x-leftEdge+1))
                 sys.stdout.write("\033[K")
                 sys.stdout.write(text)
