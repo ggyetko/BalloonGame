@@ -174,6 +174,7 @@ volatile unsigned char counter; // counter incremented once for every screen ref
 
 volatile unsigned char currentSound;
 volatile unsigned char soundIndex;
+volatile unsigned char currWaterChar;
 
 /* ??...... : info - (0=nothing 1,2,3:city number)
  * ..???... : stalagtite length (ceiling)
@@ -330,14 +331,14 @@ __interrupt void prepScreen(void)
     // Getting this interrupt means we're in travelling mode, set the screen
     if (currScreen == 0) {
         vic.memptr = 0x10 | (vic.memptr & 0x0f); // point to screen0
+        Screen0[0x03f8+SPRITE_CLOUD_OUTLINE   ] = BalloonCloudOutlLocation;
+        Screen0[0x03f8+SPRITE_CLOUD_BG        ] = BalloonCloudLocation;
     } else {
         vic.memptr = 0xb0 | (vic.memptr & 0x0f); // point to screen1
+        Screen1[0x03f8+SPRITE_CLOUD_OUTLINE   ] = BalloonCloudOutlLocation;
+        Screen1[0x03f8+SPRITE_CLOUD_BG        ] = BalloonCloudLocation;
     }
     // set up the cloud sprite pointers
-    Screen0[0x03f8+SPRITE_CLOUD_OUTLINE   ] = BalloonCloudOutlLocation;
-    Screen1[0x03f8+SPRITE_CLOUD_OUTLINE   ] = BalloonCloudOutlLocation;
-    Screen0[0x03f8+SPRITE_CLOUD_BG        ] = BalloonCloudLocation;
-    Screen1[0x03f8+SPRITE_CLOUD_BG        ] = BalloonCloudLocation;
     vic.spr_color[SPRITE_CLOUD_OUTLINE] = CLOUD_OUTLINE_COLOR;
     vic.spr_color[SPRITE_CLOUD_BG] = CLOUD_COLOR;
     vic.spr_enable |= SPRITE_CLOUD_OUTLINE_ENABLE | SPRITE_CLOUD_BG_ENABLE;
@@ -361,22 +362,20 @@ __interrupt void prepScreen(void)
         vic_sprxy(SPRITE_SWIRL, swirlXPos, swirlYPos);
     }
     
-    if ((counter & 3) == 0) {
-        for (byte x=1; x<39; x++) {
-            byte ch = currScreen ? Screen1[40*LOWEST_SCROLLING_CHAR_ROW+x] : Screen0[40*LOWEST_SCROLLING_CHAR_ROW+x];
-            if ((ch > 36) && (ch < 40)) {
-                ch ++;
-            } else if (ch == 40) {
-                ch = 37;
-            } else {
-                continue;
+    if ((counter % 5) == 0) {
+        byte newWaterChar = currWaterChar + 1;
+        if (newWaterChar == 41) {
+            newWaterChar = 37;
+        }
+        for (byte x=1; x<40; x++) {
+            if (Screen1[40*LOWEST_SCROLLING_CHAR_ROW+x] == currWaterChar) {
+                Screen1[40*LOWEST_SCROLLING_CHAR_ROW+x] = newWaterChar;
             }
-            if (currScreen) {
-                Screen1[40*LOWEST_SCROLLING_CHAR_ROW+x] = ch;
-            } else {
-                Screen0[40*LOWEST_SCROLLING_CHAR_ROW+x] = ch;
+            if (Screen0[40*LOWEST_SCROLLING_CHAR_ROW+x] == currWaterChar) {
+                Screen0[40*LOWEST_SCROLLING_CHAR_ROW+x] = newWaterChar;
             }
         }
+        currWaterChar = newWaterChar;
     }
 }
 
@@ -1588,7 +1587,7 @@ void getFinalChars(char const* roof, char const* ground, unsigned char *finalRoo
     
     *finalGroundChar = 69; // peak
     if (ground[1] == LOWEST_SCROLLING_CHAR_ROW) {
-        *finalGroundChar = 37; // water character
+        *finalGroundChar = currWaterChar; // water character
     }
     else if ((ground[0] < ground[1]) && (ground[1] <= ground[2])) {
         *finalGroundChar = 70;
