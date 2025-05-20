@@ -1250,12 +1250,12 @@ void cityMenuQuest(PlayerData *data)
             char out[3];
             unsigned char num = questLog[qli].completeness;
             ucharToString(num, out);
-            putText(out, 2, 12, 3, VCOL_DARK_GREY);
+            putText(out, 2, 14, 3, VCOL_DARK_GREY);
             num = allQuests[qi].numItems;
             ucharToString(num, out);
-            putText(out, 8, 12, 3, VCOL_DARK_GREY);  
-            ScreenWork[6 + 12*40] = 59;
-            ScreenColor[6 + 12*40] = VCOL_DARK_GREY;
+            putText(out, 8, 14, 3, VCOL_DARK_GREY);  
+            ScreenColor[6 + 14*40] = VCOL_DARK_GREY;
+            ScreenWork[6 + 14*40] = 59;
         }
     }
 }
