@@ -2,8 +2,8 @@
 #define GRAPHICS_H
 
 #include "utils.h"
-#include "city.h"
 #include "playerData.h"
+#include "city.h"
 #include "namedGoods.h"
 #include "sound.h"
 #include "terrain.h"

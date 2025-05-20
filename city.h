@@ -4,7 +4,7 @@
 #include "goods.h"
 #include "utils.h"
 
-#define CITY_NUM_MAPS           2
+#define CITY_MAPS_COUNT 8
 #define CITY_NUM_CITIES_PER_MAP 3
 
 enum CityRespect {
@@ -81,8 +81,8 @@ struct Passenger {
 
 extern PassengerName psgrNames[20];
 extern unsigned char psgrNameCount;
-extern const CityData cities[CITY_NUM_MAPS][CITY_NUM_CITIES_PER_MAP];
-extern CityDataVar citiesVar[CITY_NUM_MAPS][CITY_NUM_CITIES_PER_MAP];
+extern const CityData cities[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP];
+extern CityDataVar citiesVar[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP];
 
 void City_initCityVariables(void);
 

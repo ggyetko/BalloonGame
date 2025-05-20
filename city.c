@@ -45,7 +45,7 @@ const unsigned int REPAIR_COST_CARGO          = 850;
 const unsigned int REPAIR_COST_FACILITY_REDUCTION = 150;
 
 // constant data related to cities - NO SAVING REQUIRED
-const CityData cities[CITY_NUM_MAPS][CITY_NUM_CITIES_PER_MAP] = {
+const CityData cities[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP] = {
     // MAP #0
     {
         // NAME         FACILITY
@@ -98,10 +98,10 @@ const CityData cities[CITY_NUM_MAPS][CITY_NUM_CITIES_PER_MAP] = {
 
         }
     },
-    // MAP #1
+    // MAP #1 (Icelands)
     {
         // NAME         FACILITY
-        {s"frieren   ", CITY_FACILITY_BALLOON_FABRIC, 
+        {s"frieren   ", 0, 
             // Demands
             {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
             // For sale
@@ -127,14 +127,195 @@ const CityData cities[CITY_NUM_MAPS][CITY_NUM_CITIES_PER_MAP] = {
              {0xff, 2, CITY_RESPECT_HIGH, 1}
             } 
         }
-    }
+    },
+    // MAP #2 (Arid Plain)
+    {
+        {s"arakis    ", 0, 
+            // Demands
+            {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
+            // For sale
+            {{0xff, 2, CITY_RESPECT_LOW, 2},
+             {0xff, 2, CITY_RESPECT_LOW, 1},
+             {0xff, 2, CITY_RESPECT_MED,  1},
+             {0xff, 2, CITY_RESPECT_HIGH, 1}
+            }
+        },
+        {s"alensia   ", 0,
+            {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
+            {{0xff, 2, CITY_RESPECT_LOW, 2},
+             {0xff, 2, CITY_RESPECT_LOW, 1},
+             {0xff, 2, CITY_RESPECT_MED,  1},
+             {0xff, 2, CITY_RESPECT_HIGH, 1}
+            } 
+        },
+        {s"tatooine  ", 0,
+            {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
+            {{0xff, 2, CITY_RESPECT_LOW, 2},
+             {0xff, 2, CITY_RESPECT_LOW, 1},
+             {0xff, 2, CITY_RESPECT_MED,  1},
+             {0xff, 2, CITY_RESPECT_HIGH, 1}
+            } 
+        }
+    },
+    
+    // MAP #3 (Jungle)
+    {
+        {s"swampland ", 0, 
+            // Demands
+            {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
+            // For sale
+            {{0xff, 2, CITY_RESPECT_LOW, 2},
+             {0xff, 2, CITY_RESPECT_LOW, 1},
+             {0xff, 2, CITY_RESPECT_MED,  1},
+             {0xff, 2, CITY_RESPECT_HIGH, 1}
+            }
+        },
+        {s"acacia    ", 0,
+            {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
+            {{0xff, 2, CITY_RESPECT_LOW, 2},
+             {0xff, 2, CITY_RESPECT_LOW, 1},
+             {0xff, 2, CITY_RESPECT_MED,  1},
+             {0xff, 2, CITY_RESPECT_HIGH, 1}
+            } 
+        },
+        {s"tree top  ", 0,
+            {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
+            {{0xff, 2, CITY_RESPECT_LOW, 2},
+             {0xff, 2, CITY_RESPECT_LOW, 1},
+             {0xff, 2, CITY_RESPECT_MED,  1},
+             {0xff, 2, CITY_RESPECT_HIGH, 1}
+            } 
+        }
+    },
+
+    // MAP #4 (Frigidia)
+    {
+        {s"vurfel    ", 0, 
+            // Demands
+            {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
+            // For sale
+            {{0xff, 2, CITY_RESPECT_LOW, 2},
+             {0xff, 2, CITY_RESPECT_LOW, 1},
+             {0xff, 2, CITY_RESPECT_MED,  1},
+             {0xff, 2, CITY_RESPECT_HIGH, 1}
+            }
+        },
+        {s"blitzen   ", 0,
+            {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
+            {{0xff, 2, CITY_RESPECT_LOW, 2},
+             {0xff, 2, CITY_RESPECT_LOW, 1},
+             {0xff, 2, CITY_RESPECT_MED,  1},
+             {0xff, 2, CITY_RESPECT_HIGH, 1}
+            } 
+        },
+        {s"gliss     ", 0,
+            {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
+            {{0xff, 2, CITY_RESPECT_LOW, 2},
+             {0xff, 2, CITY_RESPECT_LOW, 1},
+             {0xff, 2, CITY_RESPECT_MED,  1},
+             {0xff, 2, CITY_RESPECT_HIGH, 1}
+            } 
+        }
+    },
+
+    // MAP #5 (Vulcania)
+    {
+        {s"feuer     ", 0, 
+            // Demands
+            {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
+            // For sale
+            {{0xff, 2, CITY_RESPECT_LOW, 2},
+             {0xff, 2, CITY_RESPECT_LOW, 1},
+             {0xff, 2, CITY_RESPECT_MED,  1},
+             {0xff, 2, CITY_RESPECT_HIGH, 1}
+            }
+        },
+        {s"forge     ", 0,
+            {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
+            {{0xff, 2, CITY_RESPECT_LOW, 2},
+             {0xff, 2, CITY_RESPECT_LOW, 1},
+             {0xff, 2, CITY_RESPECT_MED,  1},
+             {0xff, 2, CITY_RESPECT_HIGH, 1}
+            } 
+        },
+        {s"ash peak  ", 0,
+            {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
+            {{0xff, 2, CITY_RESPECT_LOW, 2},
+             {0xff, 2, CITY_RESPECT_LOW, 1},
+             {0xff, 2, CITY_RESPECT_MED,  1},
+             {0xff, 2, CITY_RESPECT_HIGH, 1}
+            } 
+        }
+    },
+
+    // MAP #6 (Darks end)
+    {
+        {s"abyss     ", 0, 
+            // Demands
+            {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
+            // For sale
+            {{0xff, 2, CITY_RESPECT_LOW, 2},
+             {0xff, 2, CITY_RESPECT_LOW, 1},
+             {0xff, 2, CITY_RESPECT_MED,  1},
+             {0xff, 2, CITY_RESPECT_HIGH, 1}
+            }
+        },
+        {s"schwartz  ", 0,
+            {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
+            {{0xff, 2, CITY_RESPECT_LOW, 2},
+             {0xff, 2, CITY_RESPECT_LOW, 1},
+             {0xff, 2, CITY_RESPECT_MED,  1},
+             {0xff, 2, CITY_RESPECT_HIGH, 1}
+            } 
+        },
+        {s"void      ", 0,
+            {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
+            {{0xff, 2, CITY_RESPECT_LOW, 2},
+             {0xff, 2, CITY_RESPECT_LOW, 1},
+             {0xff, 2, CITY_RESPECT_MED,  1},
+             {0xff, 2, CITY_RESPECT_HIGH, 1}
+            } 
+        }
+    },
+
+    // MAP #7 (Lands end)
+    {
+        {s"utopia    ", 0, 
+            // Demands
+            {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
+            // For sale
+            {{0xff, 2, CITY_RESPECT_LOW, 2},
+             {0xff, 2, CITY_RESPECT_LOW, 1},
+             {0xff, 2, CITY_RESPECT_MED,  1},
+             {0xff, 2, CITY_RESPECT_HIGH, 1}
+            }
+        },
+        {s"drift     ", 0,
+            {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
+            {{0xff, 2, CITY_RESPECT_LOW, 2},
+             {0xff, 2, CITY_RESPECT_LOW, 1},
+             {0xff, 2, CITY_RESPECT_MED,  1},
+             {0xff, 2, CITY_RESPECT_HIGH, 1}
+            } 
+        },
+        {s"zuruck    ", 0,
+            {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
+            {{0xff, 2, CITY_RESPECT_LOW, 2},
+             {0xff, 2, CITY_RESPECT_LOW, 1},
+             {0xff, 2, CITY_RESPECT_MED,  1},
+             {0xff, 2, CITY_RESPECT_HIGH, 1}
+            } 
+        }
+    },
+
+
 };
 // variable city data - MUST BE SAVED with SAVE GAME
-extern CityDataVar citiesVar[CITY_NUM_MAPS][CITY_NUM_CITIES_PER_MAP];
+extern CityDataVar citiesVar[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP];
 
 void City_initCityVariables(void)
 {
-    for (unsigned char map=0; map<CITY_NUM_MAPS; map++) {
+    for (unsigned char map=0; map<CITY_MAPS_COUNT; map++) {
         for (unsigned char city=0; city<CITY_NUM_CITIES_PER_MAP; city++) {
             citiesVar[map][city].respectLevel = CITY_RESPECT_LOW;
             citiesVar[map][city].status = CITY_STATUS_CITY;

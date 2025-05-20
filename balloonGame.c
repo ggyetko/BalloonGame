@@ -9,11 +9,11 @@
 #include "utils.h"
 #include "graphics.h"
 #include "city.h"
+#include "terrain.h"
 #include "playerData.h"
 #include "quest.h"
 #include "upgrade.h"
 #include "sound.h"
-#include "terrain.h"
 
 // Screen1 is        0x0400 to 0x7ff
 // Weird stuff from 0x0800 to 0x09ff, don't touch this region or it goes bad
@@ -1212,7 +1212,7 @@ void displayQuest(unsigned char questIndex) {
         putText(
             &allQuests[questIndex].questExplanation[y*20],
             2,
-            y+4,
+            y+9,
             20,
             VCOL_WHITE);
     }
@@ -1400,14 +1400,14 @@ void cityMenuMayor(PlayerData *data, Passenger *tmpPsgrData)
 
         if (responseMayor == 0) { break; }
         else {
-            clearWorkScreen(3);
+            clearWorkScreen(8);
             if (responseMayor == 1) {
                 // list of town needs
-                putText (s"my town needs",2,4,13,VCOL_WHITE);
+                putText (s"my town needs",2,9,13,VCOL_WHITE);
                 for (unsigned char x=0; x<MAX_BUY_GOODS; x++) {
                     unsigned char index = cities[currMap][cityNum-1].buyGoods[x].goodsIndex;
                     if (index == NO_GOODS) break;
-                    putText (goods[index].name , 3, 5+x, 10, VCOL_WHITE);
+                    putText (goods[index].name , 3, 10+x, 10, VCOL_WHITE);
                 }
             } else if (responseMayor == 2) {
                 CityCode cityCode = CityCode_generateCityCode(currMap,cityNum);
@@ -1432,7 +1432,7 @@ void cityMenuMayor(PlayerData *data, Passenger *tmpPsgrData)
             } else if (responseMayor == 3) {
                 // list of city's gameinfo text
                 for (unsigned char y=0; y<CITY_GAMEINFO_SIZE/20; y++) {
-                    putText (&(cities[currMap][cityNum-1].gameInfo[y*20]), 2, 5+y, 20, VCOL_WHITE);
+                    putText (&(cities[currMap][cityNum-1].gameInfo[y*20]), 2, 9+y, 20, VCOL_WHITE);
                 }
             } else {
                 // gift
@@ -1747,6 +1747,7 @@ void initialiseGameVariables()
     yVel = 0;       // No starting velocity
     holdCount = 0;
     flameDelay = 0;
+    currWaterChar = 37; // Pick any current water char 37-40
 
     // set up map
     currMap = 0;
