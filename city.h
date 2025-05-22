@@ -39,6 +39,7 @@ extern const unsigned int REPAIR_COST_FACILITY_REDUCTION = 150;
 struct CityData {
     char name[10];
     unsigned int facility;
+    unsigned int factoryIndex;  // Most will be FACTORY_INDEX_NONE
     DemandedGoods buyGoods[MAX_BUY_GOODS];
     AvailableGoods sellGoods[MAX_SELL_GOODS];
     char gameInfo[CITY_GAMEINFO_SIZE];

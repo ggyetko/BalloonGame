@@ -1,6 +1,6 @@
 #include "goods.h"
 
-const struct Goods goods[40];
+extern const struct Goods goods[40];
 
 #define GOODS_RICE    0
 #define GOODS_WHEAT   1

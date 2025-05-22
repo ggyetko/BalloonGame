@@ -185,16 +185,18 @@ def dumpTerrain(filename, terNum):
                     for line in range (0,16):
                         outText = ""
                         cityNum = 0
+                        recentCityX = 0
                         for value in range (0,16):
                             # get value
                             conversion = oct(terrain[line*16+value])
                             if terrain[line*16+value] >> 6:
                                 cityNum = terrain[line*16+value] >> 6
+                                recentCityX = line*16+value
                             # convert to C-style octal
                             conversion = conversion[0] + conversion[2:]
                             outText += conversion + ", "
                         if cityNum:
-                            file.write(outText + "// City " + str(cityNum) + "\n")
+                            file.write(outText + "// City " + str(cityNum) + " @" + str(recentCityX) + "\n")
                         else:
                             file.write(outText + "\n")
                     file.write("},\n")

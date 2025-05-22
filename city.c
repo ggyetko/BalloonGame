@@ -1,6 +1,7 @@
 #include "city.h"
 #include "namedPassenger.h"
 #include "namedGoods.h"
+#include "factory.h"
 
 unsigned char CityCode_getCityNum(CityCode cityCode){
     return cityCode.code & 0x03;
@@ -49,7 +50,7 @@ const CityData cities[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP] = {
     // MAP #0
     {
         // NAME         FACILITY
-        {s"cloud city", CITY_FACILITY_BALLOON_FABRIC, 
+        {s"cloud city", CITY_FACILITY_BALLOON_FABRIC, FACTORY_INDEX_NONE,
             // Demands
             {{GOODS_RICE,1},{GOODS_SPINACH,1},{0xff,0},{0xff,0}},
             // For sale
@@ -66,7 +67,7 @@ const CityData cities[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP] = {
             s"able to help. talk  "
             s"to the mayor there. "
         },
-        {s"floria    ", 0,
+        {s"floria    ", 0, FACTORY_INDEX_NONE,
             {{GOODS_WHEAT,1}, {GOODS_SOYBEANS,1},{0xff,0},{0xff,0}},
             {{GOODS_CORN, 2, CITY_RESPECT_LOW, 2},  // corn
              {GOODS_SPINACH, 2, CITY_RESPECT_LOW, 2},  // spinach
@@ -81,7 +82,7 @@ const CityData cities[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP] = {
             s"beyond the mountains"
             s"that you see here.  "
         },
-        {s"sirenia   ", CITY_FACILITY_PORTAL_UPGRADE,
+        {s"sirenia   ", CITY_FACILITY_PORTAL_UPGRADE, FACTORY_INDEX_NONE,
             {{GOODS_CORN,1},{GOODS_BRONZE,1},{0xff,0},{0xff,0}},
             {{GOODS_RICE,2,CITY_RESPECT_LOW,2}, // rice
              {GOODS_SOYBEANS,2,CITY_RESPECT_LOW,2}, // soy beans
@@ -101,7 +102,7 @@ const CityData cities[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP] = {
     // MAP #1 (Icelands)
     {
         // NAME         FACILITY
-        {s"frieren   ", 0, 
+        {s"frieren   ", 0,  FACTORY_INDEX_NONE,
             // Demands
             {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
             // For sale
@@ -111,7 +112,7 @@ const CityData cities[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP] = {
              {0xff, 2, CITY_RESPECT_HIGH, 1}
             }
         },
-        {s"granzam   ", 0,
+        {s"granzam   ", 0, FACTORY_INDEX_NONE,
             {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
             {{0xff, 2, CITY_RESPECT_LOW, 2},
              {0xff, 2, CITY_RESPECT_LOW, 1},
@@ -119,7 +120,7 @@ const CityData cities[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP] = {
              {0xff, 2, CITY_RESPECT_HIGH, 1}
             } 
         },
-        {s"hoth      ", 0,
+        {s"hoth      ", 0, FACTORY_INDEX_NONE,
             {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
             {{0xff, 2, CITY_RESPECT_LOW, 2},
              {0xff, 2, CITY_RESPECT_LOW, 1},
@@ -130,7 +131,7 @@ const CityData cities[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP] = {
     },
     // MAP #2 (Arid Plain)
     {
-        {s"arakis    ", 0, 
+        {s"arakis    ", 0,  FACTORY_INDEX_NONE,
             // Demands
             {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
             // For sale
@@ -140,7 +141,7 @@ const CityData cities[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP] = {
              {0xff, 2, CITY_RESPECT_HIGH, 1}
             }
         },
-        {s"alensia   ", 0,
+        {s"alensia   ", 0, FACTORY_INDEX_NONE,
             {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
             {{0xff, 2, CITY_RESPECT_LOW, 2},
              {0xff, 2, CITY_RESPECT_LOW, 1},
@@ -148,7 +149,7 @@ const CityData cities[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP] = {
              {0xff, 2, CITY_RESPECT_HIGH, 1}
             } 
         },
-        {s"tatooine  ", 0,
+        {s"tatooine  ", 0, FACTORY_INDEX_NONE,
             {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
             {{0xff, 2, CITY_RESPECT_LOW, 2},
              {0xff, 2, CITY_RESPECT_LOW, 1},
@@ -160,7 +161,7 @@ const CityData cities[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP] = {
     
     // MAP #3 (Jungle)
     {
-        {s"swampland ", 0, 
+        {s"swampland ", 0,  FACTORY_INDEX_NONE,
             // Demands
             {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
             // For sale
@@ -170,7 +171,7 @@ const CityData cities[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP] = {
              {0xff, 2, CITY_RESPECT_HIGH, 1}
             }
         },
-        {s"acacia    ", 0,
+        {s"acacia    ", 0, FACTORY_INDEX_NONE,
             {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
             {{0xff, 2, CITY_RESPECT_LOW, 2},
              {0xff, 2, CITY_RESPECT_LOW, 1},
@@ -178,7 +179,7 @@ const CityData cities[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP] = {
              {0xff, 2, CITY_RESPECT_HIGH, 1}
             } 
         },
-        {s"tree top  ", 0,
+        {s"tree top  ", 0, FACTORY_INDEX_NONE,
             {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
             {{0xff, 2, CITY_RESPECT_LOW, 2},
              {0xff, 2, CITY_RESPECT_LOW, 1},
@@ -190,7 +191,7 @@ const CityData cities[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP] = {
 
     // MAP #4 (Frigidia)
     {
-        {s"vurfel    ", 0, 
+        {s"vurfel    ", 0,  FACTORY_INDEX_NONE,
             // Demands
             {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
             // For sale
@@ -200,7 +201,7 @@ const CityData cities[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP] = {
              {0xff, 2, CITY_RESPECT_HIGH, 1}
             }
         },
-        {s"blitzen   ", 0,
+        {s"blitzen   ", 0, FACTORY_INDEX_NONE,
             {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
             {{0xff, 2, CITY_RESPECT_LOW, 2},
              {0xff, 2, CITY_RESPECT_LOW, 1},
@@ -208,7 +209,7 @@ const CityData cities[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP] = {
              {0xff, 2, CITY_RESPECT_HIGH, 1}
             } 
         },
-        {s"gliss     ", 0,
+        {s"gliss     ", 0, FACTORY_INDEX_NONE,
             {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
             {{0xff, 2, CITY_RESPECT_LOW, 2},
              {0xff, 2, CITY_RESPECT_LOW, 1},
@@ -220,7 +221,7 @@ const CityData cities[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP] = {
 
     // MAP #5 (Vulcania)
     {
-        {s"feuer     ", 0, 
+        {s"feuer     ", 0, FACTORY_INDEX_NONE,
             // Demands
             {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
             // For sale
@@ -230,7 +231,7 @@ const CityData cities[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP] = {
              {0xff, 2, CITY_RESPECT_HIGH, 1}
             }
         },
-        {s"forge     ", 0,
+        {s"forge     ", 0, FACTORY_INDEX_NONE,
             {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
             {{0xff, 2, CITY_RESPECT_LOW, 2},
              {0xff, 2, CITY_RESPECT_LOW, 1},
@@ -238,7 +239,7 @@ const CityData cities[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP] = {
              {0xff, 2, CITY_RESPECT_HIGH, 1}
             } 
         },
-        {s"ash peak  ", 0,
+        {s"ash peak  ", 0, FACTORY_INDEX_NONE,
             {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
             {{0xff, 2, CITY_RESPECT_LOW, 2},
              {0xff, 2, CITY_RESPECT_LOW, 1},
@@ -250,7 +251,7 @@ const CityData cities[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP] = {
 
     // MAP #6 (Darks end)
     {
-        {s"abyss     ", 0, 
+        {s"abyss     ", 0, FACTORY_INDEX_NONE,
             // Demands
             {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
             // For sale
@@ -260,7 +261,7 @@ const CityData cities[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP] = {
              {0xff, 2, CITY_RESPECT_HIGH, 1}
             }
         },
-        {s"schwartz  ", 0,
+        {s"schwartz  ", 0, FACTORY_INDEX_NONE,
             {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
             {{0xff, 2, CITY_RESPECT_LOW, 2},
              {0xff, 2, CITY_RESPECT_LOW, 1},
@@ -268,7 +269,7 @@ const CityData cities[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP] = {
              {0xff, 2, CITY_RESPECT_HIGH, 1}
             } 
         },
-        {s"void      ", 0,
+        {s"void      ", 0, FACTORY_INDEX_NONE,
             {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
             {{0xff, 2, CITY_RESPECT_LOW, 2},
              {0xff, 2, CITY_RESPECT_LOW, 1},
@@ -280,7 +281,7 @@ const CityData cities[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP] = {
 
     // MAP #7 (Lands end)
     {
-        {s"utopia    ", 0, 
+        {s"utopia    ", 0, FACTORY_INDEX_NONE,
             // Demands
             {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
             // For sale
@@ -290,7 +291,7 @@ const CityData cities[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP] = {
              {0xff, 2, CITY_RESPECT_HIGH, 1}
             }
         },
-        {s"drift     ", 0,
+        {s"drift     ", 0, FACTORY_INDEX_NONE,
             {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
             {{0xff, 2, CITY_RESPECT_LOW, 2},
              {0xff, 2, CITY_RESPECT_LOW, 1},
@@ -298,7 +299,7 @@ const CityData cities[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP] = {
              {0xff, 2, CITY_RESPECT_HIGH, 1}
             } 
         },
-        {s"zuruck    ", 0,
+        {s"zuruck    ", 0, FACTORY_INDEX_NONE,
             {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
             {{0xff, 2, CITY_RESPECT_LOW, 2},
              {0xff, 2, CITY_RESPECT_LOW, 1},
