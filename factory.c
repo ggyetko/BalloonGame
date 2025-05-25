@@ -39,10 +39,13 @@ const Factory factories[NUM_FACTORIES] = {
 };
 FactoryCurrent factoriesStatus[NUM_FACTORIES];
 
-void initFactoryStatuses(void);
+void Factory_initFactoryStatuses(void)
+{
+    
+}
 
-
-void addGoodsToFactory(byte factoryIndex, byte goodsIndex, byte count)
+// not completely convinced I need "count" parameter here. Will I ever deliver more than one?
+void Factory_addGoodsToFactory(byte factoryIndex, byte goodsIndex, byte count)
 {
     // add the input
     if (goodsIndex == factories[factoryIndex].inputGoodsIndex) {
@@ -61,17 +64,17 @@ void addGoodsToFactory(byte factoryIndex, byte goodsIndex, byte count)
     }
 }
 
-byte getOutputType(byte factoryIndex)
+byte Factory_getOutputType(byte factoryIndex)
 {
     return factories[factoryIndex].outputGoodsIndex;
 }
 
-byte getOutputCount(byte factoryIndex)
+byte Factory_getOutputCount(byte factoryIndex)
 {
     return factoriesStatus[factoryIndex].currentOutputCount;
 }
 
-byte takeOutput(byte factoryIndex)
+byte Factory_takeOutput(byte factoryIndex)
 {
     if (factoriesStatus[factoryIndex].currentOutputCount) {
         factoriesStatus[factoryIndex].currentOutputCount --;

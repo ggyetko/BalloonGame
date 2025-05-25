@@ -14,6 +14,7 @@
 #include "quest.h"
 #include "upgrade.h"
 #include "sound.h"
+#include "factory.h"
 
 // Screen1 is        0x0400 to 0x7ff
 // Weird stuff from 0x0800 to 0x09ff, don't touch this region or it goes bad
@@ -989,9 +990,9 @@ void cityMenuBuy(PlayerData *data)
     unsigned char lastChoice = 0;
     for (;;) {
         unsigned char x;
-        char buyMenuOptions[MAX_SELL_GOODS+1][10];
-        unsigned int buyMenuCosts[MAX_SELL_GOODS+1];
-        char buyMenuCostsText[MAX_SELL_GOODS+1][10];
+        char buyMenuOptions[MAX_SELL_GOODS+2][10];
+        unsigned int buyMenuCosts[MAX_SELL_GOODS+2];
+        char buyMenuCostsText[MAX_SELL_GOODS+2][10];
 
         memset(buyMenuCostsText, 32, 10*(MAX_SELL_GOODS+1));
 
@@ -1010,6 +1011,14 @@ void cityMenuBuy(PlayerData *data)
             } else {
                 // The city's goods list is sorted from lowest to highest respect
                 break;
+            }
+        }
+        byte facIndex = cities[currMap][cityNum-1].factoryIndex;
+        if (facIndex != FACTORY_INDEX_NONE) {
+            if (Factory_getOutputCount(facIndex)) {
+                tenCharCopy(buyMenuOptions[x], goods[Factory_getOutputType(facIndex)].name);
+                buyMenuCosts[x] = goods[Factory_getOutputType(facIndex)].normalCost >> 1;
+                uint16ToString(buyMenuCosts[x], buyMenuCostsText[x]);
             }
         }
         unsigned char responseBuy = getMenuChoice(
@@ -1058,6 +1067,9 @@ void cityMenuSell(PlayerData *data)
             cargoOutAnimation();
             Sound_doSound(SOUND_EFFECT_ROLLCAR);
             Quest_processDeliverTrigger(goodsIndexList[responseSell-1], CityCode_generateCityCode(currMap, cityNum));
+            if (cities[currMap][cityNum-1].factoryIndex != FACTORY_INDEX_NONE) {
+                Factory_addGoodsToFactory(cities[currMap][cityNum-1].factoryIndex, goodsIndexList[responseSell-1], 1);
+            }
             removeCargo(data, goodsIndexList[responseSell-1]);
             data->money += sellMenuCosts[responseSell];
             showScoreBoard(data);

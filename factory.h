@@ -25,10 +25,10 @@ struct FactoryCurrent {
 extern const Factory factories[NUM_FACTORIES];
 extern FactoryCurrent factoriesStatus[NUM_FACTORIES]; // TBD must be saved
 
-void initFactoryStatuses(void);
-void addGoodsToFactory(byte factoryIndex, byte goodsIndex, byte count);
-byte getOutputType(byte factoryIndex);
-byte getOutputCount(byte factoryIndex);
-byte takeOutput(byte factoryIndex); // returns outputGoodsIndex
+void Factory_initFactoryStatuses(void);
+void Factory_addGoodsToFactory(byte factoryIndex, byte goodsIndex, byte count);
+byte Factory_getOutputType(byte factoryIndex);
+byte Factory_getOutputCount(byte factoryIndex);
+byte Factory_takeOutput(byte factoryIndex); // returns outputGoodsIndex
 
 #endif
