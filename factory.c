@@ -27,13 +27,13 @@ const Factory factories[NUM_FACTORIES] = {
     1,
     0
     },
-    // UKNOWN FACTORY
+    // GRUEL FACTORY (FAKE, for testing)
     {
-    NO_GOODS,
-    NO_GOODS,
-    NO_GOODS,
+    GOODS_CORN,
+    GOODS_RICE,
+    GOODS_GRUEL,
     1,
-    0
+    2
     },
     
 };
@@ -45,7 +45,7 @@ void Factory_initFactoryStatuses(void)
 }
 
 // not completely convinced I need "count" parameter here. Will I ever deliver more than one?
-void Factory_addGoodsToFactory(byte factoryIndex, byte goodsIndex, byte count)
+bool Factory_addGoodsToFactory(byte factoryIndex, byte goodsIndex, byte count)
 {
     // add the input
     if (goodsIndex == factories[factoryIndex].inputGoodsIndex) {
@@ -53,7 +53,7 @@ void Factory_addGoodsToFactory(byte factoryIndex, byte goodsIndex, byte count)
     } else if (goodsIndex == factories[factoryIndex].inputGoods2Index) {
         factoriesStatus[factoryIndex].currentInputCount2 ++;
     } else {
-        return;
+        return false;
     }
     // check if we can make the output
     if (factoriesStatus[factoryIndex].currentInputCount1 >= factories[factoryIndex].inputGoodsRequired
@@ -61,7 +61,9 @@ void Factory_addGoodsToFactory(byte factoryIndex, byte goodsIndex, byte count)
         factoriesStatus[factoryIndex].currentInputCount1 -= factories[factoryIndex].inputGoodsRequired;
         factoriesStatus[factoryIndex].currentInputCount2 -= factories[factoryIndex].inputGoods2Required;
         factoriesStatus[factoryIndex].currentOutputCount ++;
+        return true;
     }
+    return false;
 }
 
 byte Factory_getOutputType(byte factoryIndex)

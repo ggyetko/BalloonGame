@@ -28,4 +28,6 @@ extern const struct Goods goods[40];
 #define GOODS_BOK_CHOY 21
 #define GOODS_BLACK_BEANS 22
 
+#define GOODS_GRUEL 24
+
 #define GOODS_CRYSTITE 31

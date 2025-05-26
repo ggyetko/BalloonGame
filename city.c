@@ -50,7 +50,7 @@ const CityData cities[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP] = {
     // MAP #0
     {
         // NAME         FACILITY
-        {s"cloud city", CITY_FACILITY_BALLOON_FABRIC, FACTORY_INDEX_0,
+        {s"cloud city", CITY_FACILITY_BALLOON_FABRIC, FACTORY_INDEX_3,
             // Demands
             {{GOODS_RICE,1},{GOODS_SPINACH,1},{0xff,0},{0xff,0}},
             // For sale

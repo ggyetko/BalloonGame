@@ -312,6 +312,12 @@ Note const soundEffectPortalEntry[SOUND_EFFECT_PORTAL_ENTRY_LENGTH] = {
     {INSTR_WARP_WIND, 48, 50}, {0, 0xff, 1},
 };
 
+#define SOUND_EFFECT_FACT_WHISTLE_LENGTH 4
+Note const soundEffectFactWhistle[SOUND_EFFECT_FACT_WHISTLE_LENGTH] = {
+    {INSTR_FLUTE, 40, 25}, {0, 0xff, 1},
+    {INSTR_FLUTE, 52, 75}, {0, 0xff, 1},
+};
+
 Note const *currentSoundEffect;
 unsigned char currentSoundEffectLength;
 
@@ -325,6 +331,7 @@ SoundEffect soundEffects[SOUND_EFFECT_ARRAY_SIZE] = {
   {soundEffectPortalEntry, SOUND_EFFECT_PORTAL_ENTRY_LENGTH},
   {soundEffectPortalSignal,SOUND_EFFECT_PORTAL_SIGNAL_LENGTH},
   {soundEffectPortal,      SOUND_EFFECT_PORTAL_ANNOUNCE_LENGTH},
+  {soundEffectFactWhistle, SOUND_EFFECT_FACT_WHISTLE_LENGTH},
   {soundEffectQuestRing,   SOUND_EFFECT_QUEST_RING_LENGTH},
   {soundEffectQuestFulfill,SOUND_EFFECT_QUEST_RING_LENGTH},
   {soundEffectQuestDone,   SOUND_EFFECT_QUEST_RING_LENGTH},

@@ -1078,10 +1078,15 @@ void cityMenuSell(PlayerData *data)
             break;
         } else {
             cargoOutAnimation();
-            Sound_doSound(SOUND_EFFECT_ROLLCAR);
             Quest_processDeliverTrigger(goodsIndexList[responseSell-1], CityCode_generateCityCode(currMap, cityNum));
             if (cities[currMap][cityNum-1].factoryIndex != FACTORY_INDEX_NONE) {
-                Factory_addGoodsToFactory(cities[currMap][cityNum-1].factoryIndex, goodsIndexList[responseSell-1], 1);
+                if (Factory_addGoodsToFactory(cities[currMap][cityNum-1].factoryIndex, goodsIndexList[responseSell-1], 1)) {
+                    Sound_doSound(SOUND_EFFECT_FACT_WHISTLE);
+                } else {
+                    Sound_doSound(SOUND_EFFECT_ROLLCAR);
+                }
+            } else {
+                Sound_doSound(SOUND_EFFECT_ROLLCAR);
             }
             removeCargo(data, goodsIndexList[responseSell-1]);
             data->money += sellMenuCosts[responseSell];

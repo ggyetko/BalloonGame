@@ -30,9 +30,15 @@ extern const Factory factories[NUM_FACTORIES];
 extern FactoryCurrent factoriesStatus[NUM_FACTORIES]; // TBD must be saved
 
 void Factory_initFactoryStatuses(void);
-void Factory_addGoodsToFactory(byte factoryIndex, byte goodsIndex, byte count);
+
+// returns true if an output good was produce (may be used for sounds effects/animation)
+bool Factory_addGoodsToFactory(byte factoryIndex, byte goodsIndex, byte count);
+
 byte Factory_getOutputType(byte factoryIndex);
+
 byte Factory_getOutputCount(byte factoryIndex);
-byte Factory_takeOutput(byte factoryIndex); // returns outputGoodsIndex
+
+// returns outputGoodsIndex
+byte Factory_takeOutput(byte factoryIndex); 
 
 #endif
