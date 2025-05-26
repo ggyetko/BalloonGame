@@ -41,7 +41,7 @@ FactoryCurrent factoriesStatus[NUM_FACTORIES];
 
 void Factory_initFactoryStatuses(void)
 {
-    
+    factoriesStatus[0].currentOutputCount = 1;
 }
 
 // not completely convinced I need "count" parameter here. Will I ever deliver more than one?

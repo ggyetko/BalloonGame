@@ -993,6 +993,7 @@ void cityMenuBuy(PlayerData *data)
         char buyMenuOptions[MAX_SELL_GOODS+2][10];
         unsigned int buyMenuCosts[MAX_SELL_GOODS+2];
         char buyMenuCostsText[MAX_SELL_GOODS+2][10];
+        byte buyMenuGoodsIndex[MAX_SELL_GOODS+2];
 
         memset(buyMenuCostsText, 32, 10*(MAX_SELL_GOODS+1));
 
@@ -1008,17 +1009,26 @@ void cityMenuBuy(PlayerData *data)
                     goods[cities[currMap][cityNum-1].sellGoods[x-1].goodsIndex].normalCost
                     / cities[currMap][cityNum-1].sellGoods[x-1].priceAdjustment;
                 uint16ToString(buyMenuCosts[x], buyMenuCostsText[x]);
+                buyMenuGoodsIndex[x] = cities[currMap][cityNum-1].sellGoods[x-1].goodsIndex;
             } else {
                 // The city's goods list is sorted from lowest to highest respect
                 break;
             }
         }
+        byte factoryItemCount = 0;
         byte facIndex = cities[currMap][cityNum-1].factoryIndex;
+        debugChar(0, facIndex);
         if (facIndex != FACTORY_INDEX_NONE) {
-            if (Factory_getOutputCount(facIndex)) {
+            factoryItemCount = Factory_getOutputCount(facIndex);
+            if (factoryItemCount) {
+                debugChar(1, 1);
                 tenCharCopy(buyMenuOptions[x], goods[Factory_getOutputType(facIndex)].name);
-                buyMenuCosts[x] = goods[Factory_getOutputType(facIndex)].normalCost >> 1;
+                buyMenuCosts[x] = goods[Factory_getOutputType(facIndex)].normalCost >> 1; // always half price
                 uint16ToString(buyMenuCosts[x], buyMenuCostsText[x]);
+                buyMenuGoodsIndex[x] = Factory_getOutputType(facIndex);
+                x++;
+            } else {
+                debugChar(1, 0);
             }
         }
         unsigned char responseBuy = getMenuChoice(
@@ -1027,8 +1037,11 @@ void cityMenuBuy(PlayerData *data)
             break;
         } else {
             if ((buyMenuCosts[responseBuy] < data->money) && 
-                (addCargoIfPossible(data, cities[currMap][cityNum-1].sellGoods[responseBuy-1].goodsIndex))) 
+                (addCargoIfPossible(data, buyMenuGoodsIndex[responseBuy])))
             {
+                if (factoryItemCount && (responseBuy == x-1)) {
+                    Factory_takeOutput(facIndex);
+                }
                 data->money -= buyMenuCosts[responseBuy];
                 cargoInAnimation();
                 Sound_doSound(SOUND_EFFECT_ROLLCAR);
@@ -1036,7 +1049,7 @@ void cityMenuBuy(PlayerData *data)
             }
             lastChoice = responseBuy;
         }
-    }       
+    }
 }
 
 void cityMenuSell(PlayerData *data) 
@@ -1751,6 +1764,7 @@ void initialiseGameVariables()
 {
     Quest_init();
     City_initCityVariables();
+    Factory_initFactoryStatuses();
 
     xScroll = 4;    // middle of scroll
     currScreen = 0; // start with Screen 0 (0x0400)
@@ -1807,7 +1821,6 @@ void startGame(char *name, unsigned char title)
 
     for (;;) {
         unsigned char backCol = vic.spr_backcol;
-        debugChar(3, backCol);
         if (backCol & (SPRITE_BALLOON_OUTLINE_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
             // Check the status. This loop can go around twice and count a collision each time.
             if (status & STATUS_SCROLLING) {
@@ -1828,8 +1841,6 @@ void startGame(char *name, unsigned char title)
             status &= ~STATUS_AIRDROP_ON;
         }
         unsigned char sprColl = vic.spr_sprcol;
-        debugChar(0, status);
-        debugChar(1, sprColl);
         if (status & STATUS_CITY_RAMP) {
             if ((sprColl & (SPRITE_RAMP_ENABLE | SPRITE_BALLOON_BG_ENABLE)) == (SPRITE_RAMP_ENABLE | SPRITE_BALLOON_BG_ENABLE)) {
                 // Collision with Ramp - GOOD

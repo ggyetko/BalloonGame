@@ -5,6 +5,10 @@
 #define FACTORY_H
 
 #define NUM_FACTORIES 4
+#define FACTORY_INDEX_0 0
+#define FACTORY_INDEX_1 1
+#define FACTORY_INDEX_2 2
+#define FACTORY_INDEX_3 3
 #define FACTORY_INDEX_NONE 255
 
 struct Factory {
