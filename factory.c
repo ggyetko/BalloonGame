@@ -6,10 +6,10 @@ const Factory factories[NUM_FACTORIES] = {
     // REFINED SMITHORE FACTORY
     {
     GOODS_SMITHORE,
-    NO_GOODS,
+    GOODS_COAL,
     GOODS_REFINED_SMITHORE,
     2,
-    0
+    1
     },
     // UKNOWN FACTORY
     {

@@ -5,9 +5,6 @@ struct Goods {
     char name[10];
     unsigned int normalCost;  // everyone charges this amount
     unsigned char variance;    // make it look kinda real with a bit of random wobble
-    unsigned char dummy1;
-    unsigned char dummy2;
-    unsigned char dummy3;
 };
 
 struct DemandedGoods {

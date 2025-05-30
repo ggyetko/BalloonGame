@@ -822,10 +822,14 @@ void invokeInternalFlame(char cycles, PlayerData *data)
 {
     flameDelay = cycles;
     vic.spr_enable |= SPRITE_UP_THRUST_ENABLE;
-    if (yVel < -205) {
+    byte vChange = 5 * data->balloonHealth + 10;
+    if ((data->balloonUpgrades & BALLOON_FIREPROOF) == 0) {
+        vChange = vChange >> worldTypeDamages[terrainEnvironment[currMap]].heatPowerFactor;
+    }
+    if (yVel - vChange < -255) {
         yVel = -255;
     } else {
-        yVel -= 5 * data->balloonHealth + 10;
+        yVel -= vChange;
     }
 }
 
@@ -1320,7 +1324,7 @@ void finishQuest(PlayerData *data, unsigned char questIndex)
         putText(
             &allQuests[questIndex].questConclusion[y*20],
             2,
-            y+4,
+            y+9,
             20,
             VCOL_WHITE);
     }
@@ -1583,6 +1587,12 @@ void landingOccurred(PlayerData *data)
 
     setupRasterIrqsWorkScreen();
     clearKeyboardCache();
+    
+    // Data handling
+    if (data->coldDamage) {
+        if (data->coldDamage < 50) { data->coldDamage = 0; }
+        else { data->coldDamage -= 50; }
+    }
     checkForLandingPassengers(data);
     cityMenu(data, tmpPsgrData);
     City_returnUnusedPassengers(tmpPsgrData);
@@ -1789,6 +1799,19 @@ void initialiseGameVariables()
     vic.spr_enable = 0;
 }
 
+void checkBalloonDamage(PlayerData *data)
+{
+    if((data->balloonUpgrades & BALLOON_ICEPROOF) == 0) {
+        if (worldTypeDamages[terrainEnvironment[currMap]].coldDamage) {
+            data->coldDamage += worldTypeDamages[terrainEnvironment[currMap]].coldDamage;
+            if (data->coldDamage >= 200) {
+                data->coldDamage = 0;
+                balloonDamage(data);
+            }
+        }
+    }
+}
+
 void startGame(char *name, unsigned char title)
 {
     initialiseGameVariables();
@@ -1798,8 +1821,8 @@ void startGame(char *name, unsigned char title)
     playerDataInit(&playerData, name, title);
     
     // DEBUG TBD
-    //playerData.knownMaps = 3;
-    //playerData.balloonUpgrades = BALLOON_PORTAL;
+    playerData.knownMaps = 3;
+    playerData.balloonUpgrades = BALLOON_PORTAL;
           
     // set up scoreboard
     showScoreBoard(&playerData);
@@ -1935,6 +1958,7 @@ void startGame(char *name, unsigned char title)
         }
         if (flip) {
             showScoreBoard(&playerData);
+            checkBalloonDamage(&playerData);
             char oldCoord = mapXCoord;
             mapXCoord += 1;
             if ((playerData.balloonUpgrades & BALLOON_PORTAL) && (isPortalSignallable (currMap, mapXCoord, &playerData))) {

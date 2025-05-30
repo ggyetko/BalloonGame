@@ -1,6 +1,11 @@
+#ifndef NAMED_GOODS_H
+#define NAMED_GOODS_H
+
 #include "goods.h"
 
-extern const struct Goods goods[40];
+#define NUM_GOODS 48
+
+extern const Goods goods[NUM_GOODS];
 
 #define GOODS_RICE    0
 #define GOODS_WHEAT   1
@@ -25,9 +30,14 @@ extern const struct Goods goods[40];
 #define GOODS_PORK 18
 #define GOODS_EGGS 19
 #define GOODS_QUAIL_EGGS 20
-#define GOODS_BOK_CHOY 21
-#define GOODS_BLACK_BEANS 22
+
+#define GOODS_BOK_CHOY 24
+#define GOODS_BLACK_BEANS 25
+#define GOODS_WINTER_MELON 26
 
 #define GOODS_GRUEL 24
+#define GOODS_COAL  25
 
 #define GOODS_CRYSTITE 31
+
+#endif

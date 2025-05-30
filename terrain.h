@@ -14,18 +14,26 @@ struct Palette {
     unsigned char rampColor;
     unsigned char inactiveTextColor;
 };
-struct WorldType {
-    unsigned char coldDamage;
-    unsigned char heatDamage;
+struct WorldTypeDamages {
+    unsigned char coldDamage;       // damage done to balloon. Ramps up to 200 before 1 hp is lost
+    unsigned char heatPowerFactor;  // how many bits to the right you shift upward thrust power
 };
-
-extern const WorldType[5];
+extern const WorldTypeDamages worldTypeDamages[5];
+enum WorldTypes {
+    WORLD_TYPE_NORMAL = 0,
+    WORLD_TYPE_COOL,
+    WORLD_TYPE_COLD,
+    WORLD_TYPE_WARM,
+    WORLD_TYPE_HOT,
+};
 
 extern const char terrainMapNames[NUM_TERRAINS][10];
 
 extern const Palette palette[NUM_TERRAINS];
 
-extern const char terrain[NUM_TERRAINS][256];
+extern const byte terrain[NUM_TERRAINS][256];
+
+extern const byte terrainEnvironment[NUM_TERRAINS];
 
 extern bool isPortalSignallable(unsigned char mapNum, unsigned char scrollPos, PlayerData *data);
 extern bool isPortalNear(unsigned char mapNum, unsigned char scrollPos, PlayerData *data);

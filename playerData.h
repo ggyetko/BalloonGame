@@ -1,6 +1,8 @@
 #ifndef PLAYER_DATA_H
 #define PLAYER_DATA_H
 
+#include <c64/types.h>
+
 #include "city.h"
 
 #define MAX_PASSENGERS          8
@@ -23,12 +25,14 @@ struct Cargo {
 
 struct PlayerData {
     char          name[10];
-    unsigned char title;
-    unsigned char balloonUpgrades;
+    byte title;
+    byte balloonUpgrades;
     unsigned int  fuel;  // fuel max out of 65535
     unsigned int  money;
-    unsigned char balloonHealth; // value out of 8
-    unsigned char knownMaps; // bitmap of maps
+    byte balloonHealth; // value out of 8
+    byte knownMaps; // bitmap of maps
+    byte coldDamage;
+    byte heatDamage;
     Cargo cargo;
 };
 

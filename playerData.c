@@ -14,6 +14,8 @@ void playerDataInit(PlayerData *data, char* tempName, unsigned char tempTitle){
     data->fuel = 20000;
     data->money = 1000;
     data->balloonHealth = MAX_BALLOON_HEALTH;
+    data->coldDamage = 0;
+    data->heatDamage = 0;
     // Cargo
     data->cargo.cargoSpace = MAX_CARGO_SPACE;
     data->cargo.currCargoCount = 0;

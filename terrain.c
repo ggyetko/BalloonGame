@@ -15,12 +15,12 @@ const Palette palette[NUM_TERRAINS] = {
     {VCOL_LT_BLUE, VCOL_GREEN, VCOL_WHITE, VCOL_WHITE, VCOL_DARK_GREY},
 };
 
-const WorldType[5] = {
+const WorldTypeDamages worldTypeDamages[5] = {
     {0,0},  // Normal World
-    {16,0}, // cool world
-    {64,0}, // ice world
-    {0,16}, // desert world
-    {0,64}, // volcanic world
+    {2,0}, // cool world
+    {10,0}, // ice world
+    {0,1}, // desert world
+    {0,2}, // volcanic world
 };
 
 const char terrainMapNames[NUM_TERRAINS][10] = {   
@@ -38,6 +38,18 @@ const char terrain[NUM_TERRAINS][256] ={
     #include "terrainFile.c"
 };
 
+const byte terrainEnvironment[NUM_TERRAINS] =
+{
+    WORLD_TYPE_NORMAL, 
+    WORLD_TYPE_COOL, 
+    WORLD_TYPE_WARM, 
+    WORLD_TYPE_NORMAL, 
+    WORLD_TYPE_COLD, 
+    WORLD_TYPE_HOT,
+    WORLD_TYPE_NORMAL,
+    WORLD_TYPE_NORMAL,
+};
+
 #define SCROLL_PORTAL_WARNING_DISTANCE 20
 struct PortalCoord {
     unsigned char scrollPos;
@@ -47,7 +59,7 @@ struct PortalCoord {
 // Not allowed to have a portal at 255
 PortalCoord portalCoord[NUM_TERRAINS][3] = {
     {{50,1},{TERRAIN_NO_PORTAL,0},{180,7}},
-    {{90,0},{180,2},{TERRAIN_NO_PORTAL,0}},
+    {{90,2},{180,0},{TERRAIN_NO_PORTAL,0}},
     {{85,1},{160,3},{TERRAIN_NO_PORTAL,0}},
     {{80,2},{160,4},{TERRAIN_NO_PORTAL,0}},
     {{100,3},{210,5},{TERRAIN_NO_PORTAL,0}},

@@ -3,6 +3,7 @@
 #include "city.h"
 #include "utils.h"
 #include "sound.h"
+#include "namedGoods.h"
 
 // if it's 0, this is a new quest, unknown to the user
 // if it's 1, this quest is 
@@ -12,11 +13,13 @@ unsigned char questBitmap[1] = {0};
 
 // constant quest data
 const Quest allQuests[QUEST_COUNT] = {
+    
+/// QUESTS FOR BASIC MAP
     {s"bronze    ",
      QUEST_TYPE_SELL | 0b00000001,        // Cloud City
      CITY_RESPECT_LOW,
      {0b00000011},        // Sirenia
-     9,                 // Bronze
+     GOODS_BRONZE,                 // Bronze
      2, // should be 20
      {REWARD_RESPECT_MED,0,0},
      //0---------0---------2---------0---------4---------0---------6---------0---------8---------0---------
@@ -38,7 +41,7 @@ const Quest allQuests[QUEST_COUNT] = {
     QUEST_TYPE_BUY | 0b00000010, // floria
     CITY_RESPECT_LOW,
     {0b00000010},        // floria
-    11,                  // iron
+    GOODS_IRON,          // iron
     5,
     {REWARD_RESPECT_MED,0,0},
     //0---------0---------2---------0---------4---------0---------6---------0---------8---------0---------
@@ -60,7 +63,7 @@ const Quest allQuests[QUEST_COUNT] = {
      QUEST_TYPE_SELL | 0b00000011,        // sirenia
      CITY_RESPECT_LOW,
      {0b00000010},        // floria
-     0,                   // Rice
+     GOODS_RICE,
      10, 
      {REWARD_RESPECT_MED,0,0},
      //0---------0---------2---------0---------4---------0---------6---------0---------8---------0---------
@@ -71,19 +74,18 @@ const Quest allQuests[QUEST_COUNT] = {
     QUEST_TYPE_BUY | 0b00000011, // sirenia
     CITY_RESPECT_MED,
     {0b00000011},        // sirenia
-    19,                  // eggs
+    GOODS_EGGS,
     10,
     {REWARD_RESPECT_HIGH,0,0},
     //0---------0---------2---------0---------4---------0---------6---------0---------8---------0---------
     s"our city needs ten  crates of eggs to   celebrate the summerfestival. please    find them for us.   ",
     s"our city is gratefulfor your efforts.                       "
     },   
-    
     {s"ice map   ",
-    QUEST_TYPE_BUY | 0b00000011, // sirenia
+    QUEST_TYPE_SELL | 0b00000011, // sirenia
     CITY_RESPECT_HIGH,
     {0b00000001},        // cloud city
-    22,                  // eggs
+    GOODS_BLACK_BEANS,
     20,
     {REWARD_MAP_ACCESS,1,0},
     //0---------0---------2---------0---------4---------0---------6---------0---------8---------0---------
@@ -91,6 +93,32 @@ const Quest allQuests[QUEST_COUNT] = {
     s"our city is gratefulfor your efforts.   here is our map.    "
     },    
     
+// ICELANDIA QUESTS
+    {s"heat coils",
+    QUEST_TYPE_BUY | 0b00000111, // hoth
+    CITY_RESPECT_LOW,
+    {0b00000111},        // hoth
+    GOODS_IRON,
+    5,
+    {REWARD_RESPECT_MED,1,0},
+    //0---------0---------2---------0---------4---------0---------6---------0---------8---------0---------
+    s"our heating systems are failing. repairsrequire 5 units of  iron. please find   and deliver them.   ",
+    s"our people are grateful. thank you for  helping us keep warm"
+    },    
+        
+    {s"greenhouse",
+    QUEST_TYPE_BUY | 0b00000111, // hoth
+    CITY_RESPECT_MED,
+    {0b00000111},        // hoth
+    GOODS_BRONZE,
+    5,
+    {REWARD_RESPECT_HIGH,1,0},
+    //0---------0---------2---------0---------4---------0---------6---------0---------8---------0---------
+    s"our heating systems are failing. repairsrequire 5 units of  bronze. please findand deliver them.    ",
+    s"our people are grateful. thank you for  helping us keep warm"
+    },    
+        
+
 };
 
 QuestLog questLog[MAX_QUESTS_IN_PROGRESS];

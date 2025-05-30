@@ -106,7 +106,7 @@ const CityData cities[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP] = {
             // Demands
             {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
             // For sale
-            {{0xff, 2, CITY_RESPECT_LOW, 2},
+            {{GOODS_WINTER_MELON, 2, CITY_RESPECT_LOW, 2},
              {0xff, 2, CITY_RESPECT_LOW, 1},
              {0xff, 2, CITY_RESPECT_MED,  1},
              {0xff, 2, CITY_RESPECT_HIGH, 1}
@@ -114,7 +114,7 @@ const CityData cities[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP] = {
         },
         {s"granzam   ", 0, FACTORY_INDEX_NONE,
             {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
-            {{0xff, 2, CITY_RESPECT_LOW, 2},
+            {{GOODS_BOK_CHOY, 2, CITY_RESPECT_LOW, 2},
              {0xff, 2, CITY_RESPECT_LOW, 1},
              {0xff, 2, CITY_RESPECT_MED,  1},
              {0xff, 2, CITY_RESPECT_HIGH, 1}
@@ -122,7 +122,7 @@ const CityData cities[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP] = {
         },
         {s"hoth      ", 0, FACTORY_INDEX_NONE,
             {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
-            {{0xff, 2, CITY_RESPECT_LOW, 2},
+            {{GOODS_WINTER_MELON, 2, CITY_RESPECT_LOW, 2},
              {0xff, 2, CITY_RESPECT_LOW, 1},
              {0xff, 2, CITY_RESPECT_MED,  1},
              {0xff, 2, CITY_RESPECT_HIGH, 1}
@@ -231,13 +231,20 @@ const CityData cities[CITY_MAPS_COUNT][CITY_NUM_CITIES_PER_MAP] = {
              {0xff, 2, CITY_RESPECT_HIGH, 1}
             }
         },
-        {s"forge     ", 0, FACTORY_INDEX_NONE,
+        {s"forge     ", 0, FACTORY_INDEX_REFINED_SMITHORE,
             {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
             {{0xff, 2, CITY_RESPECT_LOW, 2},
              {0xff, 2, CITY_RESPECT_LOW, 1},
              {0xff, 2, CITY_RESPECT_MED,  1},
              {0xff, 2, CITY_RESPECT_HIGH, 1}
-            } 
+            },
+            //01234567890123456789
+            s"our city boasts a   "
+            s"factory which can   "
+            s"refine smithore. we "
+            s"need two units of   "
+            s"smithore and one of "
+            s"coal to do so.      "
         },
         {s"ash peak  ", 0, FACTORY_INDEX_NONE,
             {{0xff,0},{0xff,0},{0xff,0},{0xff,0}},
